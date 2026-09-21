@@ -1,0 +1,1223 @@
+/* ============================================================
+   css/detail.css — Project Detail Page Styles
+   Inherits design tokens from css/style.css
+   ============================================================ */
+
+/* detail.css automatically inherits design tokens from css/style.css */
+
+/* ── Detail Page: Auto-hide / reveal nav ──
+   .nav--hidden  : 스크롤 다운 → 헤더 위로 슬라이드 아웃
+   .nav--peek    : 마우스를 화면 최상단에 올리거나 스크롤 업 → 자연스럽게 복귀
+   transition 을 transform + opacity 이중으로 써서 부드러운 느낌 유지
+*/
+.detail-page .nav {
+  transition:
+    transform 0.42s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity   0.42s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.3s ease,
+    box-shadow 0.3s ease;
+}
+.detail-page .nav--hidden {
+  transform: translateY(-110%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Initial transparent state for detail page nav (matches home page) */
+.detail-page .nav:not(.scrolled) {
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-bottom-color: transparent;
+  box-shadow: none;
+}
+.detail-page .nav--peek {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Sticky Project Bar (Smart Header Swap) ── */
+.project-bar {
+  position: fixed;
+  top: 0; /* 메인 nav와 동일하게 화면 최상단 기준 */
+  left: 0; right: 0;
+  z-index: 90;
+  background: rgba(255,255,255,0.96);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+  box-shadow: 0 0.25rem 1rem rgba(0,0,0,0.06);
+}
+
+
+/* 메인 nav가 숨겨지고(& 히어로 아래로 내려갔을 때) 프로젝트 바가 그 자리를 스무스하게 채움 */
+.detail-page .nav--hidden ~ .project-bar.visible {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.project-bar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 3.5rem; /* 56px -> 3.5rem */
+}
+
+.project-bar__left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+.project-bar__right {
+  display: flex;
+  align-items: center;
+}
+
+/* 미니멀리즘 고스트 텍스트 버튼 (못생긴 알약 테두리 제거) */
+.project-bar__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1; /* 높이값 초기화로 완벽한 세로 정렬 달성 */
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: 0.25rem 0;
+  transition: color 0.25s ease;
+}
+.project-bar__back svg {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0.8;
+}
+.project-bar__back:hover { 
+  color: var(--text); 
+}
+.project-bar__back:hover svg {
+  transform: translateX(-3px);
+  opacity: 1;
+}
+
+.project-bar__divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+}
+
+/* 프로젝트 바 제목 및 정보 텍스트 (에디토리얼 스타일) */
+.project-bar__title {
+  font-weight: 700;
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: relative;
+  top: 1px; /* 폰트 베이스라인 광학 보정 */
+}
+.project-bar__tags {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+  line-height: 1;
+  padding-left: 1rem;
+  position: relative;
+  top: 1px; /* 폰트 베이스라인 광학 보정 */
+}
+.project-bar .tag { font-size: 0.6rem; padding: 0.2rem 0.5rem; }
+
+/* Reading progress bar */
+.read-progress {
+  position: absolute;
+  bottom: 0; left: 0;
+  height: 2px;
+  background: var(--accent);
+  width: 0%;
+  transition: width 0.1s linear;
+}
+
+/* ── Section 1: Hero Redesign (Split Layout) ── */
+.dh-hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: calc(var(--nav-h) + 5rem) 0 6.5rem;
+  background-color: #FFFFFF;
+  background-image: radial-gradient(rgba(0, 0, 0, 0.04) 1.5px, transparent 0);
+  background-size: 2rem 2rem;
+  box-shadow: 0 1.25rem 2.5rem -1.25rem rgba(0,0,0,0.04);
+  border-bottom: 1px solid rgba(0,0,0,0.02);
+
+  overflow: hidden;
+}
+.dh-hero::before {
+  content: '';
+  position: absolute;
+  top: -10%;
+  right: -5%;
+  width: 50rem;
+  height: 50rem;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.06) 0%, transparent 70%);
+
+  z-index: 0;
+  pointer-events: none;
+}
+
+.dh-hero__inner {
+  display: grid;
+  grid-template-columns: 3.8fr 6.2fr; /* Shifted to 4:6 ratio for visual dominance */
+  gap: 4rem;
+  align-items: center;
+}
+.dh-hero__text {
+  position: relative;
+  z-index: 2;
+  animation: fadeUp 0.8s ease both;
+}
+.dh-hero__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 0.625rem 1.25rem;
+  border-radius: 999px;
+  margin-bottom: 2.5rem;
+  transition: var(--transition);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.dh-hero__back:hover { 
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+.dh-hero__back svg { color: var(--accent); }
+
+.dh-hero__tags {
+  display: flex;
+  gap: 0.375rem;
+  margin-bottom: 1.5rem;
+}
+.tag--light {
+  background: var(--accent-soft) !important;
+  color: var(--accent) !important;
+  border: 1px solid rgba(59,130,246,0.1);
+  font-weight: 700;
+}
+.dh-hero__title {
+  font-size: 3rem; /* Updated to 3rem as requested */
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.04em; /* Tightened for professional look */
+}
+.dh-hero__title--accent {
+  color: var(--accent);
+}
+
+.dh-hero__summary {
+  font-size: clamp(1rem, 1.8vw, 1.0625rem);
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 3.5rem;
+  max-width: 28.75rem; /* 460px -> 28.75rem */
+}
+
+.dh-hero__summary strong { color: var(--text-primary); font-weight: 700; }
+
+.dh-hero__meta {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 1.5rem;
+  row-gap: 1.5rem;
+  border-top: 1px solid var(--border);
+  padding-top: 2rem;
+  max-width: 27.5rem; /* 440px -> 27.5rem */
+}
+
+.dh-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+.dh-meta-item__icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  background: rgba(37, 99, 235, 0.05);
+  color: rgba(37, 99, 235, 0.7);
+  border-radius: 0.5625rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+.dh-meta-item__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.dh-meta-item__label {
+  font-size: 0.725rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  letter-spacing: 0.02em;
+  color: var(--text-tertiary);
+}
+.dh-meta-item__val {
+  font-size: 0.8375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.25;
+}
+
+/* Hero Visual Card */
+.dh-hero__visual {
+  position: relative;
+  z-index: 1;
+  animation: fadeUp 0.8s 0.2s ease both;
+}
+.dh-visual-wrap.dh-visual-wrap--hero {
+  max-width: 51.25rem;
+  margin-left: auto;
+  background:
+    radial-gradient(ellipse at 30% 40%, rgba(56, 189, 248, 0.18) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 60%, rgba(14, 165, 233, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(125, 211, 252, 0.08) 0%, transparent 60%),
+    linear-gradient(135deg, #e0f2fe 0%, #e6f4fe 35%, #d4edfc 65%, #dff0fe 100%);
+  background-size: 200% 200%;
+  animation: heroGradientDrift 16s ease-in-out infinite alternate;
+}
+
+/* Floating Orb — soft cyan shimmer */
+.dh-visual-wrap--hero::before {
+  content: '';
+  position: absolute;
+  width: 65%;
+  height: 75%;
+  top: -20%;
+  left: -15%;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.22) 0%, rgba(14, 165, 233, 0.06) 40%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(40px);
+  animation: heroOrb1 12s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Floating Orb 2 — deep blue accent */
+.dh-visual-wrap--hero::after {
+  content: '';
+  position: absolute;
+  width: 55%;
+  height: 65%;
+  bottom: -25%;
+  right: -15%;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.18) 0%, rgba(56, 189, 248, 0.04) 45%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(45px);
+  animation: heroOrb2 18s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dh-visual-wrap--hero img {
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes heroGradientDrift {
+  0%   { background-position: 0% 0%; }
+  25%  { background-position: 80% 20%; }
+  50%  { background-position: 40% 80%; }
+  75%  { background-position: 90% 50%; }
+  100% { background-position: 100% 100%; }
+}
+@keyframes heroOrb1 {
+  0%   { transform: translate(0, 0) scale(1); opacity: 0.6; }
+  33%  { transform: translate(35%, 25%) scale(1.2); opacity: 1; }
+  66%  { transform: translate(15%, 45%) scale(0.9); opacity: 0.75; }
+  100% { transform: translate(45%, 15%) scale(1.15); opacity: 0.85; }
+}
+@keyframes heroOrb2 {
+  0%   { transform: translate(0, 0) scale(1); opacity: 0.5; }
+  33%  { transform: translate(-30%, -20%) scale(1.25); opacity: 0.85; }
+  66%  { transform: translate(-15%, -40%) scale(0.85); opacity: 0.65; }
+  100% { transform: translate(-35%, -25%) scale(1.1); opacity: 0.8; }
+}
+
+/* ── Per-Theme Hero Gradient Overrides ──
+   index.html 목록 카드(nth-child)의 팔레트와 1:1 매핑
+   ─────────────────────────────────────────────────── */
+
+/* Theme: indigo — Card 2 (공공 AX) Indigo/Soft Violet */
+[data-theme="indigo"] .dh-visual-wrap--hero {
+  background:
+    radial-gradient(ellipse at 25% 35%, rgba(99, 102, 241, 0.16) 0%, transparent 50%),
+    radial-gradient(ellipse at 75% 65%, rgba(129, 140, 248, 0.10) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(165, 180, 252, 0.08) 0%, transparent 60%),
+    linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 35%, #ede9fe 65%, #e8e5ff 100%);
+}
+[data-theme="indigo"] .dh-visual-wrap--hero::before {
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, rgba(129, 140, 248, 0.06) 40%, transparent 70%);
+}
+[data-theme="indigo"] .dh-visual-wrap--hero::after {
+  background: radial-gradient(circle, rgba(129, 140, 248, 0.18) 0%, rgba(99, 102, 241, 0.04) 45%, transparent 70%);
+}
+
+/* Theme: emerald — Card 3 (디자인 시스템) Emerald/Mint */
+[data-theme="emerald"] .dh-visual-wrap--hero {
+  background:
+    radial-gradient(ellipse at 35% 30%, rgba(52, 211, 153, 0.16) 0%, transparent 50%),
+    radial-gradient(ellipse at 65% 70%, rgba(16, 185, 129, 0.10) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(110, 231, 183, 0.08) 0%, transparent 60%),
+    linear-gradient(135deg, #d1fae5 0%, #ccfbf1 35%, #e0fdf4 65%, #d8fdf0 100%);
+}
+[data-theme="emerald"] .dh-visual-wrap--hero::before {
+  background: radial-gradient(circle, rgba(52, 211, 153, 0.22) 0%, rgba(16, 185, 129, 0.06) 40%, transparent 70%);
+}
+[data-theme="emerald"] .dh-visual-wrap--hero::after {
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, rgba(52, 211, 153, 0.04) 45%, transparent 70%);
+}
+
+/* Theme: violet — Card 4 (핀테크) Violet/Rose */
+[data-theme="violet"] .dh-visual-wrap--hero {
+  background:
+    radial-gradient(ellipse at 30% 45%, rgba(167, 139, 250, 0.16) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 55%, rgba(244, 114, 182, 0.10) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(196, 181, 253, 0.08) 0%, transparent 60%),
+    linear-gradient(135deg, #ede9fe 0%, #fce7f3 35%, #f5f3ff 65%, #fdf2f8 100%);
+}
+[data-theme="violet"] .dh-visual-wrap--hero::before {
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.22) 0%, rgba(244, 114, 182, 0.06) 40%, transparent 70%);
+}
+[data-theme="violet"] .dh-visual-wrap--hero::after {
+  background: radial-gradient(circle, rgba(244, 114, 182, 0.18) 0%, rgba(167, 139, 250, 0.04) 45%, transparent 70%);
+}
+
+/* Theme: amber — Card 5 (B2B SaaS) Amber/Warm Gold */
+[data-theme="amber"] .dh-visual-wrap--hero {
+  background:
+    radial-gradient(ellipse at 35% 40%, rgba(251, 191, 36, 0.14) 0%, transparent 50%),
+    radial-gradient(ellipse at 65% 60%, rgba(245, 158, 11, 0.10) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(253, 224, 71, 0.08) 0%, transparent 60%),
+    linear-gradient(135deg, #fef3c7 0%, #fde68a40 35%, #fffbeb 65%, #fefce8 100%);
+}
+[data-theme="amber"] .dh-visual-wrap--hero::before {
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.20) 0%, rgba(245, 158, 11, 0.06) 40%, transparent 70%);
+}
+[data-theme="amber"] .dh-visual-wrap--hero::after {
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.16) 0%, rgba(251, 191, 36, 0.04) 45%, transparent 70%);
+}
+
+/* Theme: coral — Card 6 (온보딩 UX) Coral/Peach */
+[data-theme="coral"] .dh-visual-wrap--hero {
+  background:
+    radial-gradient(ellipse at 30% 35%, rgba(251, 146, 60, 0.14) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 65%, rgba(248, 113, 113, 0.10) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(253, 186, 116, 0.08) 0%, transparent 60%),
+    linear-gradient(135deg, #ffedd5 0%, #fee2e2 35%, #fff7ed 65%, #fef3ec 100%);
+}
+[data-theme="coral"] .dh-visual-wrap--hero::before {
+  background: radial-gradient(circle, rgba(251, 146, 60, 0.20) 0%, rgba(248, 113, 113, 0.06) 40%, transparent 70%);
+}
+[data-theme="coral"] .dh-visual-wrap--hero::after {
+  background: radial-gradient(circle, rgba(248, 113, 113, 0.16) 0%, rgba(251, 146, 60, 0.04) 45%, transparent 70%);
+}
+
+.dh-hero__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.dh-hero__visual::after {
+  content: '';
+  position: absolute;
+  top: -12%; right: -12%;
+  width: 550px; height: 550px;
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(37, 99, 235, 0.14) 0%, transparent 60%),
+    radial-gradient(circle at 70% 70%, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+  z-index: -1;
+  filter: blur(70px);
+  animation: glowPulse 6s ease-in-out infinite alternate;
+  mix-blend-mode: screen;
+}
+@keyframes glowPulse {
+  from { opacity: 0.7; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1.05); }
+}
+
+
+/* ── [Cleanup] Legacy Section Utilities Removed ── */
+
+/* ── Highlight Block (Strategy/Rationale) ── */
+
+/* ── [Cleanup] Final Legacy Components Removed ── */
+
+/* ── Next Projects ── */
+.next-projects { padding: 4rem 0; border-top: 1px solid var(--border); background: #FAFAFA; }
+.next-projects__label { font-size: 0.75rem; font-weight: 800; letter-spacing: 0.15em; color: var(--accent); display: block; margin-bottom: 2rem; }
+.next-projects__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+.next-card {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+  padding: 1.5rem;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s, border-color 0.3s;
+  color: inherit;
+  position: relative;
+  overflow: hidden;
+}
+.next-card:hover { transform: translateY(-0.375rem); box-shadow: 0 1.25rem 3rem rgba(59,130,246,0.12); border-color: rgba(59,130,246,0.25); }
+
+.next-card__visual { 
+  width: 9rem; 
+  height: 6rem; 
+  border-radius: 12px; 
+  flex-shrink: 0; 
+  position: relative;
+  overflow: hidden;
+  background: #f8f9fa;
+  /* Sync with hero visuals */
+  background-size: 200% 200%;
+  animation: heroGradientDrift 16s ease-in-out infinite alternate;
+}
+
+.next-card__visual img {
+  position: absolute;
+  inset: -3%; /* Zoomed in further */
+  width: 106%;
+  height: 106%;
+  object-fit: contain;
+  z-index: 3;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 8px 16px rgba(0,0,0,0.1));
+}
+
+.next-card:hover .next-card__visual img {
+  transform: translateZ(0) scale(1.1);
+}
+
+/* Replicate Orbs for miniature visual */
+.next-card__visual::before,
+.next-card__visual::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(20px);
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.8;
+}
+
+.next-card__visual::before {
+  width: 80%; height: 80%;
+  top: -20%; left: -20%;
+  animation: heroOrb1 12s ease-in-out infinite alternate;
+}
+
+.next-card__visual::after {
+  width: 70%; height: 70%;
+  bottom: -25%; right: -15%;
+  animation: heroOrb2 18s ease-in-out infinite alternate;
+}
+
+/* Theme Mappings for next-card__visual */
+/* Default (Cyan) */
+.next-card[data-next-theme="cyan"] .next-card__visual,
+.next-card:not([data-next-theme]) .next-card__visual {
+  background: linear-gradient(135deg, #e0f2fe 0%, #e6f4fe 35%, #d4edfc 65%, #dff0fe 100%);
+}
+.next-card[data-next-theme="cyan"] .next-card__visual::before { background: radial-gradient(circle, rgba(56, 189, 248, 0.22) 0%, transparent 70%); }
+.next-card[data-next-theme="cyan"] .next-card__visual::after { background: radial-gradient(circle, rgba(14, 165, 233, 0.18) 0%, transparent 70%); }
+
+/* Indigo */
+.next-card[data-next-theme="indigo"] .next-card__visual {
+  background: linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 35%, #ede9fe 65%, #e8e5ff 100%);
+}
+.next-card[data-next-theme="indigo"] .next-card__visual::before { background: radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, transparent 70%); }
+.next-card[data-next-theme="indigo"] .next-card__visual::after { background: radial-gradient(circle, rgba(129, 140, 248, 0.18) 0%, transparent 70%); }
+
+/* Emerald */
+.next-card[data-next-theme="emerald"] .next-card__visual {
+  background: linear-gradient(135deg, #d1fae5 0%, #ccfbf1 35%, #e0fdf4 65%, #d8fdf0 100%);
+}
+.next-card[data-next-theme="emerald"] .next-card__visual::before { background: radial-gradient(circle, rgba(52, 211, 153, 0.22) 0%, transparent 70%); }
+.next-card[data-next-theme="emerald"] .next-card__visual::after { background: radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, transparent 70%); }
+
+/* Violet */
+.next-card[data-next-theme="violet"] .next-card__visual {
+  background: linear-gradient(135deg, #ede9fe 0%, #fce7f3 35%, #f5f3ff 65%, #fdf2f8 100%);
+}
+.next-card[data-next-theme="violet"] .next-card__visual::before { background: radial-gradient(circle, rgba(167, 139, 250, 0.22) 0%, transparent 70%); }
+.next-card[data-next-theme="violet"] .next-card__visual::after { background: radial-gradient(circle, rgba(244, 114, 182, 0.18) 0%, transparent 70%); }
+
+
+
+
+
+.next-card__info { flex: 1; }
+.next-card__pretitle { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; color: var(--text-tertiary); margin-bottom: 0.375rem; }
+.next-card__title  { font-size: 1.125rem; font-weight: 700; color: #212529; margin-bottom: 0.25rem; }
+.next-card__meta   { font-size: 0.8125rem; color: var(--text-tertiary); }
+.next-card__arrow { width: 44px; height: 44px; background: var(--accent-soft); color: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: var(--transition); }
+.next-card:hover .next-card__arrow { background: var(--accent); color: #fff; transform: translateX(4px); }
+
+
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .dh-hero__inner { gap: 3rem; }
+  .kpi-row { grid-template-columns: repeat(2, 1fr); }
+  .reflection-grid { grid-template-columns: 1fr 1fr; }
+  .reflection-card--highlight { grid-column: 1 / -1; }
+  .ux-rationale__grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 900px) {
+  .dh-hero { min-height: auto; padding: calc(var(--nav-h) + 4rem) 0 4rem; }
+  .dh-hero__inner { grid-template-columns: 1fr; gap: 3rem; text-align: left; }
+  .dh-hero__img-wrapper { max-width: none; }
+  .dh-hero__summary { max-width: none; }
+  .problem-layout { grid-template-columns: 1fr; gap: 2.5rem; }
+  .ba-grid { grid-template-columns: 1fr; }
+  .ba-arrow { padding-top: 0; font-size: 1.5rem; }
+}
+@media (max-width: 640px) {
+  .dh-hero { padding: calc(var(--nav-h) + 3rem) 0 3rem; }
+  .dh-hero__title { font-size: 2.25rem; }
+  .dh-hero__meta { gap: 1.25rem; }
+  .dh-section { padding: 5rem 0; }
+  .kpi-row { grid-template-columns: 1fr 1fr; }
+  .reflection-grid { grid-template-columns: 1fr; }
+  .ux-rationale__grid { grid-template-columns: 1fr; }
+  .next-projects__grid { grid-template-columns: 1fr; }
+  .next-card { flex-wrap: wrap; }
+  .project-bar__title { display: none; }
+}
+
+/* ============================================================
+   ── NEW: PROFESSIONAL CASE STUDY SYSTEM (.cs-) ──
+   ============================================================ */
+
+/* ── 1. Layout & Rhythm ── */
+.cs-section {
+  padding: 6rem 0;
+  background: #FFFFFF;
+  position: relative;
+  overflow: hidden;
+}
+.cs-section--alt { background: #F7F9FC; } /* 매우 미세한 청회색 */
+.cs-section--bg-subtle { background: #FAFAFA; } /* 매우 미세한 회색 */
+
+
+/* ── 2. Standardized Headers ── */
+.cs-header {
+  margin-bottom: 2.25rem; /* Reduced from 3.25rem for tighter layout */
+  width: 100%;
+}
+/* Removed .cs-header--center to enforce consistent left-alignment */
+.cs-label {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+  margin-bottom: 1rem;
+}
+.cs-title {
+  font-size: clamp(1.625rem, 3.8vw, 2.5rem); /* Nudged down slightly for better visual balance */
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--text-primary);
+  margin-bottom: 1.25rem;
+  letter-spacing: -0.03em;
+}
+
+.cs-lead {
+  font-size: clamp(0.9375rem, 1.5vw, 1.0625rem); /* Nudged down slightly more for better suppression */
+  line-height: 1.7;
+  color: #6B7280;
+  letter-spacing: -0.01em;
+}
+
+/* ── 3. Overview Ribbon (The TL;DR) ── */
+.cs-overview {
+  padding: 3rem 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.cs-overview__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2.5rem;
+}
+.cs-overview__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.cs-overview__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  letter-spacing: 0.1em;
+}
+.cs-overview__val {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+/* ── 4. Modular Grid System ── */
+.cs-grid {
+  display: grid;
+  gap: 3rem;
+  align-items: stretch;
+}
+.cs-grid--2 { grid-template-columns: repeat(2, 1fr); }
+.cs-grid--3 { grid-template-columns: repeat(3, 1fr); }
+.cs-grid--4 { grid-template-columns: repeat(4, 1fr); }
+.cs-grid--73 { grid-template-columns: 7fr 3fr; }
+.cs-grid--64 { grid-template-columns: 6.5fr 3.5fr; }
+.cs-grid--46 { grid-template-columns: 3.5fr 6.5fr; }
+.cs-grid--center { align-items: center; }
+
+/* ── 4a. Core Visual Utilities (Re-refined) ── */
+.dh-visual-wrap {
+  position: relative;
+  border-radius: 1.75rem; /* 28px -> 1.75rem */
+  background: #F1F3F5;
+  box-shadow: 
+    0 0.0625rem 0.1875rem rgba(0,0,0,0.05),
+    0 1.5rem 4rem rgba(0,0,0,0.08); 
+  border: 1px solid rgba(0,0,0,0.04);
+
+  overflow: hidden; /* Critical for corner clipping */
+  width: 100%;
+  aspect-ratio: 4 / 3;
+}
+.dh-visual-wrap.mt-4 { aspect-ratio: 4 / 2.25; }
+.dh-visual-wrap--wide { 
+  aspect-ratio: 1656 / 720; 
+
+  background: #F1F3F5;
+  box-shadow: 
+    0 0.0625rem 0.1875rem rgba(0,0,0,0.05),
+    0 1.5rem 4rem rgba(0,0,0,0.08);
+  border: 1px solid rgba(0,0,0,0.04);
+  border-radius: 1.75rem;
+}
+
+
+
+
+.dh-visual-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+
+
+
+/* ── 5. Component: Cards & Insights ── */
+.cs-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2.4rem;
+  height: 100%;
+}
+
+.cs-card__icon {
+  width: 44px;
+  height: 44px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.05);
+  overflow: hidden; /* Ensure images don't bleed out if unrounded */
+}
+
+.cs-card__icon img {
+  width: 60%;
+  height: 60%;
+  object-fit: contain;
+}
+
+.cs-card__title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+}
+.cs-card__text {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ── 5a. Component: Summary Group ── */
+.cs-summary-group {
+  background: #f1f3f5; /* 한 톤 더 진한 배경으로 그룹핑 강조 */
+  border-radius: 1.5rem;
+  padding: 1.75rem;
+  margin-bottom: 3rem;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); /* 살짝 눌린 듯한 깊이감 */
+}
+.cs-summary-group__title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+}
+
+/* 요약 그룹 내의 카드는 일반 카드와 차별화된 디자인 (보더 제거, 그림자 강조) */
+.cs-summary-group .cs-card {
+  background: #ffffff;
+  border: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  border-radius: 1.25rem;
+}
+
+/* ── 6. Component: Strategy / Decision Hook ── */
+.cs-hook {
+  padding: 1.5rem 1.75rem;
+  background: var(--accent-soft);
+  border-left: 4px solid var(--accent);
+  border-radius: 4px var(--radius-md) var(--radius-md) 4px;
+  margin-top: 1.5rem;
+}
+.cs-hook__label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--accent);
+  margin-bottom: 0.35rem;
+  display: block;
+}
+.cs-hook__text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* ── 7. Component: Comparison (Before & After) ── */
+.cs-comparison {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  column-gap: 2rem;
+  row-gap: 1.5rem; /* Gap between image row and text row */
+  margin-top: 4rem;
+}
+.cs-comp-group {
+  display: contents; /* Groups participate in parent grid on desktop */
+}
+
+/* Explicitly place items in the 3x2 grid */
+.cs-comp-item--before { grid-column: 1; grid-row: 1; }
+.cs-comp-item--after  { grid-column: 3; grid-row: 1; }
+.cs-comp-item__meta--before { grid-column: 1; grid-row: 2; }
+.cs-comp-item__meta--after  { grid-column: 3; grid-row: 2; }
+
+/* ── 5.1 Modifier: No Arrow (Parallel Layout) ── */
+.cs-comparison--no-arrow {
+  grid-template-columns: 1fr 1fr;
+  column-gap: 3rem;
+}
+.cs-comparison--no-arrow .cs-comp-item--after { grid-column: 2; }
+.cs-comparison--no-arrow .cs-comp-item__meta--after { grid-column: 2; }
+
+.cs-comparison__arrow {
+  grid-column: 2;
+  grid-row: 1; /* Locked to image row */
+  align-self: center; /* Perfectly centers against image height */
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  opacity: 0.3;
+}
+.cs-comparison__arrow svg { width: 24px; height: 24px; }
+
+.cs-comp-item {
+  position: relative;
+}
+.cs-comp-item__tag {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  padding: 0.45rem 1rem;
+  border-radius: 50px;
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  z-index: 2;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.15);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.cs-comp-item--before .cs-comp-item__tag { background: rgba(15, 23, 42, 0.6); color: #fff; }
+.cs-comp-item--after .cs-comp-item__tag  { background: var(--accent); color: #fff; }
+
+/* In parallel mode, both tags use the accent color */
+.cs-comparison--no-arrow .cs-comp-item--before .cs-comp-item__tag { background: var(--accent); }
+.cs-comparison--no-arrow .cs-comp-item__meta--before { color: inherit; }
+
+.cs-comp-item__title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+.cs-comp-item__desc {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ── 8. Component: KPI Ribbon ── */
+.cs-kpi {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  padding: 2.25rem 0;
+  background: var(--text-primary);
+  border-radius: var(--radius-lg);
+  color: #fff;
+  margin: 3rem 0;
+  box-shadow: 0 20px 48px rgba(0,0,0,0.1);
+}
+.cs-kpi__item { 
+  text-align: left; 
+  padding: 0 2.5rem; /* Reduced from 4rem */
+}
+.cs-kpi__item:not(:last-child) {
+  border-right: 1px solid rgba(255,255,255,0.1); /* Subtle professional separator */
+}
+.cs-kpi__val {
+  display: block;
+  font-size: 2.5rem; /* Reduced from 3.25rem */
+  font-weight: 800;
+  margin-bottom: 0.25rem;
+  color: var(--accent);
+  letter-spacing: -0.02em;
+}
+.cs-kpi__label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+/* ── 9. Utilities & Helpers ── */
+.mt-4 { margin-top: 1.5rem !important; } /* Tightened further to 1.5rem as requested */
+.mt-0 { margin-top: 0 !important; }
+.gap-15 { gap: 1.5rem !important; }
+.flex-col { display: flex; flex-direction: column; }
+.padding-sm { padding: 1.75rem !important; }
+.mb-15 { margin-bottom: 1.5rem !important; }
+.pt-0 { padding-top: 0 !important; }
+.pb-0 { padding-bottom: 0 !important; }
+
+
+/* ── 10. Individual Component Adjustments ── */
+.cs-header h3 {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+/* ── Responsive Behavior ── */
+@media (max-width: 64em) {
+  /* Unified Hero Stacking - Full Width */
+  .dh-hero { display: block; min-height: auto; padding: calc(var(--nav-h) + 4rem) 0 4rem; }
+  .dh-hero__inner { display: grid; grid-template-columns: 1fr; width: 100%; gap: 3rem; justify-items: stretch; }
+  .dh-hero__text, .dh-hero__summary, .dh-hero__meta, .dh-visual-wrap--hero { 
+    max-width: none; 
+    width: 100%; 
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  /* Grid Stacking Fix: Image First on Mobile for split grids */
+  .cs-grid--73, .cs-grid--64, .cs-grid--46 { 
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 2.5rem;
+  }
+}
+
+@media (max-width: 56.25em) {
+  /* Comparison Stacking Fix */
+  .cs-comparison { grid-template-columns: 1fr; gap: 2rem; }
+  .cs-comp-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .cs-comp-item, .cs-comp-item__meta, .cs-comparison__arrow {
+    grid-column: auto;
+    grid-row: auto;
+  }
+  .cs-comparison__arrow { 
+    transform: rotate(90deg); 
+    margin: 0 auto;
+    opacity: 0.5;
+  }
+}
+
+@media (max-width: 48em) {
+  .cs-section { padding: 4rem 0; }
+  .cs-grid--2, .cs-grid--3 { grid-template-columns: 1fr; }
+  .cs-overview__grid { grid-template-columns: 1fr; }
+  .cs-kpi { grid-template-columns: 1fr; padding: 2.25rem 1.5rem; gap: 2rem; }
+  .cs-kpi__item { border: none !important; }
+}
+
+@media (max-width: 30em) {
+  .next-card { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .next-card__thumb { width: 100%; height: 10rem; }
+  .next-card__arrow { position: absolute; top: 1.5rem; right: 1.5rem; background: #fff; }
+}
+
+/* ── 6. Component: Image Tabs (Redesigned Capsule Style) ── */
+.cs-tabs-container {
+  margin-top: 2.5rem;
+}
+.cs-tabs {
+  display: inline-flex;
+  gap: 0; /* Gap managed by padding/position for cleaner transition */
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.35rem;
+  border-radius: 999px;
+  margin-bottom: 0;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0,0,0,0.06);
+  position: relative; /* Base for indicator */
+  
+  /* Responsive Scroll Capability */
+  overflow-x: auto;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+}
+
+.cs-tabs::-webkit-scrollbar {
+  display: none; /* WebKit */
+}
+
+/* ── Sliding Indicator ── */
+.cs-tab-indicator {
+  position: absolute;
+  top: 0.35rem;
+  bottom: 0.35rem;
+  left: 0.35rem;
+  background: #fff;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+  transition: all 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 1;
+}
+
+.cs-tab-btn {
+  background: none;
+  border: none;
+  padding: 0.625rem 1.75rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border-radius: 999px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  position: relative;
+  z-index: 2; /* Content above indicator */
+}
+.cs-tab-btn:hover:not(.active) { 
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.cs-tabs-container {
+  margin-top: 0;
+  text-align: left;
+}
+
+.cs-tabs-controls {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  margin-bottom: 0;
+  padding-left: 0.5rem;
+}
+
+.cs-tabs {
+  display: inline-flex;
+  gap: 0;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.35rem;
+  border-radius: 999px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0,0,0,0.08);
+  position: relative;
+  z-index: 5;
+
+  /* Sync scroll behavior */
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.cs-tabs::-webkit-scrollbar { display: none; }
+
+/* ── Tab CTA Hint (Right Side Bubble) ── */
+.cs-tabs-hint {
+  position: absolute;
+  left: calc(100% + 1.25rem);
+  top: 50%;
+  transform: translateY(-50%) scale(0.5);
+  white-space: nowrap;
+  
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background: #fff;
+  border-radius: 999px;
+  border: 1px solid rgba(37, 99, 235, 0.15);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+  font-size: 0.8rem; /* Slightly increased from 0.725rem */
+  font-weight: 700;
+  color: var(--accent);
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+/* Slimmed down left-pointing tail */
+.cs-tabs-hint::before {
+  content: '';
+  position: absolute;
+  left: -4px; /* Scaled down for 8px square */
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+  width: 8px; /* Reduced from 10px */
+  height: 8px; /* Reduced from 10px */
+  background: #fff;
+  border-left: 1px solid rgba(37, 99, 235, 0.12);
+  border-bottom: 1px solid rgba(37, 99, 235, 0.12);
+  z-index: -1;
+}
+
+.cs-tabs-container.in-view .cs-tabs-hint {
+  animation: hint-boing-side 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 1;
+}
+
+@keyframes hint-boing-side {
+  0% { transform: translateY(-50%) scale(0.5) translateX(-10px); }
+  70% { transform: translateY(-50%) scale(1.1) translateX(2px); }
+  100% { transform: translateY(-50%) scale(1) translateX(0); }
+}
+
+@media (max-width: 64em) {
+  .cs-tabs-controls { 
+    display: flex;
+    flex-direction: column; 
+    align-items: flex-start;
+    width: 100%;
+  }
+  .cs-tabs {
+    width: 100%;
+    border-radius: 12px; /* Less rounded for better scroll container feel */
+  }
+  /* Indicator fix for rounded corners change */
+  .cs-tabs, .cs-tab-indicator, .cs-tab-btn {
+    border-radius: 12px; 
+  }
+  
+  .cs-tabs-hint { 
+    position: relative; 
+    left: 0; 
+    top: 0; 
+    margin-top: 1rem;
+    transform: none;
+    opacity: 1; /* Fallback for mobile */
+    align-self: center;
+  }
+  .cs-tabs-hint::before { display: none; }
+  .cs-tabs-container.in-view .cs-tabs-hint { animation: none; }
+}
+
+/* ── Entrance Sweep Animation ── */
+.cs-tabs.is-sweeping .cs-tab-indicator {
+  animation: indicator-sweep 1.2s cubic-bezier(0.7, 0, 0.3, 1) forwards;
+}
+
+@keyframes indicator-sweep {
+  0% { transform: scaleX(1); left: 0.35rem; width: 0; }
+  50% { transform: scaleX(1.5); left: 50%; width: 20%; }
+  100% { transform: scaleX(1); } /* JS will final set width/left */
+}
+
+.cs-tab-btn.active { 
+  color: var(--accent); 
+}
+.cs-tab-btn::after { display: none; } /* Remove previous underline */
+
+/* Tab Content Visibility */
+.cs-tab-panel {
+  display: none;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.cs-tab-panel.active {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 48em) {
+  .cs-tabs { gap: 0.25rem; padding: 0.25rem; }
+  .cs-tab-btn { padding: 0.5rem 1rem; font-size: 0.8125rem; }
+}
+
