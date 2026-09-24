@@ -3,299 +3,83 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>프로젝트</title>
+  <title>EDK ESG 통합 관리 플랫폼 | 허창무</title>
   <meta name="description" content="EDK ESG 통합 관리 플랫폼 상세페이지" />
 
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://heo-mu.github.io/project02.html" />
-  <meta property="og:title" content="프로젝트" />
-  <meta property="og:description" content="EDK ESG 통합 관리 플랫폼 상세페이지" />
-  <meta property="og:image" content="image/main/og.png" />
+  <link rel="canonical" href="https://heo-mu.vercel.app/project02.html" />
 
-  <!-- Twitter -->
+  
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://heo-mu.vercel.app/project02.html" />
+  <meta property="og:title" content="EDK ESG 통합 관리 플랫폼 | 허창무" />
+  <meta property="og:description" content="EDK ESG 통합 관리 플랫폼 상세페이지" />
+  <meta property="og:image" content="https://heo-mu.vercel.app/image/main/og.png" />
+
+  
   <meta property="twitter:card" content="summary_large_image" />
-  <meta property="twitter:title" content="프로젝트" />
+  <meta property="twitter:title" content="EDK ESG 통합 관리 플랫폼 | 허창무" />
   <meta property="twitter:description" content="EDK ESG 통합 관리 플랫폼 상세페이지" />
-  <meta property="twitter:image" content="image/main/og.png" />
+  <meta property="twitter:image" content="https://heo-mu.vercel.app/image/main/og.png" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=3" />
-  <link rel="stylesheet" href="css/detail.css?v=8" />
+  
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=29" />
+  <link rel="stylesheet" href="css/motion.css?v=7">
+  <link rel="stylesheet" href="css/detail.css?v=33" />
 </head>
-<body class="detail-page" data-theme="indigo">
-
-  <!-- MAIN NAV -->
-  <nav class="nav" id="nav">
-    <div class="nav__inner container">
-      <a href="index.html" class="nav__logo">heo_mu.</a>
-      <ul class="nav__links" id="nav-links">
-        <li><a href="index.html#projects">Projects</a></li>
-        <li><a href="index.html#about">About</a></li>
-        <li><a href="index.html#contact" class="nav__cta">Contact</a></li>
-      </ul>
-      <button class="nav__hamburger" id="hamburger" aria-label="메뉴 열기" aria-expanded="false">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
-  </nav>
-
-  <!-- STICKY PROJECT BAR -->
-  <div class="project-bar" id="project-bar">
-    <div class="container project-bar__inner">
-      <div class="project-bar__left">
-        <a href="index.html#projects" class="project-bar__back" aria-label="프로젝트 목록으로 돌아가기">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M5 12l7 7M5 12l7-7"/></svg>
-          Back
-        </a>
-        <span class="project-bar__divider"></span>
-        <span class="project-bar__title">EDK ESG 통합 관리 플랫폼</span>
-      </div>
-      <div class="project-bar__right">
-        <div class="project-bar__tags">ESG Management / Web / B2B SaaS / AI Analysis / UI/UX / RBAC</div>
-      </div>
-    </div>
-    <div class="read-progress" id="read-progress"></div>
-  </div>
-
-  <!-- SECTION 1: HERO IMPACT -->
-  <section class="dh-hero">
-    <div class="container">
-      <div class="dh-hero__inner">
-        <div class="dh-hero__text">
-          <a href="index.html#projects" class="dh-hero__back">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M5 12l7 7M5 12l7-7"/></svg>
-            모든 프로젝트
-          </a>
-          <h1 class="dh-hero__title"><span class="dh-hero__title--accent">EDK </span><br>ESG 통합 관리 플랫폼</h1>
-          <p class="dh-hero__summary">
-            분산된 ESG 데이터를 통합하고 체계적으로 구조화해,<br>
-            관리자와 사용자 권한에 따라 다양한 정보를 연결하는<br>
-            ESG 통합 관리 플랫폼
-          </p>
-          <div class="dh-hero__meta">
-            <div class="dh-meta-item">
-              <div class="dh-meta-item__icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-              </div>
-              <div class="dh-meta-item__text">
-                <span class="dh-meta-item__label">Device</span>
-                <span class="dh-meta-item__val">PC (1440px ~ 1920px)</span>
-              </div>
-            </div>
-            <div class="dh-meta-item">
-              <div class="dh-meta-item__icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              </div>
-              <div class="dh-meta-item__text">
-                <span class="dh-meta-item__label">Timeline</span>
-                <span class="dh-meta-item__val">24.12 - 25.12 (1년)</span>
-              </div>
-            </div>
-            <div class="dh-meta-item">
-              <div class="dh-meta-item__icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-              </div>
-              <div class="dh-meta-item__text">
-                <span class="dh-meta-item__label">Role</span>
-                <span class="dh-meta-item__val">UX Planning &<br>UI Design (100%)</span>
-              </div>
-            </div>
-            <div class="dh-meta-item">
-              <div class="dh-meta-item__icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-              </div>
-              <div class="dh-meta-item__text">
-                <span class="dh-meta-item__label">Core Goal</span>
-                <span class="dh-meta-item__val">기업 ESG 데이터<br>통합 관리</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="dh-hero__visual">
-          <div class="dh-visual-wrap dh-visual-wrap--hero" style="aspect-ratio: 4/3;">
-            <img src="image/edk/edk_thumb.png" alt="Design System Project Thumbnail" />
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- SECTION 1: DESIGN STRATEGY & DECISIONS -->
-  <section class="cs-section" id="strategy">
-    <div class="container">
-      <div class="cs-header reveal">
-        <span class="cs-label">디자인 전략 및 핵심 목표</span>
-        <h2 class="cs-title">분산된 ESG 데이터를 공시와 실행까지 연결하는 운영 중심 설계</h2>
-        <p class="cs-lead">ESG 데이터를 단순 관리에 그치지 않고, 공시, 목표 설정, 성과 관리, AI 분석까지 하나의 흐름으로 연결해 기업이 실제로 활용할 수 있는 운영 체계로 설계했습니다.</p>
-      </div>
+<body class="detail-page" data-theme="project02">
+<a class="skip-link" href="#main-content">본문으로 건너뛰기</a>
+<header class="case-nav"><div class="container case-nav__inner"><a href="index.html#projects" class="case-back">← <span>프로젝트 목록</span></a><a href="#main-content" class="case-nav__name">EDK ESG 통합 관리 플랫폼</a><span class="case-nav__index">03 / 05</span></div><div class="read-progress" id="read-progress" aria-hidden="true"></div></header>
+<main id="main-content">
+<section class="dh-hero"><div class="container"><figure class="case-image image-wide"><div class="case-image__link"><img src="image/edk/edk_thumb.png" alt="Design System Project Thumbnail" /></div><figcaption>EDK ESG 통합 관리 플랫폼 · 프로젝트 대표 화면</figcaption></figure><div class="case-intro"><p class="case-eyebrow">CASE STUDY <span>03 / 05</span></p><h1 class="dh-hero__title"><span class="dh-hero__title--accent">EDK </span> ESG 통합 관리 플랫폼</h1><p class="dh-hero__summary">기업의 ESG 데이터를 모으고, 목표 관리와 보고서 작성으로 이어지는 업무 흐름을 설계했어요.</p><dl class="case-meta"><div><dt>Device</dt><dd>PC (1440px ~ 1920px)</dd></div>
+<div><dt>Timeline</dt><dd>24.12 - 25.12 (1년)</dd></div>
+<div><dt>Role</dt><dd>UX Planning & UI Design (100%)</dd></div>
+<div><dt>Core Goal</dt><dd>기업 ESG 데이터 통합 관리</dd></div></dl></div></div></section>
+<nav class="case-index" aria-label="프로젝트 목차"><div class="container"><a href="#overview"><span>01</span>개요</a><a href="#strategy"><span>02</span>디자인 전략 및 핵심 목표</a><a href="#ai-generation"><span>03</span>ESG 목표 관리</a><a href="#project-additional-section"><span>04</span>AI 보고서 검토</a><a href="#system"><span>05</span>UI/UX 설계 정책</a><a href="#chapter-4"><span>06</span>디자인 시스템 제작</a><a href="#chapter-7"><span>07</span>Figma 협업 프로세스</a><a href="#showcase"><span>08</span>주요 UI 화면 설계</a></div></nav>
+<section class="cs-section case-overview" id="overview" aria-labelledby="overview-title"><div class="container cs-layout"><header class="cs-header"><span class="cs-label">01 / OVERVIEW</span><h2 class="cs-title" id="overview-title">프로젝트 개요</h2></header><div class="cs-content"><p class="case-overview__text">분산된 ESG 데이터를 한곳에 모아, 
+            관리자와 사용자 권한에 따라 필요한 정보를 연결하는 
+            ESG 통합 관리 플랫폼</p><p class="case-type">ESG Management / Web / B2B SaaS / AI Analysis / UI/UX / RBAC</p></div></div></section>
+<section class="cs-section" id="strategy" aria-labelledby="strategy-title"><div class="container cs-layout"><header class="cs-header"><span class="cs-label">02 / 디자인 전략 및 핵심 목표</span><h2 class="cs-title" id="strategy-title">분산된 ESG 데이터를 공시와 실행까지 연결하는 운영 중심 설계</h2><p class="cs-lead">ESG 데이터를 공시, 목표 설정, 성과 관리, AI 분석까지 한 흐름으로 묶어 실제 업무에 바로 쓰게 만들었어요.</p></header><div class="cs-content">
 
       <div class="cs-grid cs-grid--2 reveal gap-15">
         <div class="cs-card">
-          <span class="cs-card__icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-          </span>
+          
           <h3 class="cs-card__title">ESG 목표 기반 성과 관리</h3>
-          <p class="cs-card__text">기업의 ESG 지표를 단순 데이터가 아닌 실행 가능한 목표로 전환하고, 단기·중간·최종 단계로 구분해 목표 설정부터 달성까지의 흐름을 구조화</p>
+          <p class="cs-card__text">기업의 ESG 지표를 실행할 목표로 바꾸고, 단기·중간·최종 단계로 나눠 설정부터 달성까지 이어지게 했어요</p>
           <div class="cs-hook">
-            <span class="cs-hook__label">Why This Way?</span>
-            <span class="cs-hook__text">ESG 데이터는 관리보다 “실행”이 중요한 영역이기 때문에, 지표를 목표 단위로 재구성해 성과 중심의 운영 체계를 만들 필요가 있음</span>
+            <span class="cs-hook__label">설계 판단</span>
+            <span class="cs-hook__text">ESG 데이터는 관리보다 실행이 중요해서, 지표를 목표 단위로 다시 묶어야 해요</span>
           </div>
         </div>
         <div class="cs-card">
-          <span class="cs-card__icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="15" x2="23" y2="15"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="15" x2="4" y2="15"/></svg>
-          </span>
+          
           <h3 class="cs-card__title">공시·AI 분석 통합 정보 구조 설계</h3>
-          <p class="cs-card__text">ESG 데이터 입력, 공시, AI 분석 결과를 분리하지 않고 하나의 흐름으로 연결해 사용자가 별도의 해석 없이도 데이터를 이해하고 활용할 수 있도록 설계</p>
+          <p class="cs-card__text">ESG 데이터 입력, 공시, AI 분석 결과를 한 흐름으로 연결해 별도 해석 없이도 이해하고 활용하게 만들어요</p>
           <div class="cs-hook">
-            <span class="cs-hook__label">Why This Way?</span>
-            <span class="cs-hook__text">ESG 플랫폼은 공시와 분석이 분리될 경우 활용도가 떨어지기 때문에, 데이터 → 공시 → 분석 → 활용까지 이어지는 통합 구조가 필요함</span>
+            <span class="cs-hook__label">설계 판단</span>
+            <span class="cs-hook__text">ESG 플랫폼은 데이터 → 공시 → 분석 → 활용이 한 흐름으로 이어져야 해요</span>
           </div>
         </div>
       </div>
-    </div>
-  </section>
-  <!-- FINAL DESIGN SHOWCASE (Impact Hook) -->
-  <section class="cs-section cs-section--alt" id="showcase">
-    <div class="container">
-      <div class="cs-header reveal">
-        <span class="cs-label">주요 UI 화면 설계</span>
-        <h2 class="cs-title">복잡한 ESG 데이터를 직관적인 정보 구조로</h2>
-        <p class="cs-lead">분산된 ESG 데이터를 통합·구조화해 핵심 지표를 직관적으로 파악할 수 있는 정보 체계를 설계했습니다.</p>
-      </div>
+    </div></div></section>
+<section class="cs-section" id="ai-generation" aria-labelledby="ai-generation-title"><div class="container cs-layout"><header class="cs-header"><span class="cs-label">03 / ESG 목표 관리</span><h2 class="cs-title" id="ai-generation-title">‘목표’ 서비스 기획 및 디자인</h2><p class="cs-lead">ESG 인벤토리 데이터를 바탕으로 단기·중간·최종 목표를 세우고 달성 현황을 확인하는 메뉴예요.</p></header><div class="cs-content">
 
-      <div class="cs-tabs-container reveal">
-        <div class="cs-tabs-controls">
-          <div class="cs-tabs">
-            <div class="cs-tab-indicator"></div>
-            <button class="cs-tab-btn active" data-tab="tab1">대시보드</button>
-            <button class="cs-tab-btn" data-tab="tab2">결과보고서 편집</button>
-            <button class="cs-tab-btn" data-tab="tab3">AI 진단</button>
-            <button class="cs-tab-btn" data-tab="tab4">목표</button>
-            <button class="cs-tab-btn" data-tab="tab5">목표 - 상세</button>
-            <button class="cs-tab-btn" data-tab="tab6">평가 문항 수정</button>
-            <button class="cs-tab-btn" data-tab="tab7">평가 등급</button>
-          </div>
-          <div class="cs-tabs-hint">
-            <span>탭을 눌러 화면을 전환해보세요</span>
-          </div>
-        </div>
-
-        <div class="cs-tab-content">
-          <div class="cs-tab-panel active" id="tab1">
-            <div class="dh-visual-wrap mt-4" style="aspect-ratio: 16/9;">
-              <img src="image/edk/edk_main01.png" alt="대시보드 인터페이스" loading="lazy" />
-            </div>
-          </div>
-          <div class="cs-tab-panel" id="tab2">
-            <div class="dh-visual-wrap mt-4" style="aspect-ratio: 16/9;">
-              <img src="image/edk/edk_main02.png" alt="결과보고서 편집 인터페이스" loading="lazy" />
-            </div>
-          </div>
-          <div class="cs-tab-panel" id="tab3">
-            <div class="dh-visual-wrap mt-4" style="aspect-ratio: 16/9;">
-              <img src="image/edk/edk_main03.png" alt="AI 진단 인터페이스" loading="lazy" />
-            </div>
-          </div>
-          <div class="cs-tab-panel" id="tab4">
-            <div class="dh-visual-wrap mt-4" style="aspect-ratio: 16/9;">
-              <img src="image/edk/edk_main04.png" alt="목표 인터페이스" loading="lazy" />
-            </div>
-          </div>
-          <div class="cs-tab-panel" id="tab5">
-            <div class="dh-visual-wrap mt-4" style="aspect-ratio: 16/9;">
-              <img src="image/edk/edk_main05.png" alt="목표 - 상세 인터페이스" loading="lazy" />
-            </div>
-          </div>
-          <div class="cs-tab-panel" id="tab6">
-            <div class="dh-visual-wrap mt-4" style="aspect-ratio: 16/9;">
-              <img src="image/edk/edk_main06.png" alt="평가 문항 수정 인터페이스" loading="lazy" />
-            </div>
-          </div>
-          <div class="cs-tab-panel" id="tab7">
-            <div class="dh-visual-wrap mt-4" style="aspect-ratio: 16/9;">
-              <img src="image/edk/edk_main07.png" alt="평가 등급 인터페이스" loading="lazy" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- SECTION 2: DESIGN SYSTEM -->
-  <section class="cs-section" id="system">
-    <div class="container">
-      <div class="cs-header reveal">
-        <span class="cs-label">UI/UX 설계 정책</span>
-        <h2 class="cs-title">일관된 사용자 경험을 위해 UI/UX 설계 기준 수립</h2>
-        <p class="cs-lead">기획과 디자인 전반에 적용되는 명명, 문장, 인터랙션 기준을 정의해, 의사결정 기준을 통일하고 일관된 사용자 경험을 설계했습니다.</p>
-      </div>
-      <div class="dh-visual-wrap dh-visual-wrap--wide reveal" style="aspect-ratio: 1656 / 720;">
-        <img src="image/edk/edk_guide.png" alt="UI/UX 설계 기준 가이드" loading="lazy" />
-      </div>
-      <div class="cs-grid cs-grid--2 reveal gap-15 mt-4">
-        <div class="cs-card padding-sm">
-          <h3 class="cs-card__title">사용자 경험 구조 정의</h3>
-          <p class="cs-card__text">기능 간 관계와 사용자 이동 경로를 구조화해, 복잡한 서비스를 흐름 중심으로 이해하고 설계할 수 있는 기반 구축</p>
-        </div>
-        <div class="cs-card padding-sm">
-          <h3 class="cs-card__title">일관된 인터페이스 기준 설계</h3>
-          <p class="cs-card__text">사용자 행동에 따른 상태 변화와 인터페이스 반응을 체계화해, 화면 단위가 아닌 서비스 전반에서 일관된 동작 방식 확립</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-
-
-  <!-- WIDE VISUAL SHOWCASE -->
-  <section class="cs-section cs-section--bg-subtle">
-    <div class="container">
-      <div class="cs-header reveal">
-        <span class="cs-label">디자인 시스템 제작</span>
-        <h2 class="cs-title">일관된 사용자 경험을 위한 디자인 시스템 설계</h2>
-        <p class="cs-lead">분산된 UI 요소를 통합하고, 컴포넌트 기반 설계를 통해 일관성과 확장성을 확보했습니다.</p>
-      </div>
-      <div class="dh-visual-wrap dh-visual-wrap--wide reveal" style="aspect-ratio: 1656 / 720;">
-        <img src="image/edk/edk_system.png" alt="디자인 시스템" loading="lazy" />
-      </div>
-      <div class="cs-grid cs-grid--2 reveal gap-15 mt-4">
-        <div class="cs-card padding-sm">
-          <h3 class="cs-card__title">UI 일관성 확보</h3>
-          <p class="cs-card__text">컬러, 타이포그래피 등 기준을 표준화하여 화면 간 시각적 불균형을 제거하고 사용자 경험의 일관성 유지</p>
-        </div>
-        <div class="cs-card padding-sm">
-          <h3 class="cs-card__title">컴포넌트 기반 설계</h3>
-          <p class="cs-card__text">재사용 가능한 컴포넌트 구조를 정의하여 디자인 및 개발 생산성을 향상시키고 유지보수 비용 절감</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- AI IMAGE GENERATION (COPIED STRUCTURE) -->
-  <section class="cs-section" id="ai-generation">
-    <div class="container">
-      <div class="cs-header reveal">
-        <span class="cs-label">[목표] 메뉴 설명</span>
-        <h2 class="cs-title">‘목표’ 서비스 기획 및 디자인</h2>
-        <p class="cs-lead">ESG 인벤토리 데이터를 바탕으로 단기·중간·최종 목표를 설정하고, 달성 현황을 추적하여 기업의 ESG 실행 체계를 구축하는 메뉴입니다.</p>
-      </div>
-
-      <!-- 메뉴 목적 요약 그룹 -->
+      
       <div class="cs-summary-group reveal">
         <h3 class="cs-summary-group__title">메뉴 목적 요약</h3>
         <div class="cs-grid cs-grid--3 gap-15">
           <div class="cs-card padding-sm">
-            <p class="cs-card__text">한 기업의 모든 ESG 지표를 ‘관리 가능한 목표’로 전환하여 실질적인 실행 관리 체계 구축</p>
+            <p class="cs-card__text">한 기업의 ESG 지표를 ‘관리 가능한 목표’로 바꿔 실행 현황을 관리해요</p>
           </div>
           <div class="cs-card padding-sm">
-            <p class="cs-card__text">인벤토리에 등록된 정량 지표(숫자형 인덱스)를 기반으로, 단기·중간·최종 목표 설정</p>
+            <p class="cs-card__text">인벤토리의 정량 지표를 바탕으로 단기·중간·최종 목표를 설정해요</p>
           </div>
           <div class="cs-card padding-sm">
-            <p class="cs-card__text">목표를 실적과 비교하여 추이와 달성 현황 확인</p>
+            <p class="cs-card__text">목표와 실적을 비교해 변화 추이와 달성 현황을 확인해요</p>
           </div>
         </div>
       </div>
@@ -305,45 +89,34 @@
           <div class="flex-col gap-15">
             <div class="cs-card padding-sm">
               <h3 class="cs-card__title">목표 분류 진행 단계 UI 설계 및 시각화</h3>
-              <p class="cs-card__text">단기/중간/최종 목표로 구분되는 구조를 설계하고, 목표 수립부터 달성까지의 상태를 직관적으로 파악할 수 있도록 단계별 UI 구성</p>
+              <p class="cs-card__text">단기/중간/최종 목표를 단계별로 나누고, 수립부터 달성까지 상태를 한눈에 보게 구성해요</p>
             </div>
             <div class="cs-card padding-sm">
-              <h3 class="cs-card__title">사용자 경험 개선을 위한<br class="pc-only">필터링 및 인터랙션 고도화</h3>
-              <p class="cs-card__text">다양한 필터 조건(달성 여부, 담당자 등)을 도입하여 사용성과 검색 편의성 개선, 리스트 뷰의 단순화 디자인</p>
+              <h3 class="cs-card__title">사용자 경험 개선을 위한 필터링 및 인터랙션 고도화</h3>
+              <p class="cs-card__text">달성 여부와 담당자 같은 필터를 더해 원하는 항목을 빨리 찾게 하고 목록도 단순하게 정리해요</p>
             </div>
             <div class="cs-card padding-sm">
               <h3 class="cs-card__title">예외 케이스 대응을 고려한 UX 설계</h3>
-              <p class="cs-card__text">UI 에러 대응 방식을 설계하고, 다양한 사용자 시나리오에 대응한 디자인 설계</p>
+              <p class="cs-card__text">UI 오류 대응 방식을 정하고 다양한 상황에 맞는 화면을 만들어요</p>
             </div>
           </div>
         </div>
         <div>
-          <div class="dh-visual-wrap reveal" style="height: 100%;">
-            <img src="image/edk/edk_goal.png" alt="목표 메뉴 UI" loading="lazy" />
-          </div>
+          <figure class="case-image image-medium"><div class="case-image__link"><img src="image/edk/edk_goal.png" alt="목표 메뉴 UI" loading="lazy" /></div><figcaption>목표 메뉴 UI</figcaption></figure>
         </div>
       </div>
-    </div>
-  </section>
+    </div></div></section>
+<section class="cs-section" id="project-additional-section" aria-labelledby="project-additional-section-title"><div class="container cs-layout"><header class="cs-header"><span class="cs-label">04 / AI 보고서 검토</span><h2 class="cs-title" id="project-additional-section-title">‘AI 보고서 GUIDA’ 서비스 디자인</h2><p class="cs-lead">작성한 보고서를 AI로 검토하고, 확인할 내용을 항목별로 나눠 보여주는 메뉴예요.</p></header><div class="cs-content">
 
-  <!-- ADDED SECTION (DUMMY) -->
-  <section class="cs-section cs-section--bg-subtle" id="project-additional-section">
-    <div class="container">
-      <div class="cs-header reveal">
-        <span class="cs-label">[AI 보고서 GUIDA] 메뉴 설명</span>
-        <h2 class="cs-title">‘AI 보고서 GUIDA’ 서비스 디자인</h2>
-        <p class="cs-lead">사용자 보고서를 기반으로 AI가 자동 리뷰를 수행하고, 항목별 결과를 시각화해 일관된 분석 체계를 제공하는 메뉴입니다.</p>
-      </div>
-
-      <!-- 메뉴 목적 요약 그룹 -->
+      
       <div class="cs-summary-group reveal">
         <h3 class="cs-summary-group__title">메뉴 목적 요약</h3>
         <div class="cs-grid cs-grid--3 gap-15">
           <div class="cs-card padding-sm">
-            <p class="cs-card__text">사용자가 작성한 보고서를 기반으로 AI가 자동으로 리뷰를 수행</p>
+            <p class="cs-card__text">사용자가 작성한 보고서를 AI가 검토하고, 확인할 항목을 나눠 보여줘요</p>
           </div>
           <div class="cs-card padding-sm">
-            <p class="cs-card__text">항목별 리뷰 결과를 시각적으로 정리해 사용자에게 제공</p>
+            <p class="cs-card__text">항목별 리뷰 결과를 보기 쉽게 정리해 보여줘요</p>
           </div>
           <div class="cs-card padding-sm">
             <p class="cs-card__text">정해진 프롬프트 구조에 따라 일관된 분석 결과를 출력</p>
@@ -356,64 +129,83 @@
           <div class="flex-col gap-15">
             <div class="cs-card padding-sm">
               <h3 class="cs-card__title">직관적인 탭 기반 UI</h3>
-              <p class="cs-card__text">사용자가 항목별 보고서를 편리하게 작성하고 AI 리뷰를 원클릭으로 실행할 수 있도록 UX 설계</p>
+              <p class="cs-card__text">항목별 보고서를 작성하고 필요한 시점에 AI 검토를 실행하게 했어요</p>
             </div>
             <div class="cs-card padding-sm">
               <h3 class="cs-card__title">리뷰 결과 가독성을 고려한 UI 설계</h3>
-              <p class="cs-card__text">사용자가 AI 리뷰 결과를 항목별로 명확하게 인지할 수 있도록, 시각적 우선순위와 정돈된 레이아웃을 중심으로 결과 출력 UI 설계</p>
+              <p class="cs-card__text">AI 검토 결과를 항목별로 나누고, 먼저 확인할 내용이 드러나도록 우선순위를 정했어요</p>
             </div>
             <div class="cs-card padding-sm">
               <h3 class="cs-card__title">개발을 위한 디스크립션 작성</h3>
-              <p class="cs-card__text">개발자가 목표 기능을 정확히 구현할 수 있도록 각 화면 및 기능 흐름에 대한 상세 디스크립션을 작성하고, 개발 커뮤니케이션의 기준점을 마련</p>
+              <p class="cs-card__text">화면과 기능 흐름을 자세히 적어 개발자가 같은 기준으로 구현하게 해요</p>
             </div>
           </div>
         </div>
         <div>
-          <div class="dh-visual-wrap reveal" style="height: 100%;">
-          <img src="image/edk/edk_guida.png" alt="AI 보고서 GUIDA UI" loading="lazy" />
-        </div>
+          <figure class="case-image image-medium"><div class="case-image__link"><img src="image/edk/edk_guida.png" alt="AI 보고서 GUIDA UI" loading="lazy" /></div><figcaption>AI 보고서 GUIDA UI</figcaption></figure>
         </div>
       </div>
-    </div>
-  </section>
-
-
-  <!-- WIDE VISUAL SHOWCASE (DUPLICATED) -->
-  <section class="cs-section">
-    <div class="container">
-      <div class="cs-header reveal">
-        <span class="cs-label">Figma 협업 프로세스</span>
-        <h2 class="cs-title">디자인 협업 프로세스와 구조화 전략</h2>
-
+    </div></div></section>
+<section class="cs-section" id="system" aria-labelledby="system-title"><div class="container cs-layout"><header class="cs-header"><span class="cs-label">05 / UI/UX 설계 정책</span><h2 class="cs-title" id="system-title">일관된 사용자 경험을 위해 UI/UX 설계 기준 수립</h2><p class="cs-lead">기획과 디자인에 쓰는 이름, 문장, 인터랙션 기준을 정해 화면마다 같은 원칙을 적용했어요.</p></header><div class="cs-content">
+      <figure class="case-image image-medium"><div class="case-image__link"><img src="image/edk/edk_guide.png" alt="UI/UX 설계 기준 가이드" loading="lazy" /></div><figcaption>UI/UX 설계 기준 가이드</figcaption></figure>
+      <div class="cs-grid cs-grid--2 reveal gap-15 mt-4">
+        <div class="cs-card padding-sm">
+          <h3 class="cs-card__title">사용자 경험 구조 정의</h3>
+          <p class="cs-card__text">기능 간 관계와 이동 경로를 정리해 복잡한 서비스를 흐름 중심으로 이해하고 설계할 수 있게 해요</p>
+        </div>
+        <div class="cs-card padding-sm">
+          <h3 class="cs-card__title">일관된 인터페이스 기준 설계</h3>
+          <p class="cs-card__text">사용자 행동에 따른 상태 변화와 반응을 정리해, 서비스 전체에서 같은 방식으로 작동하게 했어요</p>
+        </div>
       </div>
-      <div class="dh-visual-wrap dh-visual-wrap--wide reveal" style="aspect-ratio: 1656 / 720;">
-        <img src="image/edk/edk_figma.png" alt="Figma Design Workspace" loading="lazy" />
+    </div></div></section>
+<section class="cs-section" id="chapter-4" aria-labelledby="chapter-4-title"><div class="container cs-layout"><header class="cs-header"><span class="cs-label">06 / 디자인 시스템 제작</span><h2 class="cs-title" id="chapter-4-title">일관된 사용자 경험을 위한 디자인 시스템 설계</h2><p class="cs-lead">화면마다 달랐던 UI 기준을 하나로 묶고, 반복해서 쓸 수 있는 컴포넌트로 정리했어요.</p></header><div class="cs-content">
+      <figure class="case-image image-medium"><div class="case-image__link"><img src="image/edk/edk_system.png" alt="디자인 시스템" loading="lazy" /></div><figcaption>디자인 시스템</figcaption></figure>
+      <div class="cs-grid cs-grid--2 reveal gap-15 mt-4">
+        <div class="cs-card padding-sm">
+          <h3 class="cs-card__title">UI 일관성 확보</h3>
+          <p class="cs-card__text">컬러, 타이포그래피 등 기준을 표준화하여 화면 간 시각적 불균형을 제거하고 사용자 경험의 일관성 유지</p>
+        </div>
+        <div class="cs-card padding-sm">
+          <h3 class="cs-card__title">컴포넌트 기반 설계</h3>
+          <p class="cs-card__text">재사용할 수 있는 컴포넌트 구조를 정해 디자인과 개발의 반복 작업을 줄여요.</p>
+        </div>
       </div>
+    </div></div></section>
+<section class="cs-section" id="chapter-7" aria-labelledby="chapter-7-title"><div class="container cs-layout"><header class="cs-header"><span class="cs-label">07 / Figma 협업 프로세스</span><h2 class="cs-title" id="chapter-7-title">디자인 협업 프로세스와 구조화 전략</h2></header><div class="cs-content">
+      <figure class="case-image image-medium"><div class="case-image__link"><img src="image/edk/edk_figma.png" alt="Figma Design Workspace" loading="lazy" /></div><figcaption>Figma Design Workspace</figcaption></figure>
       <div class="cs-grid cs-grid--2 reveal gap-15 mt-4">
         <div class="cs-card padding-sm">
           <h3 class="cs-card__title">주석 기반 설계 문서 정의</h3>
-          <p class="cs-card__text">Figma 주석 기능을 활용해 화면 단위로 기능과 동작을 UI 요소에 설명을 연결하는 방식으로 설계 의도를 명확하게 전달할 수 있는 문서 구조 정립</p>
+          <p class="cs-card__text">Figma 주석을 UI 요소에 바로 연결해 기능, 동작, 예외 상태를 화면 안에서 확인하게 했어요</p>
         </div>
         <div class="cs-card padding-sm">
           <h3 class="cs-card__title">디자인-개발 간 커뮤니케이션 방식 개선</h3>
-          <p class="cs-card__text">주석 기반 설명을 통해 별도의 문서 없이도 화면만으로 기능과 흐름을 이해할 수 있도록 구성해, 해석 차이를 줄이고 협업 과정에서의 커뮤니케이션 비용 감소</p>
+          <p class="cs-card__text">주석에 기능, 상태, 예외 흐름을 함께 적어 화면만으로 구현 기준을 확인하게 했어요</p>
         </div>
       </div>
-    </div>
-  </section>
+    </div></div></section>
+<section class="cs-section" id="showcase" aria-labelledby="showcase-title"><div class="container cs-layout"><header class="cs-header"><span class="cs-label">08 / 주요 UI 화면 설계</span><h2 class="cs-title" id="showcase-title">복잡한 ESG 데이터를 직관적인 정보 구조로</h2><p class="cs-lead">분산된 ESG 데이터를 한곳에 모아 핵심 지표를 빠르게 파악할 수 있게 정리했어요.</p></header><div class="cs-content">
 
-  <!-- NEXT PROJECTS -->
-  <section class="next-projects">
+      <div class="image-grid-2"><figure class="case-image image-detail" id="tab1"><div class="case-image__link"><img src="image/edk/edk_main01.png" alt="대시보드 인터페이스" loading="lazy" /></div><figcaption><span class="case-image__number">01</span> 대시보드</figcaption></figure>
+<figure class="case-image image-detail" id="tab2"><div class="case-image__link"><img src="image/edk/edk_main02.png" alt="결과보고서 편집 인터페이스" loading="lazy" /></div><figcaption><span class="case-image__number">02</span> 결과보고서 편집</figcaption></figure>
+<figure class="case-image image-detail" id="tab3"><div class="case-image__link"><img src="image/edk/edk_main03.png" alt="AI 진단 인터페이스" loading="lazy" /></div><figcaption><span class="case-image__number">03</span> AI 진단</figcaption></figure>
+<figure class="case-image image-detail" id="tab4"><div class="case-image__link"><img src="image/edk/edk_main04.png" alt="목표 인터페이스" loading="lazy" /></div><figcaption><span class="case-image__number">04</span> 목표</figcaption></figure>
+<figure class="case-image image-detail" id="tab5"><div class="case-image__link"><img src="image/edk/edk_main05.png" alt="목표 - 상세 인터페이스" loading="lazy" /></div><figcaption><span class="case-image__number">05</span> 목표 - 상세</figcaption></figure>
+<figure class="case-image image-detail" id="tab6"><div class="case-image__link"><img src="image/edk/edk_main06.png" alt="평가 문항 수정 인터페이스" loading="lazy" /></div><figcaption><span class="case-image__number">06</span> 평가 문항 수정</figcaption></figure>
+<figure class="case-image image-detail" id="tab7"><div class="case-image__link"><img src="image/edk/edk_main07.png" alt="평가 등급 인터페이스" loading="lazy" /></div><figcaption><span class="case-image__number">07</span> 평가 등급</figcaption></figure></div>
+    </div></div></section>
+<section class="next-projects" data-tone="dark">
     <div class="container">
       <span class="next-projects__label">Next Project</span>
       <div class="next-projects__grid">
-        <!-- Project 03 Link -->
-        <a href="project03.html" class="next-card" data-next-theme="emerald">
-          <div class="next-card__visual"></div>
+        
+        <a href="project03.html" class="next-card" data-next-theme="project03">
+          <div class="next-card__visual"><img src="image/ax/ax_thumb.png" alt="AX Project Thumbnail" loading="lazy" /></div>
           <div class="next-card__info">
             <div class="next-card__pretitle">Gov Service · Responsive Web · UI/UX</div>
             <div class="next-card__title">고용노동부 사업장 자율점검 통합 시스템 (공공 AX)</div>
-            <div class="next-card__meta">AI 기반 사용자 맥락 중심 UX를 반영해 목적에 맞는 사용자 경험 설계</div>
+            <div class="next-card__meta">서류와 현장 정보를 바탕으로 위험 요소를 확인하고 후속 행동까지 연결한 공공 서비스</div>
           </div>
           <div class="next-card__arrow">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -422,14 +214,8 @@
       </div>
     </div>
   </section>
-
-  <!-- ===== TOP BUTTON ===== -->
-  <button id="scrollToTop" class="top-btn" aria-label="맨 위로 이동">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-  </button>
-
-  <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script> 
-  <script src="main.js?v=2"></script>
-  <script src="detail.js?v=9"></script>
-</body>
-</html>
+</main>
+<footer class="case-footer" id="contact"><div class="container"><a href="index.html" class="site-logo">heo_mu<span>.</span></a><p>복잡한 정보와 흐름을 함께 정리하고, 이해하기 쉬운 제품으로 바꿔요.</p><div><a href="mailto:gjckdan156@naver.com">gjckdan156@naver.com ↗</a><a href="tel:01085246956">010-8524-6956</a><a href="index.html#projects">프로젝트 살펴보기 ↗</a></div></div></footer>
+<button id="scrollToTop" class="top-btn" aria-label="맨 위로 이동">↑</button>
+<script src="vendor/lenis.min.js"></script><script src="vendor/gsap.min.js"></script><script src="vendor/ScrollTrigger.min.js"></script><script src="main.js?v=65"></script><script src="detail.js?v=30"></script>
+</body></html>
