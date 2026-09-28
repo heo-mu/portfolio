@@ -111,11 +111,21 @@ let lenis = null;
       x+=(tx-x)*mix;y+=(ty-y)*mix;preview.style.setProperty('--preview-x',x+'px');preview.style.setProperty('--preview-y',y+'px');
       if(active&&(Math.abs(tx-x)+Math.abs(ty-y)>.1))frame=requestAnimationFrame(draw);else last=0;
     }
-    const place=e=>{const r=preview.getBoundingClientRect();tx=clamp(e.clientX-r.width*.55,16,Math.max(16,innerWidth-r.width-16));ty=clamp(e.clientY+26,88,Math.max(88,innerHeight-r.height-16));};
-    const hide=()=>{active=null;token++;preview.classList.remove('is-visible');delete preview.dataset.project;cancelAnimationFrame(frame);frame=last=0;};
+    const place=(e,row)=>{
+      // Keep the existing following/reveal motion inside the visual column.
+      // Every row shares this column, so the preview cannot cover neighbouring copy.
+      const bounds=row.getBoundingClientRect(),copy=$('.work-row__copy',row).getBoundingClientRect();
+      const left=Math.max(16,bounds.left-40),right=copy.left-24;
+      const width=Math.min(clamp(innerWidth*.29,320,512),Math.max(1,right-left),(innerHeight-144)*16/9);
+      preview.style.width=width+'px';
+      const r=preview.getBoundingClientRect();
+      tx=clamp(e.clientX-width*.55,left,Math.max(left,right-width));
+      ty=clamp(e.clientY+26,96,Math.max(96,innerHeight-r.height-16));
+    };
+    const hide=()=>{active=null;token++;preview.classList.remove('is-visible');rows.forEach(row=>row.classList.remove('is-previewing'));delete preview.dataset.project;cancelAnimationFrame(frame);frame=last=0;};
     const show=async(row,e)=>{
       if(!fine.matches||innerWidth<641||e.pointerType==='touch')return;
-      pointer={clientX:e.clientX,clientY:e.clientY};place(pointer);
+      pointer={clientX:e.clientX,clientY:e.clientY};place(pointer,row);
       if(active===row){if(!frame)frame=requestAnimationFrame(draw);return;}
       window.portfolioMotion?.revealWithin(row);
       active=row;const request=++token;preview.classList.remove('is-visible');preview.dataset.project=row.dataset.project;
@@ -123,7 +133,7 @@ let lenis = null;
       const img=await load(row.dataset.preview);
       if(request!==token||active!==row)return;
       if(!img){hide();return;}
-      visual.replaceChildren(img);preview.classList.add('is-visible');
+      visual.replaceChildren(img);rows.forEach(item=>item.classList.toggle('is-previewing',item===row));preview.classList.add('is-visible');
     };
     rows.forEach(row=>{
       row.addEventListener('pointerenter',e=>show(row,e));
@@ -456,36 +466,25 @@ let lenis = null;
 
       const portraitHost=$('#portrait-stage');
       const about=$('#about');
-      // Resolve the scene first, then leave a short reading hold before release.
       const headerHeight=()=>Math.ceil($('#nav')?.getBoundingClientRect().height||80);
-      const canPin=!context.conditions.compact&&about&&about.offsetHeight<=innerHeight-headerHeight()+2;
-      const aboutPin=canPin?ST.create({trigger:about,pin:true,start:()=> 'top '+headerHeight()+'px',
-        end:()=>'+='+Math.min(560,innerHeight*.58),pinSpacing:true,anticipatePin:1,
-        refreshPriority:2,invalidateOnRefresh:true}):null;
-      const profileScore=scene(profile,t=>{
-        settle(t,$('.portrait'),{y:40*amount,z:-24,scale:.98},0);
-        t.fromTo($('.about__copy > .section-label'),{opacity:0,x:10*amount},{opacity:1,x:0,duration:MOTION.fast},.28);
-        const copy=$$('.about__copy > :not(.section-label):not(.about__metrics)');
-        t.fromTo(copy,{opacity:0,x:18*amount},{opacity:1,x:0,duration:MOTION.standard,stagger:.035},.4);
-      },()=>{
-        // Use layout coordinates, not the portrait's animated bounding box.
-        if(aboutPin)return aboutPin.start+(aboutPin.end-aboutPin.start)*.62;
-        let top=0,node=portraitHost;
-        while(node){top+=node.offsetTop;node=node.offsetParent;}
-        const headerHeight=$('#nav')?.getBoundingClientRect().height||0;
-        const readingCenter=headerHeight+(innerHeight-headerHeight)*.43;
-        return Math.max(1,top+(portraitHost?.offsetHeight||360)*.5-readingCenter);
-      });
-      const updatePortrait=()=>{
-        if(!portraitHost)return;
-        portraitHost.__portraitProgress=profileScore?.progress()??1;
-        portraitHost.dispatchEvent(new Event('portraitprogress'));
-      };
-      ST.sort();
-      profileScore?.eventCallback('onUpdate',updatePortrait);
-      ST.addEventListener('refresh',updatePortrait);
+      const syncAboutHeight=()=>about?.style.setProperty('--about-header-h',headerHeight()+'px');
+      syncAboutHeight();ST.addEventListener('refreshInit',syncAboutHeight);
+      // Entry owns time; there is no pin, scrub or reverse.
+      const portraitState={progress:about?.dataset.activated==='true'?1:0};
+      const updatePortrait=()=>{if(portraitHost){portraitHost.__portraitProgress=portraitState.progress;portraitHost.dispatchEvent(new Event('portraitprogress'));}};
+      let aboutObserver=null;
+      if(about&&about.dataset.activated!=='true'){
+        const profileScore=gsap.timeline({paused:true,onStart:()=>{about.dataset.activated='true';},onComplete:()=>{about.dataset.complete='true';},defaults:{ease:MOTION.standardEase}});
+        profileScore.to(portraitState,{progress:1,duration:1.05,ease:'power2.inOut',onUpdate:updatePortrait},0);
+        settle(profileScore,$('.portrait'),{y:18*amount,scale:.99},0,.8);
+        profileScore.fromTo($('.about__copy > .section-label'),{opacity:0,y:8},{opacity:1,y:0,duration:.35},.5);
+        profileScore.fromTo($$('.about__copy > :not(.section-label):not(.about__metrics)'),{opacity:0,y:14*amount},{opacity:1,y:0,duration:.5,stagger:.07},.65);
+        profileScore.fromTo($$('.about__metrics > div'),{opacity:0,y:8},{opacity:1,y:0,duration:.4,stagger:.06},1.05);
+        scores.push(profileScore);
+        aboutObserver=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){profileScore.play();aboutObserver.disconnect();}},{rootMargin:'0px 0px -12% 0px',threshold:0});
+        aboutObserver.observe(about);
+      }
       updatePortrait();
-
       // What I Do has its own focus score. No competing section entrance.
       // Tools' horizontal score is primary; only its stationary heading settles.
       scene($('.tools'),t=>{
@@ -523,25 +522,17 @@ let lenis = null;
           animation:score,scrub:MOTION.scrub,onRefreshInit:measure,onRefresh:render,invalidateOnRefresh:true});
         score.scrollTrigger=trigger;scores.push(score);render();
       }
-      // Closing scenes play on visibility, so a short mobile page always resolves.
-      const contactEntries=new Map();
-      const contactObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{
-        if(entry.isIntersecting){contactEntries.get(entry.target)?.play();contactObserver.unobserve(entry.target);}
-      }),{threshold:.08});
-      const closingScene=(element,compose)=>{
-        if(!element)return;
-        const t=gsap.timeline({paused:true,defaults:{ease:MOTION.standardEase}});
-        compose(t);scores.push(t);contactEntries.set(element,t);contactObserver.observe(element);
-      };
-      closingScene($('.contact__invitation',contact),t=>{
-        t.fromTo($('#contact-message'),{clipPath:'inset(0 100% 0 0)',x:-12*amount},
-          {clipPath:'inset(0 0% 0 0)',x:0,duration:.7,ease:MOTION.standardEase},0);
-        settle(t,$('.contact__email'),{x:10*amount},.2,.55);
-      });
-      closingScene($('.contact__plane',contact),t=>{
-        settle(t,$('.contact__information'),{x:12*amount},0,.55);
-        settle(t,$('.contact__wordmark > span'),{y:45*amount},.2,.7);
-      });
+      // Resolve contact information first, then assemble the closing signature.
+      let contactObserver=null;
+      if(contact&&contact.dataset.activated!=='true'){
+        const ending=gsap.timeline({paused:true,defaults:{ease:MOTION.standardEase},onStart:()=>{contact.dataset.activated='true';},onComplete:()=>{contact.dataset.complete='true';}});
+        ending.fromTo($('#contact-message'),{opacity:0,y:16*amount},{opacity:1,y:0,duration:.6},0);
+        ending.fromTo($$('.contact__email,.contact__information',contact),{opacity:0,y:10*amount},{opacity:1,y:0,duration:.45,stagger:.08},.35);
+        ending.fromTo($$('.contact__letter > i',contact),{yPercent:110,x:10*amount,opacity:0},{yPercent:0,x:0,opacity:1,duration:.65,stagger:.045,ease:'power3.out'},.95);
+        scores.push(ending);
+        contactObserver=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){ending.play();contactObserver.disconnect();}},{threshold:.08});
+        contactObserver.observe(contact);
+      }
       const focus=e=>{
         const row=e.target.closest('.work-row');
         if(row)gsap.set([$('.work-row__reveal',row),$('.work-row__copy',row)],{x:0,y:0,z:0,scale:1});
@@ -549,8 +540,8 @@ let lenis = null;
       document.addEventListener('focusin',focus);queueRefresh();
       return()=>{
         document.removeEventListener('focusin',focus);
-        contactObserver.disconnect();
-        ST.removeEventListener('refresh',updatePortrait);aboutPin?.kill();
+        contactObserver?.disconnect();aboutObserver?.disconnect();
+        ST.removeEventListener('refreshInit',syncAboutHeight);
         if(portraitHost){portraitHost.__portraitProgress=1;portraitHost.dispatchEvent(new Event('portraitprogress'));}
         scores.forEach(t=>{t.scrollTrigger?.kill();t.kill();});queueRefresh();
       };

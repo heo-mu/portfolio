@@ -12,7 +12,7 @@
   --accent: var(--c-accent);
   --accent-soft: var(--c-accent-soft);
   --accent-hover: var(--c-accent-ink);
-  --success:        #12B886;
+  --success:        #6E6E68;
   --gradient-visual: var(--c-surface);
   --card-radius:    1rem;
   --card-shadow:    0 0.25rem 1.25rem rgba(0, 0, 0, 0.05);
@@ -31,10 +31,10 @@
   --c-ink-3: #647A7B;
   --c-line: rgba(0,39,43,.18);
   --c-line-soft: rgba(0,39,43,.09);
-  --c-accent: #6544A5;
-  --c-accent-ink: #503582;
-  --c-accent-soft: rgba(101,68,165,.1);
-  --c-accent-wash: rgba(101,68,165,.04);
+  --c-accent: #C94324;
+  --c-accent-ink: #A93419;
+  --c-accent-soft: rgba(201,67,36,.1);
+  --c-accent-wash: rgba(201,67,36,.04);
   --sp-1: 0.5rem;
   --sp-2: 1rem;
   --sp-3: 1.5rem;
@@ -49,7 +49,7 @@
   --f-kr:      "SUIT Variable", "SUIT", "Pretendard Variable", "Pretendard", sans-serif;
   --f-util:    "Archivo Narrow", "Instrument Sans", sans-serif;
   --f-num:     "Rajdhani", "Instrument Sans", sans-serif;
-  --f-mono:    var(--f-util);   
+  --f-mono:    var(--f-util);
   --fw-display: 400;
   --fw-section: 500;
   --lh-display: .82;
@@ -61,7 +61,7 @@
   --c-ink-inv-2: #B1C3BF;
   --c-ink-inv-3: #7D9A97;
   --c-line-inv:    rgba(242, 242, 239, 0.18);
-  --c-accent-inv: #E0FF4F;
+  --c-accent-inv: #C94324;
   --e-io:   cubic-bezier(.5, 0, .5, 1);
   --e-out:  cubic-bezier(.16, 1, .3, 1);
   --e-back: cubic-bezier(.34, 1.56, .64, 1);
@@ -75,19 +75,19 @@
   --c-on-void-3: #7D9A97;
   --c-line-void: rgba(237, 239, 242, .13);
   --c-line-void-soft: rgba(237, 239, 242, .06);
-  --c-neon: #E0FF4F;
-  --c-neon-dim: #718335;   
-  --c-neon-soft: rgba(224,255,79,.12);
-  --c-neon-line: rgba(224,255,79,.3);
-  --c-on-neon: #00272B;   
-  --c-on-neon-2: #425B35;
+  --c-neon: #C94324;
+  --c-neon-dim: #6E6E68;
+  --c-neon-soft: rgba(201,67,36,.12);
+  --c-neon-line: rgba(201,67,36,.3);
+  --c-on-neon: #00272B;
+  --c-on-neon-2: #52524E;
   --c-line-neon: rgba(0,39,43,.2);
-  --c-px-violet: #6D3BF0;
-  --c-px-deep:   #3D1E8C;
-  --c-violet-on-void: #C3AFE6;
-  --t-micro:   .18s;   
-  --t-fast:    .34s;   
-  --t-section: .85s;   
+  --c-px-violet: #C94324;
+  --c-px-deep:   #A93419;
+  --c-violet-on-void: #C1C0BA;
+  --t-micro:   .18s;
+  --t-fast:    .34s;
+  --t-section: .85s;
   --fs-label: 0.6875rem;
   --ls-label: 0.16em;
   --chamfer-8:  polygon(0 0, 100% 0, 100% calc(100% - 8px),  calc(100% - 8px) 100%,  0 100%);
@@ -96,28 +96,26 @@
   --pad:   clamp(1.25rem, 5vw, 3rem);
   --nav-h: 4rem;
 }
-::selection      { background: #E0FF4F; color: #00272B; text-shadow: none; }
-::-moz-selection { background: #E0FF4F; color: #00272B; text-shadow: none; }
+::selection      { background: #C94324; color: #00272B; text-shadow: none; }
+::-moz-selection { background: #C94324; color: #00272B; text-shadow: none; }
 [data-field="void"] ::selection,
-[data-field="void"]::selection      { background: #E0FF4F; color: #00272B; }
-[data-field="void"] ::-moz-selection { background: #E0FF4F; color: #00272B; }
+[data-field="void"]::selection      { background: #C94324; color: #00272B; }
+[data-field="void"] ::-moz-selection { background: #C94324; color: #00272B; }
 [data-field="neon"] ::selection,
-[data-field="neon"]::selection      { background: #0A0C05; color: #E0FF4F; }
-[data-field="neon"] ::-moz-selection { background: #0A0C05; color: #E0FF4F; }
-/* ── 1. Reset ── */
+[data-field="neon"]::selection      { background: #0A0C05; color: #C94324; }
+[data-field="neon"] ::-moz-selection { background: #0A0C05; color: #C94324; }
+/* ?? 1. Reset ?? */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 16px; -webkit-font-smoothing: antialiased; }
 body {
   font-family: var(--font);
   background: var(--bg);
   color: var(--text-primary);
-  letter-spacing: -0.02em;     /* ← 전역 자간 */
+  letter-spacing: -0.02em;     /* ???꾩뿭 ?먭컙 */
   line-height: 1.6;
-  /* overflow-x:hidden 은 다른 축을 auto 로 만들어 body 를 스크롤 컨테이너로
-     바꿔 버린다. 그러면 내부의 position:sticky 가 뷰포트 기준으로 붙지 못한다
-     (Projects 가로 씬의 핀이 이 때문에 풀렸다).
-     clip 은 스크롤 컨테이너를 만들지 않으면서 가로 넘침만 잘라 낸다.
-     아래 줄을 모르는 구형 브라우저는 위 hidden 을 그대로 쓴다. */
+  /* overflow-x:hidden ? ?ㅻⅨ 異뺤쓣 auto 濡?留뚮뱾??body 瑜??ㅽ겕濡?而⑦뀒?대꼫濡?     諛붽퓭 踰꾨┛?? 洹몃윭硫??대???position:sticky 媛 酉고룷??湲곗??쇰줈 遺숈? 紐삵븳??     (Projects 媛濡??ъ쓽 ??????뚮Ц????몃떎).
+     clip ? ?ㅽ겕濡?而⑦뀒?대꼫瑜?留뚮뱾吏 ?딆쑝硫댁꽌 媛濡??섏묠留??섎씪 ?몃떎.
+     ?꾨옒 以꾩쓣 紐⑤Ⅴ??援ы삎 釉뚮씪?곗?????hidden ??洹몃?濡??대떎. */
   overflow-x: hidden;
   overflow-x: clip;
   word-break: keep-all;
@@ -128,7 +126,7 @@ img{ display: block; max-width: 100%; height: auto; }
 ul { list-style: none; }
 button { font-family: inherit; cursor: pointer; border: none; background: none; }
 
-/* ── Custom Scrollbar ── */
+/* ?? Custom Scrollbar ?? */
 ::-webkit-scrollbar {
   width: 0.5rem;
   height: 0.5rem;
@@ -153,7 +151,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   scrollbar-color: var(--border-2) var(--bg);
 }
 
-/* ── Lenis Base ── */
+/* ?? Lenis Base ?? */
 html.lenis,
 html.lenis body {
   height: auto;
@@ -175,7 +173,7 @@ html.lenis body {
   pointer-events: none;
 }
 
-/* ── 2. Layout Helpers ── */
+/* ?? 2. Layout Helpers ?? */
 .container {
   max-width: var(--max-w);
   margin: 0 auto;
@@ -205,7 +203,7 @@ html.lenis body {
 
 .section-header { margin-bottom: 2.75rem; }
 
-/* ── 3. Buttons ── */
+/* ?? 3. Buttons ?? */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -238,7 +236,7 @@ html.lenis body {
   transform: translateY(-2px);
 }
 
-/* ── 4. Navigation ── */
+/* ?? 4. Navigation ?? */
 .nav {
   position: fixed;
   inset: 0 0 auto 0;
@@ -338,7 +336,7 @@ html.lenis body {
   transition: var(--transition);
 }
 
-/* ── 9. Footer ── */
+/* ?? 9. Footer ?? */
 .footer {
   background: var(--surface);
   border-top: 1px solid var(--border);
@@ -353,7 +351,7 @@ html.lenis body {
 }
 .footer__copy { font-size: 0.8125rem; color: var(--text-tertiary); }
 
-/* ── 10. Modal ── */
+/* ?? 10. Modal ?? */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -463,7 +461,7 @@ html.lenis body {
   font-weight: 500;
 }
 
-/* ── 11. Animations ── */
+/* ?? 11. Animations ?? */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(24px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -488,10 +486,10 @@ html.lenis body {
 .reveal-delay-2 { transition-delay: 0.2s; }
 .reveal-delay-3 { transition-delay: 0.3s; }
 
-/* ── 12. Responsive ── */
+/* ?? 12. Responsive ?? */
 /* About Responsive moved to About section module for better maintenance */
 
-/* ★ 모바일 — 카드 1열 */
+/* ??紐⑤컮????移대뱶 1??*/
 @media (max-width: 48em) {
   .nav__links { display: none; }
   .nav__hamburger { display: flex; }
@@ -533,7 +531,7 @@ html.lenis body {
 }
 
 
-/* ── 13. Top Button ── */
+/* ?? 13. Top Button ?? */
 .top-btn {
   position: fixed;
   bottom: 2.5rem;
@@ -579,42 +577,42 @@ html.lenis body {
   }
 }
 
-/* ── 14. Utils ── */
+/* ?? 14. Utils ?? */
 @media (max-width: 48em) {
   .pc-only { display: none !important; }
 }
 
 
 /* ============================================================
-   프로젝트 브랜드 테마 토큰
+   ?꾨줈?앺듃 釉뚮옖???뚮쭏 ?좏겙
    ------------------------------------------------------------
-   식별자는 프로젝트 단위이며, 아래 세 속성이 같은 값 집합을 공유한다.
-     · data-theme       상세 페이지 <body>            (main.js 가 읽어 카드로 복제)
-     · data-card-theme  index.html 프로젝트 카드
-     · data-next-theme  Next Project 카드 (이동 "대상" 프로젝트의 테마)
-   DOM 순서가 아니라 이 속성값이 색을 결정하므로,
-   카드 순서를 바꿔도 색이 따라 움직이지 않는다.
+   ?앸퀎?먮뒗 ?꾨줈?앺듃 ?⑥쐞?대ŉ, ?꾨옒 ???띿꽦??媛숈? 媛?吏묓빀??怨듭쑀?쒕떎.
+     쨌 data-theme       ?곸꽭 ?섏씠吏 <body>            (main.js 媛 ?쎌뼱 移대뱶濡?蹂듭젣)
+     쨌 data-card-theme  index.html ?꾨줈?앺듃 移대뱶
+     쨌 data-next-theme  Next Project 移대뱶 (?대룞 "??? ?꾨줈?앺듃???뚮쭏)
+   DOM ?쒖꽌媛 ?꾨땲?????띿꽦媛믪씠 ?됱쓣 寃곗젙?섎?濡?
+   移대뱶 ?쒖꽌瑜?諛붽퓭???됱씠 ?곕씪 ?吏곸씠吏 ?딅뒗??
 
-   --project-accent 는 지정된 브랜드 HEX 를 그대로 쓴다.
-   파생색은 명도를 낮춘 별색이 아니라 같은 색의 낮은 불투명도로 만든다.
-   --project-accent-text 는 "흰 배경 위 작은 텍스트" 전용 파생색으로,
-   WCAG AA(4.5:1)를 넘기도록 브랜드 컬러를 어둡게 조정한 값이다.
-   --project-accent-contrast 는 브랜드 컬러를 배경으로 깔았을 때 올릴 글자색이다.
+   --project-accent ??吏?뺣맂 釉뚮옖??HEX 瑜?洹몃?濡??대떎.
+   ?뚯깮?됱? 紐낅룄瑜???텣 蹂꾩깋???꾨땲??媛숈? ?됱쓽 ??? 遺덊닾紐낅룄濡?留뚮뱺??
+   --project-accent-text ??"??諛곌꼍 ???묒? ?띿뒪?? ?꾩슜 ?뚯깮?됱쑝濡?
+   WCAG AA(4.5:1)瑜??섍린?꾨줉 釉뚮옖??而щ윭瑜??대몼寃?議곗젙??媛믪씠??
+   --project-accent-contrast ??釉뚮옖??而щ윭瑜?諛곌꼍?쇰줈 源붿븯?????щ┫ 湲?먯깋?대떎.
    ============================================================ */
 
-/* project01 — #0D47A1 (흰 배경 대비 8.73:1 → 텍스트로 그대로 사용 가능) */
+/* project01 ??#C94324 (??諛곌꼍 ?鍮?8.73:1 ???띿뒪?몃줈 洹몃?濡??ъ슜 媛?? */
 [data-theme="project01"],
 [data-card-theme="project01"],
 [data-next-theme="project01"] {
-  --project-accent:          #0D47A1;
-  --project-accent-rgb:      13, 71, 161;
-  --project-accent-hover:    #0A3A85;
-  --project-accent-text:     #0D47A1;
+  --project-accent:          #C94324;
+  --project-accent-rgb:      201, 67, 36;
+  --project-accent-hover:    #A93419;
+  --project-accent-text:     #C94324;
   --project-accent-contrast: #FFFFFF;
 }
 
-/* project02 — #F25C2C (흰 배경 대비 3.29:1 → 작은 텍스트는 #C4501F 4.65:1 사용)
-   브랜드 컬러를 배경으로 쓸 때는 흰 글자(3.29:1)가 부족하므로 어두운 글자를 올린다. */
+/* project02 ??#F25C2C (??諛곌꼍 ?鍮?3.29:1 ???묒? ?띿뒪?몃뒗 #C4501F 4.65:1 ?ъ슜)
+   釉뚮옖??而щ윭瑜?諛곌꼍?쇰줈 ???뚮뒗 ??湲??3.29:1)媛 遺議깊븯誘濡??대몢??湲?먮? ?щ┛?? */
 [data-theme="project02"],
 [data-card-theme="project02"],
 [data-next-theme="project02"] {
@@ -625,41 +623,41 @@ html.lenis body {
   --project-accent-contrast: #212529;
 }
 
-/* project03 — #256EF4 (흰 배경 대비 4.60:1, 경계값이라 텍스트는 #1F63DB 5.41:1 사용) */
+/* project03 ??#C94324 (??諛곌꼍 ?鍮?4.60:1, 寃쎄퀎媛믪씠???띿뒪?몃뒗 #A93419 5.41:1 ?ъ슜) */
 [data-theme="project03"],
 [data-card-theme="project03"],
 [data-next-theme="project03"] {
-  --project-accent:          #256EF4;
-  --project-accent-rgb:      37, 110, 244;
-  --project-accent-hover:    #1A5CD8;
-  --project-accent-text:     #1F63DB;
+  --project-accent:          #C94324;
+  --project-accent-rgb:      201, 67, 36;
+  --project-accent-hover:    #A93419;
+  --project-accent-text:     #A93419;
   --project-accent-contrast: #FFFFFF;
 }
 
-/* project04 — #1BA74E (흰 배경 대비 3.15:1 → 작은 텍스트는 #14803C 5.02:1 사용)
-   브랜드 컬러 배경 위에는 흰 글자(3.15:1) 대신 어두운 글자를 올린다. */
+/* project04 ??#C94324 (??諛곌꼍 ?鍮?3.15:1 ???묒? ?띿뒪?몃뒗 #A93419 5.02:1 ?ъ슜)
+   釉뚮옖??而щ윭 諛곌꼍 ?꾩뿉????湲??3.15:1) ????대몢??湲?먮? ?щ┛?? */
 [data-theme="project04"],
 [data-card-theme="project04"],
 [data-next-theme="project04"] {
-  --project-accent:          #1BA74E;
-  --project-accent-rgb:      27, 167, 78;
-  --project-accent-hover:    #158B41;
-  --project-accent-text:     #14803C;
+  --project-accent:          #C94324;
+  --project-accent-rgb:      201, 67, 36;
+  --project-accent-hover:    #A93419;
+  --project-accent-text:     #A93419;
   --project-accent-contrast: #212529;
 }
 
-/* deurim — #5B88FC (흰 배경 대비 3.29:1 → 작은 텍스트는 #3A6BE8 4.76:1 사용) */
+/* deurim ??#C94324 (??諛곌꼍 ?鍮?3.29:1 ???묒? ?띿뒪?몃뒗 #A93419 4.76:1 ?ъ슜) */
 [data-theme="deurim"],
 [data-card-theme="deurim"],
 [data-next-theme="deurim"] {
-  --project-accent:          #5B88FC;
-  --project-accent-rgb:      91, 136, 252;
-  --project-accent-hover:    #3F72F0;
-  --project-accent-text:     #3A6BE8;
+  --project-accent:          #C94324;
+  --project-accent-rgb:      201, 67, 36;
+  --project-accent-hover:    #A93419;
+  --project-accent-text:     #A93419;
   --project-accent-contrast: #212529;
 }
 
-/* 파생 토큰 — 브랜드 RGB 하나에서 모두 생성한다 (색상값 재하드코딩 금지) */
+/* ?뚯깮 ?좏겙 ??釉뚮옖??RGB ?섎굹?먯꽌 紐⑤몢 ?앹꽦?쒕떎 (?됱긽媛??ы븯?쒖퐫??湲덉?) */
 [data-theme^="project"], [data-theme="deurim"],
 [data-card-theme^="project"], [data-card-theme="deurim"],
 [data-next-theme^="project"], [data-next-theme="deurim"] {
@@ -673,10 +671,9 @@ html.lenis body {
 
 
 /* ============================================================
-   들임(Deurim) — index.html 카드 이미지 슬롯
-   index.html 은 css/detail.css 를 불러오지 않으므로
-   카드용 슬롯 규칙은 이 파일에 둔다.
-   연한 단색만 노출한다 (테두리 · 문구 · 아이콘 · 그라데이션 없음).
+   ?ㅼ엫(Deurim) ??index.html 移대뱶 ?대?吏 ?щ’
+   index.html ? css/detail.css 瑜?遺덈윭?ㅼ? ?딆쑝誘濡?   移대뱶???щ’ 洹쒖튃? ???뚯씪???붾떎.
+   ?고븳 ?⑥깋留??몄텧?쒕떎 (?뚮몢由?쨌 臾멸뎄 쨌 ?꾩씠肄?쨌 洹몃씪?곗씠???놁쓬).
    ============================================================ */
 .deurim-media-slot {
   display: block;
@@ -692,6 +689,5 @@ html.lenis body {
   height: 100%;
   object-fit: cover;
 }
-/* 카드 썸네일 슬롯 — 원형 비주얼 안에서 크기를 받으므로 비율을 고정하지 않는다 */
+/* 移대뱶 ?몃꽕???щ’ ???먰삎 鍮꾩＜???덉뿉???ш린瑜?諛쏆쑝誘濡?鍮꾩쑉??怨좎젙?섏? ?딅뒗??*/
 .deurim-media-slot--card { aspect-ratio: 1; }
-

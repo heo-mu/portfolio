@@ -1,4 +1,4 @@
-﻿/* Shared sampled-cell renderer for identity type and portrait only. */
+/* Shared sampled-cell renderer for identity type and portrait only. */
 (() => {
   'use strict';
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
@@ -71,8 +71,8 @@
         sample.width=w;sample.height=h;
         sc.clearRect(0,0,w,h);
         const cs=getComputedStyle(source), hs=getComputedStyle(host);
-        tint=hs.getPropertyValue('--c-neon').trim()||'#E0FF4F';
-        rgbEdge=hs.getPropertyValue('--c-accent').trim()||'#6544A5';
+        tint=hs.getPropertyValue('--c-neon').trim()||'#C94324';
+        rgbEdge=hs.getPropertyValue('--c-accent').trim()||'#C94324';
         if (isImage) {
           const scale=Math.min(w/source.naturalWidth,h/source.naturalHeight);
           const iw=source.naturalWidth*scale,ih=source.naturalHeight*scale;

@@ -19,18 +19,28 @@
  const progress=document.getElementById('read-progress'),topButton=document.getElementById('scrollToTop');
  const next=document.querySelector('.next-projects');
  const offset=()=> (nav?.offsetHeight||0)+(toc?.offsetHeight||0)+24;
- let frame=0;
+ let frame=0,lastActive=-1;
+ const measureChrome=()=>{document.body.style.setProperty('--detail-header',(nav?.offsetHeight||0)+'px');document.body.style.setProperty('--detail-tabs',(toc?.offsetHeight||0)+'px');schedule();};
+ const chromeObserver=new ResizeObserver(measureChrome);if(nav)chromeObserver.observe(nav);if(toc)chromeObserver.observe(toc);
  function update(){
   frame=0;
   const y=window.scrollY,limit=next?next.getBoundingClientRect().top+y-innerHeight:document.documentElement.scrollHeight-innerHeight;
   if(progress)progress.style.width=Math.min(100,Math.max(0,y/Math.max(1,limit)*100))+'%';
-  let active=-1;sections.forEach((s,i)=>{if(s&&s.getBoundingClientRect().top<=offset()+24)active=i;});
+  let active=0;sections.forEach((s,i)=>{if(s&&s.getBoundingClientRect().top<=offset()+24)active=i;});
   links.forEach((a,i)=>{if(i===active)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current');});
+  if(active!==lastActive){
+   const item=links[active],rail=toc?.querySelector('.container');
+   if(item&&rail){const a=item.getBoundingClientRect(),r=rail.getBoundingClientRect();if(a.left<r.left||a.right>r.right)rail.scrollTo({left:rail.scrollLeft+a.left-r.left-(r.width-a.width)/2,behavior:'auto'});}
+   lastActive=active;
+  }
   topButton?.classList.toggle('visible',y>600);
  }
  function schedule(){if(!frame)frame=requestAnimationFrame(update);}
  addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule,{passive:true});
  addEventListener('load',schedule);addEventListener('pageshow',schedule);document.fonts?.ready.then(schedule);
+ document.querySelectorAll('.study-more').forEach(details=>details.addEventListener('toggle',()=>{
+  window.portfolioScroll?.refresh();schedule();
+ }));
  document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',e=>{
   const target=document.getElementById(decodeURIComponent(a.hash.slice(1)));if(!target)return;
   e.preventDefault();
@@ -39,5 +49,5 @@
   history.replaceState(null,'',a.hash);target.setAttribute('tabindex','-1');target.focus({preventScroll:true});
  }));
  topButton?.addEventListener('click',()=>{if(window.portfolioScroll)window.portfolioScroll.moveTo(0);else scrollTo(0,0);});
- update();
+ measureChrome();update();
 })();
