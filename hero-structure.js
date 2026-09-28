@@ -1,11 +1,11 @@
-import {applyUIVolume,createUIRelief} from './hero-ui.js?v=4';
+import {applyUIVolume,createUIRelief} from './hero-ui.js?v=7';
 // Rest, assembly and pointer displacement are independent motion layers.
 export const CYCLE=4.2;
 export const PITCH=.36;
 const HALF=1.26;
 const STILL={strength:0};
 // World-space motion limits: one shell cell is .36 units wide.
-export const CORE_MOTION=Object.freeze({loosen:.052,float:.009,depth:.042,rotation:.036,scale:.014,innerWeight:.72});
+export const CORE_MOTION=Object.freeze({loosen:.064,float:.013,depth:.054,rotation:.044,scale:.014,innerWeight:.72});
 const seed=(x,y,z,salt)=>{const n=Math.sin(x*127.1+y*311.7+z*74.7+salt*19.19)*43758.5453;return n-Math.floor(n);};
 const ease=t=>{t=Math.max(0,Math.min(1,t));return t*t*t*(t*(t*6-15)+10);};
 export function assemblyState(time,out={}){
@@ -150,10 +150,10 @@ function bevelBox(T){
   const geometry=new T.ExtrudeGeometry(shape,{depth:1-2*bevel,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:bevel,bevelThickness:bevel});
   geometry.translate(0,0,-.5+bevel);return geometry;
 }
-export function createStructure(T,{accent='#C94324',ink='#1B1C19'}={}){
+export function createStructure(T,{accent='#C94324',ink='#1B1C19',environment=null,transmission=.18}={}){
   const group=new T.Group(),shellGeometry=bevelBox(T),innerGeometry=bevelBox(T);
   const basePositions=shellGeometry.attributes.position.array.slice();
-  const materials={shell:stone(T,0xe9e9e2,.77),core:stone(T,0x888e83,.81),rail:stone(T,ink,.67,.16),
+  const materials={shell:stone(T,0xe9e9e7,.72),core:stone(T,0x898989,.81),rail:stone(T,ink,.67,.16),
     signal:new T.MeshStandardMaterial({color:accent,roughness:.64,metalness:.06})};
   const batches=Object.entries(materials).map(([kind,material])=>{
     const parts=PARTS.filter(p=>p.kind===kind);
@@ -165,7 +165,15 @@ export function createStructure(T,{accent='#C94324',ink='#1B1C19'}={}){
   const solidGeometry=new T.BoxGeometry(HALF*2,HALF*2,HALF*2),solid=new T.Mesh(solidGeometry,materials.shell);
   solid.castShadow=true;solid.receiveShadow=true;group.add(solid);
   const dummy=new T.Object3D(),color=new T.Color(),motionState={},poses=PARTS.map(()=>({}));
-  const uiMaterials={white:materials.shell,surface:stone(T,0xd3d2ce,.78),soft:stone(T,0xb6b5b1,.79),ink:materials.rail,accent:materials.signal};
+  // Dedicated finishes keep the cube matte while the detached UI gains a
+  // polished casing, a satin face and crisp, readable raised controls.
+  const finish=(color,roughness,extra={})=>new T.MeshPhysicalMaterial({color,roughness,metalness:.08,
+    clearcoat:.7,clearcoatRoughness:.14,envMap:environment,envMapIntensity:.75,...extra});
+  const uiMaterials={
+    glass:finish(0xe8e8e8,.15,{transmission,thickness:.09,ior:1.46,metalness:0,clearcoat:1}),
+    white:finish(0xf1f1f1,.29),surface:finish(0xd6d6d6,.36),
+    soft:finish(0xababab,.4),ink:finish(ink,.28),accent:finish(accent,.25)
+  };
   const relief=createUIRelief(T,group,innerGeometry,uiMaterials);
   const shellColor=materials.shell.color,coreColor=materials.core.color;
   const unitBox=new T.Box3(new T.Vector3(-.5,-.5,-.5),new T.Vector3(.5,.5,.5));
@@ -258,5 +266,5 @@ export function createStructure(T,{accent='#C94324',ink='#1B1C19'}={}){
   }
   shellGeometry.attributes.position.setUsage(T.DynamicDrawUsage);update(0);
   return {group,update,pickSurface,get spread(){return spreadAmount;},dispose(){shellGeometry.dispose();innerGeometry.dispose();solidGeometry.dispose();
-    relief.dispose();uiMaterials.soft.dispose();uiMaterials.surface.dispose();Object.values(materials).forEach(m=>m.dispose());batches.forEach(b=>b.mesh.dispose());}};
+    relief.dispose();Object.values(uiMaterials).forEach(m=>m.dispose());Object.values(materials).forEach(m=>m.dispose());batches.forEach(b=>b.mesh.dispose());}};
 }

@@ -1,8 +1,8 @@
-import {UI_KIT,uiBounds} from './hero-ui.js?v=4';
+import {UI_KIT,uiBounds} from './hero-ui.js?v=7';
 // Deterministic occupancy in Hero-local coordinates. Scroll never replans it.
 const smooth=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t);};
 // Ease only the ends: stacking full eases made long routes whip past the copy.
-const flightProgress=t=>{t=Math.max(0,Math.min(1,t));const edge=.12;return (t<edge?t*t/(2*edge):t>1-edge?1-edge-(1-t)**2/(2*edge):t-edge/2)/(1-edge);};
+const flightProgress=t=>{t=Math.max(0,Math.min(1,t));return 1-Math.pow(1-t,1.65);};
 const halton=(i,base)=>{let n=0,f=1;while(i){f/=base;n+=f*(i%base);i=Math.floor(i/base);}return n;};
 export function createScatterField(T,camera,group,parts=[]){
   const local=new T.Vector3(),screen=new T.Vector3(),view=new T.Vector3(),inverse=new T.Matrix4();
@@ -33,7 +33,7 @@ export function createScatterField(T,camera,group,parts=[]){
   function available(x,y,r){
     if(x<r+10||x>width-r-10||y<top+r+10||y>height-r-10)return false;
     if(mobile&&(y<slot.top+r+8||y>slot.bottom-r-8))return false;
-    if(zones.some(z=>sdf(x,y,r+5,z)<0)||sdf(x,y,r+12,core)<0)return false;
+    if(zones.some(z=>sdf(x,y,r*.78+2,z)<0)||sdf(x,y,r+8,core)<0)return false;
     return !occupied.some(q=>Math.hypot(x-q.x,y-q.y)<r+q.r+24);
   }
   function configure(w,h,anchor,safeZones,headerHeight){
@@ -66,28 +66,43 @@ export function createScatterField(T,camera,group,parts=[]){
       if(selected.some(q=>Math.hypot(p.x-q.x,p.y-q.y,p.z-q.z)<.48))continue;
       selected.push(p);if(++innerCount===(mobile?1:w<=1088?3:4))break;
     }
-    const bands=[0,1,0,2,1,0,1,2];
+    // Polar lanes radiate from the cube, with alternating near/mid/far shells.
+    // Lower diagonals are allocated early; these are not viewport grid slots.
+    const angles=[.82,2.38,4.55,5.65,1.6,3.8,.08,2.85,5.05,1.12,4.15,6.02,2.02,3.42,5.35,.48,4.85,2.62];
     for(let i=0;i<selected.length;i++){
       // One representative per role; the three chart types carry different shapes.
-      const order=mobile?['button','toggle-status','bar-chart','search-field','modal-card','flow-nodes','table-rows']:['button','toggle-status','bar-chart','line-area-chart','donut-dashboard','search-field','modal-card','table-rows','flow-nodes','filter-badge','wireframe-layout','select-input','document-sheet','slider-range','permission-lock','user-organisation','tabs-section','list-notification'];
+      const order=mobile?['button','toggle-status','bar-chart','search-field','modal-card','flow-nodes','table-rows']:['bar-chart','search-field','toggle-status','donut-dashboard','modal-card','button','line-area-chart','table-rows','flow-nodes','checkbox-radio','tabs-section','select-input','calendar','slider-range','list-notification','kanban-board','filter-badge','progress-pagination'];
       const p=selected[i],foreground=!mobile&&i<2,base=UI_KIT.find(ui=>ui.name===order[occupied.length]);
-      const scale=mobile?.64:1,ui={...base,w:base.w*scale,h:base.h*scale,d:base.d*scale,scale};
-      // Density fades toward the copy: small distant satellites, not a text-shaped hole.
-      const region=mobile?'core':foreground||i%7<4?'core':i%7<6?'bridge':'periphery';
-      const depth=anchorDepth*(foreground?[.78,.9][i]:region==='periphery'?1.8+p.r*.28:region==='bridge'?1.42+p.r*.22:1.08+p.r*.28);
-      const rad=radius(uiBounds(ui),depth),band=bands[i%bands.length];let best=null,bestScore=Infinity;
+      const tier=i%3,angle=angles[i%angles.length];
+      const scale=mobile?.64:[1.28,1.12,.96][tier],ui={...base,w:base.w*scale,h:base.h*scale,d:base.d*scale,scale};
+      // Camera-facing basis with distinct, restrained yaw/pitch: readable fronts,
+      // visible sidewalls, and no wall of identically oriented billboards.
+      ui.rx=camera.rotation.x+Math.sin(angle)*[.16,.25,.34][tier];
+      ui.ry=camera.rotation.y+Math.cos(angle)*[.24,.34,.42][tier];
+      ui.rz=camera.rotation.z+Math.sin(angle*1.7)*[.10,.15,.21][tier];
+      ui.depthFade=mobile?0:[0,.04,.10][tier];
+      // A few smaller, deeper modules use outer whitespace; the main mass stays central.
+      const region=mobile?'core':foreground?'core':i%6===4?'periphery':i%6>=2?'bridge':'core';
+      const depth=anchorDepth*(mobile?1.12+p.r*.24:[.86,1.08,1.36][tier]);
+      const rad=radius(uiBounds(ui),depth),band=Math.sin(angle)>.35?2:Math.sin(angle)<-.35?0:1;let best=null,bestScore=Infinity;
+      const dx=Math.cos(angle),dy=Math.sin(angle);
+      const edgeX=(dx>0?w-rad-14-core.x:rad+14-core.x)/dx;
+      const edgeY=(dy>0?(mobile?slot.bottom:h)-rad-14-core.y:(mobile?slot.top:top)+rad+14-core.y)/dy;
+      const far=Math.max(0,Math.min(edgeX,edgeY));
+      const near=Math.min((core.w/2+rad+14)/Math.max(.01,Math.abs(dx)),(core.h/2+rad+14)/Math.max(.01,Math.abs(dy)));
+      const reach=near+Math.max(0,far-near)*[.18,.52,.86][tier];
       for(let k=1;k<=720;k++){
         const x=(.035+.93*halton(k,2))*w;
         const minY=mobile?slot.top:top,maxY=mobile?slot.bottom:h;
         const y=minY+(.045+.91*halton(k,3))*(maxY-minY);
         if(!available(x,y,rad))continue;
-        const yn=(y-minY)/(maxY-minY),desired=[.22,.49,.77][band]+(p.r-.5)*.09;
-        screen.set(p.x,p.y,p.z).project(camera);
-        const sourceX=(screen.x+1)*w/2,sourceY=(1-screen.y)*h/2;
-        const order=Math.hypot((x-sourceX)/w,(y-sourceY)/h);
-        const desiredX=region==='periphery'?.10+p.r*.26:region==='bridge'?.44+p.r*.20:.72+p.r*.24;
-        const density=Math.abs(x/w-desiredX)*(mobile?0:2.8);
-        const score=density+Math.abs(yn-desired)*1.35+order*.08+halton(k+i+1,5)*.12;
+        const vx=x-core.x,vy=y-core.y,distance=Math.hypot(vx,vy);
+        const angular=1-(vx*dx+vy*dy)/Math.max(1,distance);
+        // Reserve early lower-diagonal modules for the outer whitespace.
+        const lowerAnchor=!mobile&&i<2;
+        const lowerTargetX=i===0?w*.85:w*.16,lowerTargetY=h*.84;
+        const lowerScore=lowerAnchor?Math.hypot(x-lowerTargetX,y-lowerTargetY)/h*2.8:0;
+        const score=angular*(lowerAnchor?.5:2.2)+Math.abs(distance-reach)/Math.max(1,h)*1.4+lowerScore+halton(k+i+1,5)*.025;
         if(score<bestScore){bestScore=score;best={x,y,r:rad,depth,foreground,region,band,index:i,part:p,ui};}
       }
       if(!best)continue; // Insufficient space leaves the module in its coherent mass.
@@ -102,7 +117,7 @@ export function createScatterField(T,camera,group,parts=[]){
   function planRoute(sx,sy,target){
     // A shallow outward arc, independent of text rectangles. No detour corners.
     const dx=target.x-sx,dy=target.y-sy,distance=Math.hypot(dx,dy)||1;
-    const bend=Math.min(42,distance*.075)*(target.index%2?1:-1);
+    const bend=Math.min(24,distance*.035)*(target.index%2?1:-1);
     const cx=(sx+target.x)/2-dy/distance*bend;
     const cy=(sy+target.y)/2+dx/distance*bend;
     const points=[];let length=0;
@@ -128,15 +143,18 @@ export function createScatterField(T,camera,group,parts=[]){
     project(scratch);
     const startX=screen.x,startY=screen.y,startDepth=-view.z;
     const drift=travel*floatWindow;along(target.route,flight);
+    // One small outward pulse resolves while floating; reverse retraces the lane.
+    const pulse=Math.sin(Math.PI*floatWindow)*travel*(2+part.r*3);
+    const radialLength=Math.hypot(target.x-core.x,target.y-core.y)||1;
     const first=target.route.points[0];
-    const x=routePoint.x+(startX-first.x)*(1-flight)+Math.sin(phase*(1.05+part.r*.25)+part.phase)*(1.6+part.r*.9)*drift;
-    const y=routePoint.y+(startY-first.y)*(1-flight)+Math.cos(phase*(.85+part.r*.2)+part.phase)*(1.2+part.r*.8)*drift;
+    const x=routePoint.x+(startX-first.x)*(1-flight)+(target.x-core.x)/radialLength*pulse+Math.sin(phase*(1.05+part.r*.25)+part.phase)*(1.6+part.r*.9)*drift;
+    const y=routePoint.y+(startY-first.y)*(1-flight)+(target.y-core.y)/radialLength*pulse+Math.cos(phase*(.85+part.r*.2)+part.phase)*(1.2+part.r*.8)*drift;
     const depth=startDepth+(target.depth-startDepth)*flight+Math.sin(Math.PI*flight)*(.3+target.index%3*.36)+Math.sin(phase+part.phase)*.025*drift;
     resolve(p,x,y,depth);
   }
   function constrain(n,strength){
     for(let pass=0;pass<2;pass++)for(let i=0;i<=zones.length;i++){
-      const z=i===zones.length?core:zones[i],r=n.r+(i===zones.length?10:4),dx=n.x-z.x,dy=n.y-z.y,corner=28;
+      const z=i===zones.length?core:zones[i],r=i===zones.length?n.r+8:n.r*.78+2,dx=n.x-z.x,dy=n.y-z.y,corner=28;
       const qx=Math.abs(dx)-Math.max(0,z.w/2+r-corner),qy=Math.abs(dy)-Math.max(0,z.h/2+r-corner);
       const ax=Math.max(qx,0),ay=Math.max(qy,0),len=Math.hypot(ax,ay);
       const distance=len+Math.min(Math.max(qx,qy),0)-corner;

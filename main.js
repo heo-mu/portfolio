@@ -83,8 +83,9 @@ let lenis = null;
   }
 
   function initProjectIndex() {
-    const rows=$$('.work-row'), preview=$('.work-preview');
+    const rows=$$('.work-row');
     if(!rows.length)return;
+    const preview=$('.work-preview'),previewVisual=preview&&$('.work-preview__visual',preview);
     rows.forEach(row=>row.addEventListener('click',()=>{try{sessionStorage.setItem('hm:proj',row.dataset.project);}catch{}}));
     const restore=()=>{
       if(location.hash!=='#projects')return;
@@ -95,10 +96,8 @@ let lenis = null;
     };
     // Use native history restoration on browser Back; explicit Projects links restore the chosen row.
     if(performance.getEntriesByType?.('navigation')[0]?.type!=='back_forward') requestAnimationFrame(restore);
-    if(!preview)return;
-    const visual=$('.work-preview__visual',preview),cache=new Map();
-    let x=0,y=0,tx=0,ty=0,frame=0,last=0,active=null,token=0,pointer=null,scrollFrame=0;
-    // Decode off-screen; only the latest hovered row may commit an image.
+    // Preview lives inside the existing thumbnail; scroll owns only the outer reveal.
+    const cache=new Map();
     const load=src=>{
       if(!cache.has(src))cache.set(src,new Promise(resolve=>{
         const img=new Image();img.alt='';img.width=1920;img.height=1080;
@@ -106,45 +105,61 @@ let lenis = null;
         img.onerror=()=>{cache.delete(src);resolve(null);};img.src=src;
       }));return cache.get(src);
     };
-    function draw(time){
-      frame=0;const mix=reduce.matches?1:1-Math.exp(-Math.min(40,last?time-last:16.67)/65);last=time;
-      x+=(tx-x)*mix;y+=(ty-y)*mix;preview.style.setProperty('--preview-x',x+'px');preview.style.setProperty('--preview-y',y+'px');
-      if(active&&(Math.abs(tx-x)+Math.abs(ty-y)>.1))frame=requestAnimationFrame(draw);else last=0;
-    }
-    const place=(e,row)=>{
-      // Keep the existing following/reveal motion inside the visual column.
-      // Every row shares this column, so the preview cannot cover neighbouring copy.
-      const bounds=row.getBoundingClientRect(),copy=$('.work-row__copy',row).getBoundingClientRect();
-      const left=Math.max(16,bounds.left-40),right=copy.left-24;
-      const width=Math.min(clamp(innerWidth*.29,320,512),Math.max(1,right-left),(innerHeight-144)*16/9);
-      preview.style.width=width+'px';
-      const r=preview.getBoundingClientRect();
-      tx=clamp(e.clientX-width*.55,left,Math.max(left,right-width));
-      ty=clamp(e.clientY+26,96,Math.max(96,innerHeight-r.height-16));
+    let previewFrame=0,previewToken=0,previewPointer=null,previewRow=null,previewX=0,previewY=0,previewTX=0,previewTY=0;
+    const drawPreview=time=>{
+      previewFrame=0;const dt=previewX||previewY?Math.min(40,time-(preview._last||time)):16.67;preview._last=time;
+      const mix=1-Math.exp(-dt/70);previewX+=(previewTX-previewX)*mix;previewY+=(previewTY-previewY)*mix;
+      preview.style.setProperty('--preview-x',previewX.toFixed(2)+'px');preview.style.setProperty('--preview-y',previewY.toFixed(2)+'px');
+      if(Math.abs(previewTX-previewX)+Math.abs(previewTY-previewY)>.08)previewFrame=requestAnimationFrame(drawPreview);else{previewX=previewTX;previewY=previewTY;preview._last=0;}
     };
-    const hide=()=>{active=null;token++;preview.classList.remove('is-visible');rows.forEach(row=>row.classList.remove('is-previewing'));delete preview.dataset.project;cancelAnimationFrame(frame);frame=last=0;};
-    const show=async(row,e)=>{
-      if(!fine.matches||innerWidth<641||e.pointerType==='touch')return;
-      pointer={clientX:e.clientX,clientY:e.clientY};place(pointer,row);
-      if(active===row){if(!frame)frame=requestAnimationFrame(draw);return;}
-      window.portfolioMotion?.revealWithin(row);
-      active=row;const request=++token;preview.classList.remove('is-visible');preview.dataset.project=row.dataset.project;
-      x=tx;y=ty;draw(performance.now());
-      const img=await load(row.dataset.preview);
-      if(request!==token||active!==row)return;
-      if(!img){hide();return;}
-      visual.replaceChildren(img);rows.forEach(item=>item.classList.toggle('is-previewing',item===row));preview.classList.add('is-visible');
+    const placePreview=e=>{
+      if(!previewPointer)return;
+      const w=Math.min(clamp(innerWidth*.29,280,440),innerWidth-32,(innerHeight-176)*16/9),h=w*9/16;
+      let x=e.clientX+28,y=e.clientY-h*.45;
+      if(x+w>innerWidth-16)x=e.clientX-w-28;
+      y=clamp(y,88,innerHeight-h-24);
+      preview.style.width=w+'px';preview.style.height=h+'px';previewTX=x;previewTY=y;
+      if(!previewFrame)previewFrame=requestAnimationFrame(drawPreview);
+    };
+    const hidePreview=()=>{previewRow=null;previewPointer=null;previewToken++;if(preview)preview.classList.remove('is-visible');if(previewFrame){cancelAnimationFrame(previewFrame);previewFrame=0;}if(preview)preview._last=0;};
+    const showPreview=async(row,e)=>{
+      if(!preview||!previewVisual||!fine.matches||innerWidth<641||e.pointerType==='touch')return;
+      previewPointer={x:e.clientX,y:e.clientY};previewRow=row;placePreview(e);const token=++previewToken;const img=await load(row.dataset.preview);
+      if(token!==previewToken||previewRow!==row||!img)return;
+      previewVisual.replaceChildren(img.cloneNode());preview.setAttribute('data-project',row.dataset.project);preview.classList.add('is-visible');
     };
     rows.forEach(row=>{
-      row.addEventListener('pointerenter',e=>show(row,e));
-      row.addEventListener('pointermove',e=>show(row,e),{passive:true});
-      row.addEventListener('pointerleave',hide);row.addEventListener('click',hide);
+      const thumb=$('.work-row__thumb',row);
+      let request=0,inside=false,ready=false;
+      const reset=()=>{inside=false;request++;row.classList.remove('is-previewing');thumb.style.setProperty('--preview-local-x','0px');thumb.style.setProperty('--preview-local-y','0px');};
+      const show=async e=>{
+        if(!fine.matches||innerWidth<641||e.pointerType==='touch')return;
+        inside=true;const token=++request;
+        window.portfolioMotion?.revealWithin(row);
+        if(!ready){
+          const img=await load(row.dataset.preview);
+          if(!img||token!==request||!inside)return;
+          const layer=document.createElement('div');layer.className='work-row__hover';layer.setAttribute('aria-hidden','true');
+          const inner=document.createElement('div');inner.className='work-row__hover-inner';inner.append(img.cloneNode());layer.append(inner);thumb.append(layer);ready=true;
+          // Commit the closed mask before revealing a newly decoded layer.
+          layer.getBoundingClientRect();
+        }
+        if(inside&&token===request)row.classList.add('is-previewing');
+      };
+      row.addEventListener('pointerenter',e=>{show(e);showPreview(row,e);});
+      row.addEventListener('pointermove',e=>{
+        if(!fine.matches||innerWidth<641||e.pointerType==='touch')return;
+        if(!inside)show(e);
+        showPreview(row,e);
+        previewPointer={x:e.clientX,y:e.clientY};placePreview(e);
+        const r=row.getBoundingClientRect();
+        thumb.style.setProperty('--preview-local-x',(-clamp((e.clientX-r.left)/r.width-.5,-.5,.5)*12)+'px');
+        thumb.style.setProperty('--preview-local-y',(-clamp((e.clientY-r.top)/r.height-.5,-.5,.5)*9)+'px');
+      },{passive:true});
+      row.addEventListener('pointerleave',()=>{reset();hidePreview();});row.addEventListener('pointercancel',()=>{reset();hidePreview();});row.addEventListener('click',()=>{reset();hidePreview();});
+      addEventListener('resize',()=>{reset();hidePreview();},{passive:true});addEventListener('pageshow',()=>{reset();hidePreview();});addEventListener('pagehide',()=>{reset();hidePreview();});fine.addEventListener('change',()=>{reset();hidePreview();});
     });
-    addEventListener('scroll',()=>{
-      if(!active||!pointer||scrollFrame)return;
-      scrollFrame=requestAnimationFrame(()=>{scrollFrame=0;const row=document.elementFromPoint(pointer.clientX,pointer.clientY)?.closest('.work-row');if(row)show(row,pointer);else hide();});
-    },{passive:true});
-    addEventListener('resize',hide,{passive:true});addEventListener('pageshow',hide);addEventListener('pagehide',()=>{hide();cancelAnimationFrame(scrollFrame);scrollFrame=0;});fine.addEventListener('change',hide);
+    addEventListener('scroll',()=>{if(!previewRow||!previewPointer)return;const hit=document.elementFromPoint(previewPointer.x,previewPointer.y)?.closest?.('.work-row');if(hit!==previewRow)hidePreview();},{passive:true});
     if('IntersectionObserver' in window){const preload=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){load(e.target.dataset.preview);preload.unobserve(e.target);}}),{rootMargin:'300px'});rows.forEach(row=>preload.observe(row));}
   }
 
@@ -158,7 +173,6 @@ let lenis = null;
         const settled=Math.abs(tx-x)+Math.abs(ty-y)+Math.abs(tz-z)<.015;
         if(settled){x=tx;y=ty;z=tz;last=0;}
         target.style.setProperty('--tilt-x',x.toFixed(3)+'deg');target.style.setProperty('--tilt-y',y.toFixed(3)+'deg');target.style.setProperty('--lift',z.toFixed(3)+'px');
-        const preview=$('.work-preview');if(preview&&preview.dataset.project===surface.dataset.project&&surface.classList.contains('work-row')){preview.style.setProperty('--tilt-x',(x*.6).toFixed(3)+'deg');preview.style.setProperty('--tilt-y',(y*.6).toFixed(3)+'deg');}
         if(!settled)frame=requestAnimationFrame(draw);
       };
       const request=()=>{if(!frame)frame=requestAnimationFrame(draw);};
@@ -198,75 +212,163 @@ let lenis = null;
   }
 
 
+  function initHeroType() {
+    const title=$('#hero-title');if(!title)return;
+    const lines=$$('.type-mask > span',title),glyphs=[];
+    let point=null,frame=0,last=0,ready=false,measureFrame=0;
+    // Original text keeps shaping, kerning, selection and the accessible name.
+    const records=lines.map(line=>{
+      const base=document.createElement('span');base.className='hero-type__base';
+      base.textContent=line.textContent;line.replaceChildren(base);
+      const layer=document.createElement('span');layer.className='hero-type__glyphs';layer.setAttribute('aria-hidden','true');line.append(layer);
+      return {line,base,layer};
+    });
+    const measure=()=>{
+      measureFrame=0;
+      records.forEach(({line,base,layer})=>{
+        layer.replaceChildren();
+        const r=line.getBoundingClientRect(),ratio=r.width/(line.offsetWidth||1)||1;
+        const text=base.firstChild,range=document.createRange();
+        for(let i=0;i<text.length;i++){
+          range.setStart(text,i);range.setEnd(text,i+1);const box=range.getBoundingClientRect();
+          const el=document.createElement('span');el.className='hero-glyph';el.textContent=text.textContent[i];
+          const x=(box.left-r.left)/ratio,y=(box.top-r.top)/ratio;
+          el.style.left=x+'px';el.style.top='0px';el.style.width=box.width/ratio+'px';
+          layer.append(el);glyphs.push({el,line,cx:x+box.width/ratio/2,cy:y+box.height/ratio/2,x:0,y:0});
+        }
+      });
+      title.classList.add('is-magnetic-ready');ready=true;
+    };
+    const remeasure=()=>{if(!ready)return;glyphs.length=0;cancelAnimationFrame(measureFrame);measureFrame=requestAnimationFrame(measure);};
+    const paint=time=>{
+      frame=0;const dt=Math.min(40,last?time-last:16.67),mix=1-Math.exp(-dt/75);last=time;
+      const rects=new Map(records.map(({line})=>[line,line.getBoundingClientRect()]));
+      let moving=false;
+      glyphs.forEach(g=>{
+        const r=rects.get(g.line),dx=point?point.x-r.left-g.cx:0,dy=point?point.y-r.top-g.cy:0;
+        const influence=point?Math.max(0,1-Math.hypot(dx,dy)/110)**2:0;
+        const tx=clamp(dx*.14,-5,5)*influence,ty=clamp(dy*.18,-4,4)*influence;
+        g.x+=(tx-g.x)*mix;g.y+=(ty-g.y)*mix;
+        if(Math.abs(g.x-tx)+Math.abs(g.y-ty)<.015){g.x=tx;g.y=ty;}else moving=true;
+        g.el.style.transform='translate3d('+g.x.toFixed(3)+'px,'+g.y.toFixed(3)+'px,0)';
+      });
+      if(moving)frame=requestAnimationFrame(paint);else last=0;
+    };
+    const request=()=>{if(!frame&&ready)frame=requestAnimationFrame(paint);};
+    const reset=()=>{point=null;request();};
+    title.addEventListener('pointermove',e=>{if(!fine.matches||reduce.matches||e.pointerType==='touch')return;point={x:e.clientX,y:e.clientY};request();},{passive:true});
+    title.addEventListener('pointerleave',reset);title.addEventListener('pointercancel',reset);
+    addEventListener('scroll',reset,{passive:true});addEventListener('resize',remeasure,{passive:true});
+    fine.addEventListener('change',reset);reduce.addEventListener('change',reset);
+    // Let the short tracking/mask intro finish before sampling the settled glyphs.
+    const timer=setTimeout(()=>{glyphs.length=0;measure();},1250);
+    document.fonts?.ready.then(remeasure);
+    addEventListener('pagehide',()=>{clearTimeout(timer);cancelAnimationFrame(frame);cancelAnimationFrame(measureFrame);frame=last=0;point=null;glyphs.forEach(g=>{g.x=g.y=0;g.el.style.transform='none';});});
+    addEventListener('pageshow',e=>{if(e.persisted){if(!ready)measure();else remeasure();}});
+  }
+
+  function initToolsScroll() {
+    const section=$('.tools'),viewport=$('.tools__viewport'),track=$('.tools__track');
+    if(!section||!viewport||!track||!window.gsap||!window.ScrollTrigger)return;
+    gsap.registerPlugin(ScrollTrigger);
+    const items=$$('.tool-item',track),progress=$('.tools__progress > span');
+    viewport.removeAttribute('data-lenis-prevent-touch');
+    const mm=gsap.matchMedia();
+    mm.add('(min-width: 769px) and (min-height: 660px) and (prefers-reduced-motion: no-preference)',()=>{
+      section.classList.add('is-scroll-deck');
+      const state={position:0};let step=300,active=-1,trigger;
+      const measure=()=>{
+        section.style.setProperty('--tools-top',($('#nav')?.offsetHeight||68)+'px');
+        section.style.setProperty('--tools-run',Math.round(innerHeight*2.8)+'px');
+        step=items[0].offsetWidth*.88;
+      };
+      const render=()=>{
+        const index=Math.round(state.position);
+        items.forEach((item,i)=>{
+          const d=i-state.position,a=Math.abs(d);
+          gsap.set(item,{x:d*step,y:Math.min(a,3)*20,scale:1-Math.min(a,3)*.085,
+            rotationY:clamp(d,-2,2)*-9,z:-Math.min(a,3)*65,
+            opacity:clamp(2.6-a,0,1),zIndex:20-Math.round(a*4)});
+          if(index!==active){item.classList.toggle('is-current',i===index);item.inert=i!==index;}
+        });
+        active=index;
+        if(progress)progress.style.transform='scaleX('+((state.position+1)/items.length)+')';
+      };
+      measure();
+      const timeline=gsap.timeline({onUpdate:render});
+      timeline.to(state,{position:0,duration:.12}).to(state,{position:items.length-1,duration:1,ease:'none'}).to(state,{position:items.length-1,duration:.12});
+      trigger=ScrollTrigger.create({trigger:section,start:()=> 'top '+($('#nav')?.offsetHeight||68),end:'bottom bottom',
+        animation:timeline,scrub:.22,invalidateOnRefresh:true,onRefreshInit:measure,onRefresh:render});
+      const go=index=>moveTo(trigger.start+(.12+clamp(index,0,items.length-1)/(items.length-1))/1.24*(trigger.end-trigger.start));
+      const key=e=>{
+        if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
+        e.preventDefault();go(e.key==='Home'?0:e.key==='End'?items.length-1:active+(e.key==='ArrowRight'?1:-1));
+      };
+      viewport.addEventListener('keydown',key);render();queueRefresh();
+      return()=>{
+        trigger.kill();timeline.kill();viewport.removeEventListener('keydown',key);
+        section.classList.remove('is-scroll-deck');['--tools-top','--tools-run'].forEach(p=>section.style.removeProperty(p));
+        gsap.set(items,{clearProps:'transform,opacity,zIndex'});items.forEach(item=>{item.inert=false;item.classList.remove('is-current');});
+        if(progress)progress.style.removeProperty('transform');queueRefresh();
+      };
+    });
+  }
   function initMotion() {
     if(!window.gsap||!window.ScrollTrigger){document.documentElement.classList.remove('intro-pending');return;}
     const gsap=window.gsap,ST=window.ScrollTrigger;gsap.registerPlugin(ST);
     const mm=gsap.matchMedia();
-    // A reversible score: each pose has a reading hold, then a scrubbed
-    // transition. The same playhead owns text, depth and graphic geometry.
+    // Native scroll continuously controls a layered reading stack.
     const createScene=(section,panels,controlHost)=>{
       section.classList.add('is-scene');
       section.style.setProperty('--scene-count',String(panels.length));
-      section.style.setProperty('--scene-screens',String(1.24+(panels.length-1)*.46));
+      section.style.setProperty('--scene-screens',String(1+panels.length*.50));
       const controls=document.createElement('div');controls.className='scene-controls';
       const count=document.createElement('div');count.className='scene-controls__count';count.setAttribute('aria-hidden','true');
       const current=document.createElement('span');count.append(current,document.createTextNode(' / '+String(panels.length).padStart(2,'0')));
-      const nav=document.createElement('div');nav.className='scene-controls__nav';nav.setAttribute('role','group');
-      nav.setAttribute('aria-label','디자인 과정 살펴보기');controls.append(count,nav);controlHost.append(controls);
-      const bodies=panels.map(p=>$('p',p));
-      const headings=panels.map(p=>$('h3',p));
+      const nav=document.createElement('div');nav.className='scene-controls__nav';nav.setAttribute('role','group');nav.setAttribute('aria-label','AI 업무 방식 살펴보기');
+      controls.append(count,nav);controlHost.append(controls);
       const buttons=panels.map((panel,i)=>{
         const button=document.createElement('button');button.type='button';button.textContent=String(i+1).padStart(2,'0');
-        button.setAttribute('aria-label',button.textContent+' '+headings[i].textContent);nav.append(button);return button;
+        button.setAttribute('aria-label',button.textContent+' '+$('h3',panel).textContent);nav.append(button);return button;
       });
-      const pose=(i,index)=>{
-        const delta=i-index,distance=Math.abs(delta),active=delta===0;
-        return {x:0,y:clamp(delta,-2,2)*175,z:-Math.min(distance,2)*40,scale:active?1:.97,
-          rotationX:0,autoAlpha:active?1:distance===1?.55:0};
+      let active=-1,stride=260;
+      const state={position:0};
+      const measure=()=>{
+        section.style.setProperty('--services-top',($('#nav')?.offsetHeight||68)+'px');
+        stride=Math.max(...panels.map(p=>p.offsetHeight))+12;
       };
-      let active=-1;
-      const select=index=>{
-        if(index===active)return;active=index;current.textContent=String(index+1).padStart(2,'0');
-        section.dataset.phase=String(index);section.style.setProperty('--scene-index',String(index));
+      const render=()=>{
+        const index=Math.round(state.position);
+        current.textContent=String(index+1).padStart(2,'0');section.dataset.phase=String(index);
+        section.style.setProperty('--scene-index',String(index));section.style.setProperty('--scene-progress',String(state.position/Math.max(1,panels.length-1)));
         panels.forEach((panel,i)=>{
-          const selected=i===index;panel.classList.toggle('is-active',selected);panel.inert=!selected;
-          if(selected){panel.removeAttribute('aria-hidden');buttons[i].setAttribute('aria-current','step');}
-          else{panel.setAttribute('aria-hidden','true');buttons[i].removeAttribute('aria-current');}
-          gsap.set(panel,{zIndex:selected?10:Math.max(0,5-Math.abs(i-index))});
+          const d=i-state.position;
+          // Completed cards compress behind the current card; upcoming cards
+          // stay legible below it. Geometry follows every fractional scroll step.
+          const y=d<0?Math.max(-66,d*24):d*stride;
+          gsap.set(panel,{y,scale:d<0?1-Math.min(-d,3)*.035:1,z:d<0?d*20:0,
+            opacity:d<0?Math.max(.72,1+d*.09):1,zIndex:i+1,visibility:'visible'});
+          if(index!==active){
+            panel.classList.toggle('is-active',i===index);
+            if(i===index)buttons[i].setAttribute('aria-current','step');else buttons[i].removeAttribute('aria-current');
+          }
         });
+        active=index;
       };
-      const duration=.4+(panels.length-1)*1.2;
-      const score=gsap.timeline({paused:true,defaults:{ease:MOTION.sceneEase},onUpdate:()=>{
-        select(clamp(Math.floor((score.time()+.475)/1.2),0,panels.length-1));
-        section.style.setProperty('--scene-progress',String(score.progress()));
-      }});
-      panels.forEach((panel,i)=>{
-        gsap.set(panel,pose(i,0));
-        gsap.set(bodies[i],{opacity:i===0?1:0,y:0});
-      });
-      for(let index=1;index<panels.length;index++){
-        const at=.4+(index-1)*1.2;
-        panels.forEach((panel,i)=>{
-          score.to(panel,{...pose(i,index),duration:MOTION.scene},at)
-            .to(bodies[i],{opacity:i===index?1:0,y:0,duration:i===index?.3:.2,ease:MOTION.standardEase},at+(i===index?.4:0));
-        });
-      }
-      score.to({hold:0},{hold:1,duration},0);
-      select(0);
-      const trigger=ST.create({trigger:section,start:'top 68px',end:'bottom bottom',animation:score,scrub:MOTION.scrub,invalidateOnRefresh:true});
-      const clicks=buttons.map((button,i)=>{
-        const click=()=>moveTo(trigger.start+((i===0?.2:i*1.2+.1)/duration)*(trigger.end-trigger.start));
-        button.addEventListener('click',click);return click;
-      });
-      const restored=()=>{score.progress(trigger.progress);queueRefresh();};
-      addEventListener('pageshow',restored);
+      measure();render();
+      const timeline=gsap.timeline({onUpdate:render});
+      timeline.to(state,{position:0,duration:.10}).to(state,{position:panels.length-1,duration:1,ease:'none'}).to(state,{position:panels.length-1,duration:.10});
+      const trigger=ST.create({trigger:section,start:()=> 'top '+($('#nav')?.offsetHeight||68),end:'bottom bottom',animation:timeline,
+        scrub:.20,invalidateOnRefresh:true,onRefreshInit:measure,onRefresh:render});
+      const go=index=>moveTo(trigger.start+(.10+index/(panels.length-1))/1.20*(trigger.end-trigger.start));
+      const clicks=buttons.map((button,i)=>{const click=()=>go(i);button.addEventListener('click',click);return click;});
       return()=>{
-        trigger.kill();score.kill();removeEventListener('pageshow',restored);
+        trigger.kill();timeline.kill();
         buttons.forEach((button,i)=>button.removeEventListener('click',clicks[i]));controls.remove();
         section.classList.remove('is-scene');section.dataset.phase='0';
-        ['--scene-screens','--scene-count','--scene-index','--scene-progress'].forEach(p=>section.style.removeProperty(p));
-        gsap.set([...panels,...headings,...bodies],{clearProps:'transform,opacity,visibility,clipPath,zIndex'});
-        panels.forEach((panel,i)=>{panel.inert=false;panel.removeAttribute('aria-hidden');panel.classList.toggle('is-active',false);});
+        ['--scene-screens','--scene-count','--scene-index','--scene-progress','--services-top'].forEach(p=>section.style.removeProperty(p));
+        gsap.set(panels,{clearProps:'transform,opacity,visibility,clipPath,zIndex'});
+        panels.forEach(panel=>{panel.inert=false;panel.removeAttribute('aria-hidden');panel.classList.remove('is-active');});
       };
     };
     mm.add('(prefers-reduced-motion: no-preference)',()=>{
@@ -298,13 +400,14 @@ let lenis = null;
         const release=()=>{clearTimeout(window.introSafety);document.documentElement.classList.remove('intro-pending');};
         // Construct inside matchMedia's context; delayed playback never creates orphan tweens.
         const intro=gsap.timeline({paused:true,defaults:{ease:MOTION.standardEase},
-          onComplete:()=>{gsap.set(targets,{clearProps:'transform,opacity,clipPath'});release();}});
+          onComplete:()=>{gsap.set(targets,{clearProps:'transform,opacity,clipPath,letterSpacing'});release();}});
         intro.fromTo('.site-nav__inner',{opacity:0,y:-4},{opacity:1,y:0,duration:MOTION.fast},0)
           .fromTo('.hero__identity',{opacity:0,x:-8},{opacity:1,x:0,duration:MOTION.fast},.06)
-          .fromTo(lines,{x:i=>i===0?-20:20,clipPath:'inset(-12% 100% -20% -4%)'},
-            {x:0,clipPath:'inset(-12% -4% -20% -4%)',duration:.62,stagger:.09},.14)
+          .fromTo(lines[0],{x:-10,opacity:.65,letterSpacing:'.005em'},
+            {x:0,opacity:1,letterSpacing:'-.045em',duration:.7},.10)
+          .fromTo(lines[1],{x:8,clipPath:'inset(-12% 100% -20% -4%)'},
+            {x:0,clipPath:'inset(-12% -4% -20% -4%)',duration:.72},.24)
           .fromTo('.hero__aside > p:first-child',{opacity:0,x:10},{opacity:1,x:0,duration:MOTION.standard},.4)
-          .fromTo('.hero__desc',{opacity:0,x:6},{opacity:1,x:0,duration:MOTION.standard},.51)
           .fromTo('.hero__aside > a',{opacity:0,scale:.98},{opacity:1,scale:1,duration:MOTION.standard},.65);
         records.push({element:hero,timeline:intro});
         const play=()=>{
@@ -369,181 +472,84 @@ let lenis = null;
       });
       return()=>cleanups.forEach(cleanup=>cleanup());
     });
-    mm.add('(min-width: 961px) and (min-height: 700px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)',()=>{
-      const section=$('.tools'),viewport=$('.tools__viewport'),track=$('.tools__track');
-      if(!section||!viewport||!track)return;
-      const items=$$('.tool-item',track),progress=$('.tools__progress > span');
-      const state={position:0};let distance=0,travel=0,top=68,centers=[],width=0;
-      section.classList.add('is-horizontal');viewport.scrollLeft=0;
-      const measure=()=>{
-        top=Math.ceil($('#nav')?.getBoundingClientRect().height||68);
-        width=viewport.clientWidth;
-        distance=Math.max(0,track.scrollWidth-width);
-        // The movement occupies 76% of the scroll range; both ends hold for 12%.
-        travel=Math.max(innerHeight*.8,distance/.76);
-        centers=items.map(item=>item.offsetLeft+item.offsetWidth/2);
-        section.style.setProperty('--tools-top',top+'px');
-        section.style.setProperty('--tools-run',travel+'px');
-      };
-      const render=()=>{
-        const offset=distance*state.position;
-        gsap.set(track,{x:-offset});
-        items.forEach((item,i)=>{
-          const proximity=1-clamp(Math.abs(centers[i]-offset-width/2)/(width*.65),0,1);
-          gsap.set(item,{scale:.985+.015*proximity,opacity:.9+.1*proximity});
-        });
-        if(progress)gsap.set(progress,{scaleX:state.position});
-      };
-      measure();
-      const score=gsap.timeline({paused:true,onUpdate:render});
-      score.to(state,{position:1,duration:.76,ease:'none'},.12).to({hold:0},{hold:1,duration:1},0);
-      const trigger=ST.create({trigger:section,start:()=>`top ${top}px`,end:()=>'+='+travel,
-        animation:score,scrub:MOTION.scrub,invalidateOnRefresh:true,onRefreshInit:measure,onRefresh:render});
-      const key=e=>{
-        if(e.target!==viewport||!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
-        e.preventDefault();
-        const step=items.length>1?centers[1]-centers[0]:width;
-        const next=e.key==='Home'?0:e.key==='End'?distance:clamp(distance*state.position+(e.key==='ArrowRight'?step:-step),0,distance);
-        const p=next===0?.06:next===distance?.94:.12+.76*(next/Math.max(1,distance));
-        moveTo(trigger.start+p*(trigger.end-trigger.start));
-      };
-      viewport.addEventListener('keydown',key);
-      const focusCard=e=>{
-        const i=items.findIndex(item=>item.contains(e.target));if(i<0)return;
-        viewport.scrollLeft=0;
-        const next=clamp(centers[i]-width/2,0,distance);
-        const p=next===0?.06:next===distance?.94:.12+.76*(next/Math.max(1,distance));
-        moveTo(trigger.start+p*(trigger.end-trigger.start),{immediate:true});
-      };
-      viewport.addEventListener('focusin',focusCard);
-      // Transforms do not change these layout dimensions, avoiding refresh loops.
-      let previous='';
-      const resized=()=>{
-        const signature=[viewport.clientWidth,track.scrollWidth,$('#nav')?.offsetHeight,innerHeight].join(':');
-        if(signature!==previous){previous=signature;queueRefresh();}
-      };
-      const observer='ResizeObserver' in window?new ResizeObserver(resized):null;
-      [viewport,track,$('#nav')].filter(Boolean).forEach(el=>observer?.observe(el));
-      addEventListener('resize',resized,{passive:true});render();queueRefresh();
-      return()=>{
-        observer?.disconnect();removeEventListener('resize',resized);viewport.removeEventListener('keydown',key);viewport.removeEventListener('focusin',focusCard);
-        trigger.kill();score.kill();section.classList.remove('is-horizontal');
-        section.style.removeProperty('--tools-top');section.style.removeProperty('--tools-run');
-        gsap.set([track,...items,...(progress?[progress]:[])],{clearProps:'transform,opacity'});
-        viewport.scrollLeft=0;queueRefresh();
-      };
-    });
     mm.add({
-      desktop:'(min-width: 961px) and (min-height: 740px) and (prefers-reduced-motion: no-preference)',
-      compact:'(max-width: 960px) and (prefers-reduced-motion: no-preference), (max-height: 739px) and (prefers-reduced-motion: no-preference)'
+      desktop:'(min-width: 1201px) and (min-height: 740px) and (prefers-reduced-motion: no-preference)',
+      tablet:'(min-width: 769px) and (max-width: 1200px) and (min-height: 740px) and (prefers-reduced-motion: no-preference)',
+      compact:'(max-width: 768px) and (prefers-reduced-motion: no-preference), (max-height: 739px) and (prefers-reduced-motion: no-preference)'
     },context=>{
       const hero=$('.hero');if(!hero)return;
-      const amount=context.conditions.compact?.45:1,scores=[];
-      const profile=$('.about__profile'),work=$('.work'),contact=$('.contact');
-      // Section boundaries no longer animate both whole sections and their
-      // children. Each score owns one primary surface and one supporting layer.
-      const scene=(trigger,compose,end='clamp(top 28%)')=>{
-        if(!trigger)return;
-        const t=gsap.timeline({defaults:{ease:MOTION.sceneEase},scrollTrigger:{
-          trigger,start:'clamp(top 94%)',end,scrub:MOTION.scrub,invalidateOnRefresh:true
-        }});
-        compose(t);t.to({hold:0},{hold:1,duration:1},0);scores.push(t);return t;
-      };
-      const settle=(t,target,from,at=0,duration=MOTION.scene)=>{
-        if(target)t.fromTo(target,from,{x:0,y:0,z:0,scale:1,duration,ease:MOTION.standardEase},at);
-      };
-      let introFinished=false;
-      const heroScore=gsap.timeline({defaults:{ease:MOTION.sceneEase},scrollTrigger:{
-        trigger:hero,start:'top top',end:()=>'+='+hero.offsetHeight*.85,
-        scrub:MOTION.scrub,invalidateOnRefresh:true,
-        onUpdate:self=>{if(self.progress>.015&&!introFinished){introFinished=true;window.portfolioMotion?.revealWithin(hero);}}
-      }});
-      $$('.type-mask',hero).forEach((line,i)=>heroScore.fromTo(line,{x:0,y:0,scale:1},
-        {x:()=>innerWidth*(i===0?-1.04:1.04),y:(i===0?-12:12)*amount,scale:.98,duration:MOTION.scene},.04));
-      heroScore.fromTo($('.hero__aside',hero),{y:0,opacity:1},{y:32*amount,opacity:.35,duration:.7},.2);
-      heroScore.fromTo(hero,{'--field-scroll':1,'--field-y':'0px'},{'--field-scroll':.15,'--field-y':'-24px',duration:.9},.1);
-      heroScore.to({hold:0},{hold:1,duration:1},0);scores.push(heroScore);
-
-      const portraitHost=$('#portrait-stage');
-      const about=$('#about');
-      const headerHeight=()=>Math.ceil($('#nav')?.getBoundingClientRect().height||80);
+      const amount=context.conditions.compact?.42:context.conditions.tablet?.7:1,scores=[],scenes=[];
+      const about=$('#about'),portraitHost=$('#portrait-stage');
+      const headerHeight=()=>$('#nav')?.offsetHeight||80;
       const syncAboutHeight=()=>about?.style.setProperty('--about-header-h',headerHeight()+'px');
       syncAboutHeight();ST.addEventListener('refreshInit',syncAboutHeight);
-      // Entry owns time; there is no pin, scrub or reverse.
+
+      // Backgrounds stay in document flow and always meet edge-to-edge.
+      // Only content moves; sticky stages retain their native geometry.
+      const configurations=[
+        {section:hero,kind:'hero'},
+        {section:about,kind:'about'},
+        {section:$('.services'),kind:'ai'},
+        {section:$('.tools'),kind:'tools'},
+        {section:$('.work'),kind:'work'},
+        {section:$('.contact'),kind:'contact'}
+      ];
+      const smooth=t=>t*t*(3-2*t);
+      for(const {section,kind} of configurations){
+        if(!section)continue;
+        section.classList.add('has-scene-transition');section.dataset.scene=kind;
+        const state={progress:0};let trigger=null;
+        const render=()=>{
+          if(!trigger)return;
+          const distance=state.progress*(trigger.end-trigger.start);
+          const height=section.offsetHeight,viewport=innerHeight;
+          // Settle before reading/pinning. Exit starts only after sticky release.
+          const entrySpan=kind==='contact'?Math.min(viewport*.68,height*.85):viewport*.68;
+          const enter=kind==='hero'?1:smooth(clamp(distance/entrySpan,0,1));
+          const remaining=kind==='hero'?height-distance:height+viewport-distance;
+          const leave=kind==='contact'?0:smooth(clamp((viewport*.9-remaining)/(viewport*.9),0,1));
+          section.style.setProperty('--scene-y',(amount*((1-enter)*24-leave*16)).toFixed(3)+'px');
+          section.style.setProperty('--scene-depth',(amount*((1-enter)*10-leave*10)).toFixed(3)+'px');
+        };
+        const score=gsap.timeline({paused:true,onUpdate:render})
+          .to(state,{progress:1,duration:1,ease:'none'});
+        trigger=ST.create({id:'scene-'+kind,trigger:section,
+          start:kind==='hero'?'top top':'top bottom',end:'bottom top',
+          animation:score,scrub:.18,invalidateOnRefresh:true,
+          onRefresh:self=>{state.progress=self.progress;render();},
+          // Snap after a large jump, rather than replay a delayed transition.
+          onUpdate:self=>{
+            if(Math.abs(self.progress-state.progress)>.18){
+              self.getTween()?.progress(1);score.progress(self.progress);
+            }
+            if(kind==='hero'&&self.progress>.005)window.portfolioMotion?.revealWithin(hero);
+          }
+        });
+        render();scenes.push({section,score,trigger});
+      }
+
+      // Keep the portrait's existing assembly, independent of scene parallax.
       const portraitState={progress:about?.dataset.activated==='true'?1:0};
       const updatePortrait=()=>{if(portraitHost){portraitHost.__portraitProgress=portraitState.progress;portraitHost.dispatchEvent(new Event('portraitprogress'));}};
       let aboutObserver=null;
       if(about&&about.dataset.activated!=='true'){
-        const profileScore=gsap.timeline({paused:true,onStart:()=>{about.dataset.activated='true';},onComplete:()=>{about.dataset.complete='true';},defaults:{ease:MOTION.standardEase}});
-        profileScore.to(portraitState,{progress:1,duration:1.05,ease:'power2.inOut',onUpdate:updatePortrait},0);
-        settle(profileScore,$('.portrait'),{y:18*amount,scale:.99},0,.8);
-        profileScore.fromTo($('.about__copy > .section-label'),{opacity:0,y:8},{opacity:1,y:0,duration:.35},.5);
-        profileScore.fromTo($$('.about__copy > :not(.section-label):not(.about__metrics)'),{opacity:0,y:14*amount},{opacity:1,y:0,duration:.5,stagger:.07},.65);
-        profileScore.fromTo($$('.about__metrics > div'),{opacity:0,y:8},{opacity:1,y:0,duration:.4,stagger:.06},1.05);
-        scores.push(profileScore);
-        aboutObserver=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){profileScore.play();aboutObserver.disconnect();}},{rootMargin:'0px 0px -12% 0px',threshold:0});
+        const assembly=gsap.timeline({paused:true,onStart:()=>{about.dataset.activated='true';},onComplete:()=>{about.dataset.complete='true';}});
+        assembly.to(portraitState,{progress:1,duration:1.05,ease:'power2.inOut',onUpdate:updatePortrait});
+        scores.push(assembly);
+        aboutObserver=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){assembly.play();aboutObserver.disconnect();}},
+          {rootMargin:'0px 0px -12% 0px',threshold:0});
         aboutObserver.observe(about);
       }
-      updatePortrait();
-      // What I Do has its own focus score. No competing section entrance.
-      // Tools' horizontal score is primary; only its stationary heading settles.
-      scene($('.tools'),t=>{
-        settle(t,$('.tools .section-head h2'),{x:-24*amount},0,MOTION.scene);
-        settle(t,$('.tools .section-head p'),{x:8*amount},.12,MOTION.standard);
-      });
-
-      // One project score replaces the header + five independent row triggers.
-      // Cache layout reads on refresh; scroll updates only write transforms.
-      if(work){
-        const rows=$$('.work-row',work),heading=$('.section-head',work);
-        const layers=rows.map(row=>({row,image:$('.work-row__reveal',row),copy:$('.work-row__copy',row),top:0,bottom:0}));
-        const state={progress:0};let trigger=null;
-        const ease=gsap.parseEase(MOTION.standardEase);
-        const measure=()=>layers.forEach(layer=>{
-          const r=layer.row.getBoundingClientRect();layer.top=r.top+scrollY;layer.bottom=r.bottom+scrollY;
-        });
-        const render=()=>{
-          if(!trigger)return;
-          const position=trigger.start+(trigger.end-trigger.start)*state.progress;
-          const headerProgress=clamp((position-trigger.start)/(innerHeight*.35),0,1);
-          gsap.set(heading,{x:-40*amount*(1-ease(headerProgress))});
-          layers.forEach(layer=>{
-            const enter=ease(clamp((position+innerHeight*.94-layer.top)/(innerHeight*.34),0,1));
-            const leave=ease(clamp((position+innerHeight*.18-layer.bottom)/(innerHeight*.3),0,1));
-            const y=(32*(1-enter)-24*leave)*amount;
-            gsap.set(layer.image,{y,z:-40*(1-enter),scale:.96+.04*enter});
-            gsap.set(layer.copy,{y:y*.6});
-          });
-        };
-        measure();
-        const score=gsap.timeline({paused:true,onUpdate:render});
-        score.to(state,{progress:1,duration:1,ease:'none'});
-        trigger=ST.create({trigger:work,start:'clamp(top 94%)',end:'clamp(bottom 12%)',
-          animation:score,scrub:MOTION.scrub,onRefreshInit:measure,onRefresh:render,invalidateOnRefresh:true});
-        score.scrollTrigger=trigger;scores.push(score);render();
-      }
-      // Resolve contact information first, then assemble the closing signature.
-      let contactObserver=null;
-      if(contact&&contact.dataset.activated!=='true'){
-        const ending=gsap.timeline({paused:true,defaults:{ease:MOTION.standardEase},onStart:()=>{contact.dataset.activated='true';},onComplete:()=>{contact.dataset.complete='true';}});
-        ending.fromTo($('#contact-message'),{opacity:0,y:16*amount},{opacity:1,y:0,duration:.6},0);
-        ending.fromTo($$('.contact__email,.contact__information',contact),{opacity:0,y:10*amount},{opacity:1,y:0,duration:.45,stagger:.08},.35);
-        ending.fromTo($$('.contact__letter > i',contact),{yPercent:110,x:10*amount,opacity:0},{yPercent:0,x:0,opacity:1,duration:.65,stagger:.045,ease:'power3.out'},.95);
-        scores.push(ending);
-        contactObserver=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){ending.play();contactObserver.disconnect();}},{threshold:.08});
-        contactObserver.observe(contact);
-      }
-      const focus=e=>{
-        const row=e.target.closest('.work-row');
-        if(row)gsap.set([$('.work-row__reveal',row),$('.work-row__copy',row)],{x:0,y:0,z:0,scale:1});
-      };
-      document.addEventListener('focusin',focus);queueRefresh();
+      updatePortrait();queueRefresh();
       return()=>{
-        document.removeEventListener('focusin',focus);
-        contactObserver?.disconnect();aboutObserver?.disconnect();
-        ST.removeEventListener('refreshInit',syncAboutHeight);
+        aboutObserver?.disconnect();ST.removeEventListener('refreshInit',syncAboutHeight);
         if(portraitHost){portraitHost.__portraitProgress=1;portraitHost.dispatchEvent(new Event('portraitprogress'));}
-        scores.forEach(t=>{t.scrollTrigger?.kill();t.kill();});queueRefresh();
+        scores.forEach(t=>t.kill());
+        scenes.forEach(({section,score,trigger})=>{
+          trigger.kill();score.kill();
+          section.classList.remove('has-scene-transition');delete section.dataset.scene;
+          ['--scene-y','--scene-depth'].forEach(p=>section.style.removeProperty(p));
+        });queueRefresh();
       };
     });
     document.fonts?.ready.then(queueRefresh);
@@ -553,7 +559,7 @@ let lenis = null;
   }
 
   function start(){
-    initScroll();initNavigation();initProjectIndex();initToolPointers();initVisualDepth();
+    initScroll();initNavigation();initProjectIndex();initToolPointers();initVisualDepth();initHeroType();initToolsScroll();
     const exp=$('#hero-exp');if(exp){const now=new Date();const months=(now.getFullYear()-2023)*12+now.getMonth()-8;exp.textContent=Math.max(1,Math.floor(months/12)+1)+'년차';}
     // Old detail reveal hooks must never hide information if motion is unavailable.
     $$('.reveal').forEach(el=>el.classList.add('in-view'));

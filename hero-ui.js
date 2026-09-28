@@ -9,7 +9,7 @@ function recipe(name,w,h,draw){
   const bar=(x,y,w,h,tone='soft',z=.11)=>box(x,y,w,h,tone,z,.06,0,'control');
   const dot=(x,y,r,tone='ink',z=.15)=>box(x,y,r,r,tone,z,.05,0,'disc');
   const ring=(x,y,r,tone='ink')=>box(x,y,r,r,tone,.12,.045,0,'ring');
-  const line=(x,y,a,b,tone='ink',thickness=.022)=>box((x+a)/2,(y+b)/2,Math.hypot(a-x,b-y),thickness,tone,.165,.022,Math.atan2(b-y,a-x));
+  const line=(x,y,a,b,tone='ink',thickness=.028)=>box((x+a)/2,(y+b)/2,Math.hypot(a-x,b-y),thickness,tone,.172,.025,Math.atan2(b-y,a-x));
   const lines=(x,y,width,count=2)=>{for(let i=0;i<count;i++)box(x-(i%2)*width*.12,y-i*.075,width*(i%2?.76:1),.021,'soft',.16,.022);};
   const arrow=(x,y)=>{line(x-.06,y,x+.06,y);line(x+.01,y+.05,x+.06,y);line(x+.01,y-.05,x+.06,y);};
   const open=['flow-nodes','user-organisation','stepper-flow'].includes(name);
@@ -17,8 +17,8 @@ function recipe(name,w,h,draw){
   if(!open){
     const baseShape=h>=.52?'panelLarge':'panelMedium';
     // One recessed sidewall and a thin face. Both have real depth and cast shadow.
-    box(0,0,w*.94,h*.94,'surface',-.013,.105,0,baseShape);
-    box(0,0,w,h,'white',.043,.047,0,baseShape);
+    box(0,0,w,h,'glass',-.012,.105,0,baseShape);
+    box(0,0,w*.94,h*.92,'white',.038,.026,0,baseShape);
     if(chart)box(0,-.015,w-.10,h-.10,'surface',.075,.018,0,'panelMedium');
   }
   parts.forEach(part=>{part.volume=true;});
@@ -26,8 +26,8 @@ function recipe(name,w,h,draw){
   recipes.push(Object.freeze({name,w,h,d:.13,open,parts:Object.freeze(parts)}));
 }
 recipe('button',.76,.32,({bar,arrow,box})=>{bar(-.05,0,.56,.19,'accent');box(-.10,0,.20,.024,'white',.16,.024);arrow(.23,0);});
-recipe('toggle-status',.76,.37,({bar,box,lines})=>{bar(.16,0,.30,.17,'accent');box(.23,0,.105,.12,'white',.15,.055);lines(-.17,.035,.19);});
-recipe('bar-chart',.76,.58,({box,line})=>{line(-.26,-.19,.27,-.19,'soft');[.14,.25,.21,.37].forEach((h,i)=>box(-.21+i*.14,-.17+h/2,.077,h,i===3?'accent':'ink'));});
+recipe('toggle-status',.76,.37,({box,dot,lines})=>{box(.16,0,.32,.18,'accent',.12,.05,0,'switch');dot(.225,0,.14,'white',.17);lines(-.17,.035,.19);});
+recipe('bar-chart',.80,.66,({box,line})=>{box(-.14,.235,.27,.028,'ink');[0,.12,.24].forEach(y=>line(-.29,-.22+y,.29,-.22+y,'soft',.012));[.14,.25,.21,.36].forEach((h,i)=>box(-.21+i*.14,-.20+h/2,.079,h,i===3?'accent':'ink',.14,.075));});
 recipe('flow-nodes',.82,.52,({box,line,dot})=>{line(-.25,0,0,0,'soft');line(0,0,0,.15,'soft');line(0,0,0,-.15,'soft');line(0,.15,.25,.15,'soft');line(0,-.15,.25,-.15,'soft');box(-.25,0,.21,.23,'white',.06,.18,0,'panel');box(.25,.15,.19,.16,'white',.075,.15,0,'panel');box(.25,-.15,.19,.16,'white',.075,.15,0,'panel');box(-.25,0,.09,.10,'ink',.16);box(.25,.15,.09,.05,'accent',.17);box(.25,-.15,.09,.05,'soft',.17);dot(0,0,.055);});
 recipe('search-field',.86,.32,({ring,line,box})=>{ring(-.28,.025,.10);line(-.25,-.015,-.20,-.065);box(.04,0,.33,.028);line(.31,-.065,.31,.065,'accent');});
 recipe('donut-dashboard',.78,.60,({ring,box,dot,lines})=>{ring(-.14,0,.34,'soft');box(-.14,0,.34,.34,'accent',.153,.032,0,'arc');lines(.19,.09,.17,3);dot(.13,-.15,.045,'accent');});
@@ -38,6 +38,8 @@ recipe('progress-pagination',.80,.40,({bar,dot})=>{bar(0,.065,.60,.07);bar(-.11,
 recipe('filter-badge',.75,.37,({bar,box,line,dot})=>{bar(-.07,0,.48,.18);box(-.12,0,.19,.025,'ink',.16);line(.055,-.03,.115,.03);line(.055,.03,.115,-.03);dot(.27,0,.12,'accent');});
 recipe('modal-card',.76,.66,({box,line,lines,bar})=>{box(0,.18,.60,.016);line(.22,.265,.27,.215);line(.22,.215,.27,.265);lines(-.02,.08,.49,3);bar(.16,-.205,.21,.10,'accent');bar(-.095,-.205,.21,.10);});
 recipe('table-rows',.84,.56,({box,line,dot})=>{box(0,.16,.68,.09,'ink');[-.02,-.16].forEach(y=>{dot(-.265,y,.048,'accent');line(-.19,y,.0,y,'soft');line(.10,y,.27,y,'soft');});line(.06,-.21,.06,.105,'soft',.013);});
+recipe('calendar',.72,.68,({box,line})=>{box(0,.215,.55,.065,'ink');[-.17,.17].forEach(x=>box(x,.265,.035,.10,'ink',.13,.065));for(let row=0;row<3;row++)for(let col=0;col<4;col++)box(-.21+col*.14,.085-row*.12,.072,.064,row===1&&col===2?'accent':'soft',.13,.035);line(-.28,.15,.28,.15,'soft',.013);});
+recipe('kanban-board',.88,.67,({box,line})=>{[-.27,0,.27].forEach((x,i)=>{box(x,.22,.20,.045,i===1?'accent':'ink');box(x,-.035,.22,.36,'surface',.095,.025,0,'panelMedium');for(let j=0;j<(i===1?3:2);j++){box(x,.075-j*.10,.18,.075,'white',.13,.035,0,'panelMedium');line(x-.06,.075-j*.10,x+.045,.075-j*.10,j===0&&i===1?'accent':'soft',.015);}});});
 recipe('list-notification',.78,.53,({box,dot,lines})=>{dot(-.25,.105,.115,'accent');lines(.075,.135,.32);dot(-.25,-.12,.085,'soft');lines(.075,-.09,.32);box(0,-.01,.60,.012);});
 recipe('kpi-counter',.74,.57,({box,line,lines})=>{lines(-.075,.18,.40,1);[[-.18,.085],[-.07,.16],[.05,.24]].forEach(([x,h])=>box(x,-.13+h/2,.075,h,'ink'));line(.17,-.11,.28,.015,'accent');line(.22,.015,.28,.015,'accent');line(.28,-.045,.28,.015,'accent');});
 recipe('select-input',.83,.35,({box,line,dot})=>{box(-.08,0,.38,.025,'ink');line(.22,.03,.27,-.02,'accent');line(.27,-.02,.32,.03,'accent');dot(-.30,0,.06,'soft');});
@@ -62,7 +64,7 @@ export function applyUIVolume(p,profile){
   const morph=profile?uiMorph(p.travel):0;p.ui=morph;
   if(!profile||!morph){p.bx=p.sx;p.by=p.sy;p.bz=p.sz;return;}
   p.sx+=(profile.w-p.sx)*morph;p.sy+=(profile.h-p.sy)*morph;p.sz+=(profile.d-p.sz)*morph;
-  p.rx+=(-.22)*morph;p.ry+=.30*morph;p.rz+=.035*morph;
+  p.rx+=(profile.rx??-.22)*morph;p.ry+=(profile.ry??.30)*morph;p.rz+=(profile.rz??.035)*morph;
   // Keep the voxel inside the new casing; open node structures retain only a
   // small junction. The original dimensions return exactly as morph reaches zero.
   const substrate=1-(profile.open?.86:.34)*morph;
@@ -74,7 +76,7 @@ function panelGeometry(T,r=.025,soft=true){
   s.moveTo(-v+r,-v);s.lineTo(v-r,-v);s.quadraticCurveTo(v,-v,v,-v+r);s.lineTo(v,v-r);s.quadraticCurveTo(v,v,v-r,v);s.lineTo(-v+r,v);s.quadraticCurveTo(-v,v,-v,v-r);s.lineTo(-v,-v+r);s.quadraticCurveTo(-v,-v,-v+r,-v);
   // Keep the same unit depth; curved edge normals soften highlights without
   // changing the layers, contact-shadow setup, or motion envelope.
-  const g=new T.ExtrudeGeometry(s,{depth:.94,steps:1,bevelEnabled:true,bevelThickness:.03,bevelSize:soft?.006:.003,bevelSegments:soft?2:1,curveSegments:soft?5:1});g.translate(0,0,-.47);return g;
+  const g=new T.ExtrudeGeometry(s,{depth:.88,steps:1,bevelEnabled:true,bevelThickness:.06,bevelSize:soft?.009:.003,bevelSegments:soft?3:1,curveSegments:soft?6:1});g.translate(0,0,-.44);return g;
 }
 export function createUIRelief(T,group,boxGeometry,materials){
   const disc=new T.CylinderGeometry(.5,.5,1,20);disc.rotateX(Math.PI/2);
@@ -82,7 +84,7 @@ export function createUIRelief(T,group,boxGeometry,materials){
   const arc=new T.TorusGeometry(.385,.115,6,20,Math.PI*1.22);arc.scale(1,1,1/.23);arc.rotateZ(-.3);
   const areaShape=new T.Shape();areaShape.moveTo(-.5,-.5);areaShape.lineTo(-.5,-.40);areaShape.lineTo(-.20,.10);areaShape.lineTo(.1,-.09);areaShape.lineTo(.5,.5);areaShape.lineTo(.5,-.5);areaShape.closePath();
   const area=new T.ExtrudeGeometry(areaShape,{depth:1,bevelEnabled:false});area.translate(0,0,-.5);
-  const geometries={box:boxGeometry,control:panelGeometry(T,.006,false),panel:panelGeometry(T),panelMedium:panelGeometry(T,.045),panelLarge:panelGeometry(T,.075),disc,ring,arc,area};
+  const geometries={box:boxGeometry,control:panelGeometry(T,.07),switch:panelGeometry(T,.45),panel:panelGeometry(T,.045),panelMedium:panelGeometry(T,.07),panelLarge:panelGeometry(T,.09),disc,ring,arc,area};
   const root=new T.Group();root.name='hero-ui-relief';group.add(root);
   const parent=new T.Object3D(),child=new T.Object3D(),matrix=new T.Matrix4();
   let version=-1,batches=[];
@@ -93,10 +95,12 @@ export function createUIRelief(T,group,boxGeometry,materials){
       clear();version=field.version;const records=new Map();
       for(const target of field.objects())for(const detail of target.ui.parts){
         const key=detail.shape+':'+detail.tone;
-        if(!records.has(key))records.set(key,[]);records.get(key).push({id:target.part.id,detail,scale:target.ui.scale||1});
+        if(!records.has(key))records.set(key,[]);records.get(key).push({id:target.part.id,detail,scale:target.ui.scale||1,fade:target.ui.depthFade||0});
       }
       for(const [key,items] of records){
         const [shape,tone]=key.split(':'),mesh=new T.InstancedMesh(geometries[shape],materials[tone],items.length);
+        const tint=new T.Color(),base=materials[tone].color;
+        items.forEach((item,i)=>{tint.copy(base).lerp(materials.white.color,item.fade);tint.setRGB(tint.r/Math.max(.001,base.r),tint.g/Math.max(.001,base.g),tint.b/Math.max(.001,base.b));mesh.setColorAt(i,tint);});
         mesh.name='ui-'+key;mesh.instanceMatrix.setUsage(T.DynamicDrawUsage);mesh.frustumCulled=false;mesh.castShadow=true;mesh.receiveShadow=true;root.add(mesh);batches.push({mesh,items});
       }
     }

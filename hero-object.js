@@ -4,27 +4,38 @@ if(host) startObject(host).catch(()=>host.classList.remove('is-ready'));
 
 async function startObject(host) {
   if(navigator.connection?.saveData)return;
-  const [T,{createStructure,PARTS},{createContactShadow},{createScatterField}]=await Promise.all([import('./vendor/three.module.js'),import('./hero-structure.js?v=17'),import('./hero-shadow.js?v=4'),import('./hero-field.js?v=10')]);
+  const [T,{createStructure,PARTS},{createContactShadow},{createScatterField}]=await Promise.all([import('./vendor/three.module.js'),import('./hero-structure.js?v=20'),import('./hero-shadow.js?v=4'),import('./hero-field.js?v=15')]);
   const hero=host.closest('.hero'),anchor=document.getElementById('hero-object-anchor');
   const reduce=matchMedia('(prefers-reduced-motion: reduce)');
   const compact=matchMedia('(max-width: 640px)');
   const renderer=new T.WebGLRenderer({alpha:true,antialias:true,powerPreference:'low-power'});
   renderer.setClearColor(0,0);renderer.outputColorSpace=T.SRGBColorSpace;
   renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.03;
+  renderer.transmissionResolutionScale=.5;
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;
   renderer.domElement.setAttribute('aria-hidden','true');host.append(renderer.domElement);
   const scene=new T.Scene();
   const camera=new T.PerspectiveCamera(34,1,.1,160);
   camera.position.set(5.8,4.5,8.5);camera.lookAt(0,-.13,.1);
-  scene.add(new T.HemisphereLight(0xf7f7f5,0x52574e,.74));
-  const key=new T.DirectionalLight(0xfffaf2,3.8);key.position.set(-3.6,6.8,4.2);
+  scene.add(new T.HemisphereLight(0xf7f7f7,0x535353,.74));
+  const key=new T.DirectionalLight(0xffffff,3.8);key.position.set(-3.6,6.8,4.2);
   key.castShadow=true;key.shadow.mapSize.set(compact.matches?1024:2048,compact.matches?1024:2048);
   Object.assign(key.shadow.camera,{left:-3.5,right:3.5,top:3.5,bottom:-3.5,near:.5,far:20});
   key.shadow.radius=3.5;key.shadow.normalBias=.006;key.shadow.bias=-.000045;scene.add(key);
-  const fill=new T.DirectionalLight(0xe1e6ed,.85);fill.position.set(4,.5,6);scene.add(fill);
+  const fill=new T.DirectionalLight(0xe5e5e5,.85);fill.position.set(4,.5,6);scene.add(fill);
   const rim=new T.DirectionalLight(0xffffff,2.3);rim.position.set(3,4,-4);scene.add(rim);
+  // Bake neutral studio softboxes once. Only UI materials use the environment;
+  // there are no per-frame reflection captures or additional point lights.
+  const studio=new T.Scene();studio.background=new T.Color(.18,.18,.18);
+  const softboxGeometry=new T.PlaneGeometry(1,1),softboxes=[];
+  for(const [x,y,z,w,h,intensity] of [[-3,5,4,5,3,4],[4,2,1,1.5,5,2.2],[0,4,-5,4,2,3]]){
+    const material=new T.MeshBasicMaterial({color:new T.Color().setScalar(intensity),side:T.DoubleSide});
+    const plane=new T.Mesh(softboxGeometry,material);plane.position.set(x,y,z);plane.scale.set(w,h,1);plane.lookAt(0,0,0);studio.add(plane);softboxes.push(material);
+  }
+  const pmrem=new T.PMREMGenerator(renderer),environment=pmrem.fromScene(studio,.035,.1,30);
+  pmrem.dispose();softboxGeometry.dispose();softboxes.forEach(m=>m.dispose());
   const palette=getComputedStyle(host);
-  const sculpture=createStructure(T,{accent:palette.getPropertyValue('--c-neon').trim()||'#C94324',ink:palette.getPropertyValue('--c-ink').trim()||'#1B1C19'});scene.add(sculpture.group);
+  const sculpture=createStructure(T,{accent:palette.getPropertyValue('--c-neon').trim()||'#C94324',ink:palette.getPropertyValue('--c-ink').trim()||'#1B1C19',environment:environment.texture,transmission:compact.matches?0:.18});scene.add(sculpture.group);
   const field=createScatterField(T,camera,sculpture.group,PARTS);
   // One ground receiver. The directional light still supplies object self-shadow.
   const shadowExclusions=[];
@@ -44,8 +55,14 @@ async function startObject(host) {
   function stop(){cancelAnimationFrame(raf);raf=0;last=0;}
   function request(){if(!raf&&visible&&!document.hidden&&!dead&&!lost)raf=requestAnimationFrame(draw);}
   function frame(){
-    const r=host.getBoundingClientRect(),a=anchor.getBoundingClientRect();
-    anchorX=a.left-r.left+a.width/2;anchorY=a.top-r.top+a.height/2;anchorWidth=a.width;anchorHeight=a.height;
+    // Scene receding is a CSS presentation transform, not a new camera frame.
+    // Recover layout coordinates so refresh during a transition cannot zoom or
+    // replan the sculpture around a temporarily scaled bounding rectangle.
+    const container=hero.querySelector('.hero__container'),c=container.getBoundingClientRect(),visual=anchor.getBoundingClientRect();
+    const sx=c.width/container.offsetWidth,sy=c.height/container.offsetHeight;
+    const r={width:host.clientWidth,height:host.clientHeight};
+    const a={left:container.offsetLeft+(visual.left-c.left)/sx,top:container.offsetTop+(visual.top-c.top)/sy,width:visual.width/sx,height:visual.height/sy};
+    anchorX=a.left+a.width/2;anchorY=a.top+a.height/2;anchorWidth=a.width;anchorHeight=a.height;
     const halfH=3.28*Math.max(1,a.height/a.width)*r.height/a.height;
     camera.aspect=aspect;
     camera.position.copy(cameraDirection).multiplyScalar(halfH/Math.tan(camera.fov*Math.PI/360)).add(cameraTarget);
@@ -62,16 +79,16 @@ async function startObject(host) {
       if(heading&&measure){
         measure.font=textStyle.font;
         const tracking=parseFloat(textStyle.letterSpacing)||0;
-        textWidth=Math.min(textWidth,measure.measureText(el.textContent.trim()).width+tracking*(el.textContent.trim().length-1)+12);
+        const label=(el.querySelector('.hero-type__base')?.textContent||el.textContent).trim();
+        textWidth=Math.min(textWidth,measure.measureText(label).width+tracking*(label.length-1)+12);
       }
-      // Reserve the headline's existing horizontal scroll travel, not the whole column.
-      const scrollRoom=heading?r.width*.012:0;
-      return {x:x+textWidth/2,y:y+el.offsetHeight/2,w:textWidth+scrollRoom*2,h:el.offsetHeight+(heading?10:18)};
+      // Protect the resting text only. Transit and scroll travel remain unconstrained.
+      return {x:x+textWidth/2,y:y+el.offsetHeight/2,w:textWidth+12,h:el.offsetHeight+12,headline:heading};
     });
     const header=document.getElementById('nav');
     // Header height is constant in stage coordinates. Subtracting the scrolling
     // stage's viewport top here used to push every target downward on scroll.
-    field.configure(r.width,r.height,{x:anchorX,y:anchorY,top:a.top-r.top,bottom:a.bottom-r.top},safeZones,header.offsetHeight);
+    field.configure(r.width,r.height,{x:anchorX,y:anchorY,top:a.top,bottom:a.top+a.height},safeZones,header.offsetHeight);
     layoutDirty=false;
   }
   function draw(now){
@@ -129,8 +146,9 @@ async function startObject(host) {
     if(reduce.matches||e.pointerType==='touch')return;
     const r=host.getBoundingClientRect();
     if(e.target.closest('a,button')){reset();return;}
-    pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
-    hovering=true;aim.x=Math.max(-1,Math.min(1,(e.clientY-r.top-anchorY)/(anchorHeight*.5)))*.24;aim.y=Math.max(-1,Math.min(1,(e.clientX-r.left-anchorX)/(anchorWidth*.5)))*.36;request();
+    const u=(e.clientX-r.left)/r.width,v=(e.clientY-r.top)/r.height;
+    pointer.set(u*2-1,-v*2+1);
+    hovering=true;aim.x=Math.max(-1,Math.min(1,(v*host.clientHeight-anchorY)/(anchorHeight*.5)))*.24;aim.y=Math.max(-1,Math.min(1,(u*host.clientWidth-anchorX)/(anchorWidth*.5)))*.36;request();
   }
   function reset(){hovering=false;aim.x=aim.y=0;target.strength=0;request();}
   function mode(){reset();orientation.x=orientation.y=0;Object.assign(target,neutral);Object.assign(influence,neutral);influenceAxes.forEach(axis=>velocity[axis]=0);stop();resize();}
@@ -154,7 +172,7 @@ async function startObject(host) {
     reduce.removeEventListener('change',mode);compact.removeEventListener('change',mode);
     document.removeEventListener('visibilitychange',visibility);removeEventListener('pageshow',pageShow);removeEventListener('pagehide',cleanup);
     renderer.domElement.removeEventListener('webglcontextlost',contextLost);renderer.domElement.removeEventListener('webglcontextrestored',contextRestored);
-    sculpture.dispose();contact.dispose();key.shadow.dispose();renderer.dispose();renderer.domElement.remove();
+    sculpture.dispose();environment.dispose();contact.dispose();key.shadow.dispose();renderer.dispose();renderer.domElement.remove();
   }
   addEventListener('pagehide',cleanup);addEventListener('pageshow',pageShow);resize();
 }
