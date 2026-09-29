@@ -359,26 +359,12 @@
 @media(max-width:60em){.about__story{max-width:none;}}
 @media(max-width:40em){.about__story{gap:1.25rem;}}
 
-/* Content carries local parallax. Sticky stages retain stable scroll coordinates. */
+/* Sticky stages retain stable scroll coordinates; scenes move their content. */
 .home-page :is(.hero,.about,.services,.tools,.work,.contact) {border-radius:0;}
 .hero {background:var(--c-bg);overflow:visible;isolation:auto;}
 .hero__3d-stage {z-index:1;opacity:var(--hero-scene-opacity,1);visibility:var(--hero-scene-visibility,visible);}
 .hero__container,.about__profile {position:relative;z-index:2;}
 .home-page .contact {background:var(--c-void);}
-.has-scene-transition {--scene-y:0px;--scene-depth:0px;--scene-scale:1;}
-.hero.has-scene-transition .hero__container,
-.about.has-scene-transition .about__profile,
-.services.has-scene-transition .section-side,
-.tools.has-scene-transition .section-head,
-.work.has-scene-transition .section-head,
-.work.has-scene-transition .work__list,
-.contact.has-scene-transition .contact__layout {translate:0 var(--scene-y);}
-.hero.has-scene-transition .hero__3d-stage,
-.services.has-scene-transition .services__list{translate:0 calc(var(--scene-y) + var(--scene-depth));}
-.about.has-scene-transition .portrait {translate:0 var(--scene-depth);}
-.services.has-scene-transition .services__list {scale:var(--scene-scale);transform-origin:50% 70%;}
-.work.has-scene-transition .work-row {scale:var(--scene-scale);transform-origin:50% 50%;}
-.contact.has-scene-transition .contact__layout {scale:var(--scene-scale);transform-origin:50% 70%;}
 .services__stage {top:var(--services-top,68px);height:calc(100svh - var(--services-top,68px));}
 
 /* Role-based type rules, scoped to main-page sections and independent of motion. */
@@ -490,34 +476,38 @@
  --c-ink:#F7F7F5;--c-ink-2:#B8B8B8;--c-line:#575754;--c-line-soft:#575754;
  --section-ink:#F7F7F5;--section-secondary:#B8B8B8;--section-muted:#A0A0A0;
  color:var(--c-ink);
- /* Outer stage: the full-bleed field behind the receding scene shares its
-    tone, so the inset never exposes the page between header and scene. */
- background:var(--c-void);
 }
 .tools .tools__stage {padding:0;}
-.tools__scene {
- width:100%;background:var(--c-void);overflow:clip;
- scale:var(--tools-scene-scale,1);translate:0 var(--tools-scene-y,0px);
- border-radius:var(--tools-scene-radius,0px);transform-origin:50% 100%;
-}
+/* The dark scene is a sheet over the light page: its upper corners round
+   while it rises (--tools-radius) and square off before it meets the header. */
+.tools__scene {width:100%;background:var(--c-void);overflow:clip;border-radius:var(--tools-radius,0px) var(--tools-radius,0px) 0 0;}
 .tools__content {padding-block:5rem;}
 @media(max-width:40em) {.tools__content {padding-block:3rem;}}
-/* Tools read as the three stages of the workflow, all visible at once.
-   Scroll staggers the groups in (--tools-enter); the dark scene still recedes. */
-.tool-groups {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(1.25rem,2.5vw,2.5rem);margin-top:clamp(2.5rem,5vw,3.5rem);}
-.tools.has-scene-transition .tool-groups {translate:0 calc(var(--scene-y) + var(--scene-depth));}
+/* Three workflow columns share one row system. Number, title and description
+   form one track and every tool its own, so all three columns start their
+   tools on the same line however their descriptions wrap. */
+.tool-groups {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:auto repeat(3,auto);column-gap:clamp(1.25rem,2.5vw,2.5rem);row-gap:.5rem;margin-top:clamp(2.5rem,5vw,3.5rem);}
 .tool-group {
- --enter:clamp(0,(var(--tools-enter,1) - var(--group,0)*.18)/.64,1);
- min-width:0;padding-top:1.5rem;border-top:1px solid var(--c-line);
- opacity:calc(.15 + .85*var(--enter));translate:0 calc((1 - var(--enter))*2.5rem);
+ position:relative;display:grid;grid-row:span 4;grid-template-rows:subgrid;min-width:0;padding-top:1.5rem;
+ /* Exit: columns recede one after another as Contact takes the field. */
+ translate:0 calc(var(--exit,0) * -2.5rem * (1 + var(--group,0) * .45));opacity:calc(1 - var(--exit,0) * .72);
 }
-.tool-group__head {margin-bottom:1.5rem;}
+.tool-group::before {content:'';position:absolute;inset:0 0 auto;height:1px;background:var(--c-line);transform:scaleX(var(--rule,1));transform-origin:0 50%;}
+.tool-group__head {margin-bottom:1rem;}
+.tool-group__head > * {opacity:var(--head-in,1);translate:0 calc((1 - var(--head-in,1)) * .9rem);}
 .tool-group__index {display:block;margin-bottom:.9rem;font:600 .75rem/1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--c-accent);}
 .home-page .tool-group h3 {margin:0;font:600 var(--section-item-size)/1.4 var(--f-body);letter-spacing:-.025em;color:var(--section-ink);word-break:keep-all;}
 .home-page .tool-group__head p {max-width:24em;margin:.6rem 0 0;font:400 var(--section-body-size)/var(--section-body-leading) var(--f-body);color:var(--section-secondary);word-break:keep-all;text-wrap:pretty;}
-.tool-group__list {display:grid;gap:.5rem;margin:0;padding:0;list-style:none;}
-.tool-row {position:relative;display:flex;align-items:center;gap:1rem;min-height:4.5rem;padding:.875rem 1rem;background:#292A27;border-radius:.75rem;isolation:isolate;transition:background .35s var(--ease);}
-.tool-row__logo {flex:none;box-sizing:border-box;width:2.75rem;height:2.75rem;padding:.32rem;object-fit:contain;background:#EEEEEC;border-radius:.375rem;transform:translate(var(--logo-x,0px),var(--logo-y,0px));transition:transform .45s var(--ease);}
+.tool-group__list {display:grid;grid-row:span 3;grid-template-rows:subgrid;margin:0;padding:0;list-style:none;}
+.tool-row {
+ position:relative;display:flex;align-items:center;gap:1rem;min-height:4.5rem;padding:.875rem 1rem;background:#292A27;border-radius:.75rem;isolation:isolate;transition:background .35s var(--ease);
+ opacity:var(--row-in,1);translate:calc((1 - var(--row-in,1)) * -1.75rem) 0;
+}
+.tool-row__logo {
+ flex:none;box-sizing:border-box;width:2.75rem;height:2.75rem;padding:.32rem;object-fit:contain;background:#EEEEEC;border-radius:.375rem;
+ transform:translate(var(--logo-x,0px),var(--logo-y,0px));transition:transform .45s var(--ease);
+ scale:calc(.55 + .45 * var(--logo-in,1));rotate:calc((1 - var(--logo-in,1)) * -14deg);
+}
 /* Optical correction keeps every mark the same visual size in one square tile. */
 .tool-row[data-logo="figma"] .tool-row__logo {padding:.38rem .62rem;}
 .tool-row:is([data-logo="adobe"],[data-logo="notion"]) .tool-row__logo {padding:.42rem;}
@@ -528,27 +518,77 @@
 .tool-row::before {content:'';position:absolute;inset:0;border:1px solid var(--c-ink);border-radius:inherit;opacity:0;pointer-events:none;mask-image:radial-gradient(90px 90px at var(--local-x,50%) var(--local-y,50%),#000,transparent);transition:opacity .3s;}
 .tool-row.is-pointed {background:#343531;}
 .tool-row.is-pointed::before {opacity:.45;}
+@supports not (grid-template-rows:subgrid) {
+ .tool-group {display:block;}
+ .tool-group__list {display:grid;gap:.5rem;}
+ .home-page .tool-group__head p {min-height:3.6em;}
+}
 @media(max-width:48em) {
- .tool-groups {grid-template-columns:minmax(0,1fr);gap:2.5rem;}
- .tool-group__list {grid-template-columns:repeat(3,minmax(0,1fr));}
+ .tool-groups {grid-template-columns:minmax(0,1fr);grid-template-rows:none;row-gap:2.5rem;}
+ .tool-group {display:block;grid-row:auto;}
+ .tool-group__list {grid-row:auto;grid-template-rows:none;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem;}
 }
 @media(max-width:40em) {
  .tool-group__list {grid-template-columns:minmax(0,1fr);}
  .tool-row {min-height:4rem;padding:.75rem .875rem;}
 }
 @media(prefers-reduced-motion:reduce) {
- .tool-group {opacity:1;translate:none;}
  .tool-row,.tool-row__logo,.tool-row::before {transition:none;}
 }
 
-/* Word motion owns only these inner spans; section transforms stay on parents. */
-.has-title-motion .title-word {display:inline-block;position:relative;transform-origin:0 70%;}
+/* Title words rise out of (or slide into) their own clipped box. The box is
+   padded so descenders are never cut, and every word shares one bottom edge. */
+.has-title-motion .title-word {display:inline-block;vertical-align:bottom;overflow:clip;padding:.08em .04em .16em;margin:-.08em -.04em -.16em;}
+.has-title-motion .title-word__inner {display:inline-block;transform-origin:0 100%;}
 .has-title-motion .title-word--accent {
  color:color-mix(in srgb,var(--section-ink),var(--c-accent) calc(var(--word-accent,1)*100%));
 }
 @media(prefers-reduced-motion:reduce) {
- .has-title-motion .title-word {transform:none!important;filter:none!important;opacity:1!important;}
+ .has-title-motion .title-word__inner {transform:none!important;}
 }
-/* Step marks are line icons at the stroke weight of the arrows. */
+/* Eyebrows wipe in at their own text width. */
+.home-page .has-scene-transition :is(.section-eyebrow,.contact__eyebrow) {width:fit-content;}
+
+/* Step marks are line icons at the stroke weight of the arrows. Each draws
+   itself as its step takes focus. */
 .home-page .service__mark {font-size:0;line-height:0;}
 .home-page .service__mark svg {display:block;width:1.75rem;height:1.75rem;}
+@media(prefers-reduced-motion:no-preference) {
+ .service__mark svg > [pathLength] {stroke-dasharray:1;stroke-dashoffset:0;}
+ .services:is(.is-scene,.is-tracked) .service.is-active .service__mark svg > [pathLength] {animation:mark-draw .85s var(--ease) both;}
+ .services:is(.is-scene,.is-tracked) .service.is-active .service__mark svg > :nth-child(2) {animation-delay:.07s;}
+ .services:is(.is-scene,.is-tracked) .service.is-active .service__mark svg > :nth-child(3) {animation-delay:.14s;}
+ .services:is(.is-scene,.is-tracked) .service.is-active .service__mark svg > :nth-child(n+4) {animation-delay:.21s;}
+}
+@keyframes mark-draw {from {stroke-dashoffset:1;} to {stroke-dashoffset:0;}}
+
+/* Project rows compose on scroll: the divider draws, the image opens left to
+   right while it settles in scale, and the copy meets it from the right. */
+.work.has-scene-transition .work-row {border-top-color:transparent;}
+.work.has-scene-transition .work-row::before {content:'';position:absolute;inset:-1px 0 auto;height:1px;background:var(--c-line-soft);transform:scaleX(var(--row-line,1));transform-origin:0 50%;pointer-events:none;}
+.work.has-scene-transition .work-row__reveal {clip-path:inset(0 calc((1 - var(--row-img,1)) * 100%) 0 0 round .4rem);}
+.work.has-scene-transition .work-row.is-revealed .work-row__reveal {clip-path:none;}
+.work.has-scene-transition .work-row__static {scale:calc(1.12 - .12 * var(--row-img,1));transform-origin:0 50%;}
+.work.has-scene-transition .work-row__copy {translate:calc((1 - var(--row-copy,1)) * 3rem) 0;opacity:calc(.04 + .96 * var(--row-copy,1));}
+.work.has-scene-transition .work-row > .circle-arrow {rotate:calc((1 - var(--row-copy,1)) * -90deg);opacity:var(--row-copy,1);}
+@media(max-width:40em) {
+ .work.has-scene-transition .work-row__copy {translate:0 calc((1 - var(--row-copy,1)) * 1.25rem);}
+}
+
+/* About lifts off the light page as it leaves: its lower corners round.
+   The career path composes node by node, rail by rail. */
+.home-page .about.has-scene-transition {border-radius:0 0 var(--about-radius,0px) var(--about-radius,0px);}
+.career__stage::before {transform:scale(var(--node-in,1));}
+.career__stage:not(:last-child)::after {transform:scaleY(var(--rail-in,1));transform-origin:50% 0;}
+.career__stage > * {opacity:var(--stage-in,1);translate:calc((1 - var(--stage-in,1)) * -.75rem) 0;}
+.home-page .sr-only {position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0;}
+
+/* Contact: its two lines draw before the ways to reach out appear. */
+.contact.has-scene-transition .contact__action {position:relative;border-top-color:transparent;}
+.contact.has-scene-transition .contact__action::before {content:'';position:absolute;inset:-1px 0 auto;height:1px;background:#FFFFFF40;transform:scaleX(var(--line-in,1));transform-origin:0 50%;transition:background-color .25s;}
+.contact.has-scene-transition .contact__action > * {opacity:var(--action-in,1);translate:0 calc((1 - var(--action-in,1)) * .75rem);}
+@media(hover:hover) {.home-page .contact.has-scene-transition .contact__action:hover::before {background:var(--c-accent);}}
+/* A reel is all ten cells tall; its window (.stat-digit) shows one line. */
+.home-page .about__metrics .stat-reel {height:auto;}
+/* Each window matches the display face's tabular figure advance (tracking included). */
+.home-page .about__metrics .stat-digit {width:.565em;}

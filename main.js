@@ -212,47 +212,72 @@ let lenis = null;
     });
   }
 
-  function createSectionTitle(section,kind,amount) {
-    const title=$('.section-title',section);if(!title)return null;
-    const original=[...title.childNodes],words=[];
-    // Preserve spaces, explicit line breaks, the work count and accessible text.
+  const easeOut=t=>1-Math.pow(1-t,3);
+  const easeInOut=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+  // Each word travels inside its own clipped box, so the change reads at any
+  // size and on any background. Progress is a pose: reverse travel retraces it.
+  // 'rise' lifts words out of their line; 'converge' slides a two-word display
+  // title in from opposite sides. Non-breaking phrases stay one word.
+  function createTitleReveal(title,{accent=null,mode='rise',stagger=.07,span=.62}={}) {
+    const original=[...title.childNodes],words=[],extras=[];
     for(const node of original){
-      if(node.nodeType!==Node.TEXT_NODE)continue;
-      const fragment=document.createDocumentFragment();
-      for(const token of node.textContent.match(/\s+|\S+/g)||[]){
-        if(/^\s+$/.test(token)){fragment.append(document.createTextNode(token));continue;}
-        const word=document.createElement('span');word.className='title-word';word.textContent=token;
-        if((kind==='about'&&token==='구조를')||(kind==='ai'&&token==='AI로'))word.classList.add('title-word--accent');
-        fragment.append(word);words.push(word);
-      }
-      node.replaceWith(fragment);
+      if(node.nodeType===Node.TEXT_NODE){
+        const fragment=document.createDocumentFragment();
+        for(const token of node.textContent.match(/[ \t\r\n]+|[^ \t\r\n]+/g)||[]){
+          if(/^[ \t\r\n]+$/.test(token)){fragment.append(document.createTextNode(token));continue;}
+          const mask=document.createElement('span');mask.className='title-word';
+          const inner=document.createElement('span');inner.className='title-word__inner';inner.textContent=token;
+          if(token===accent)mask.classList.add('title-word--accent');
+          mask.append(inner);fragment.append(mask);words.push({mask,inner});
+        }
+        node.replaceWith(fragment);
+      }else if(node.nodeType===Node.ELEMENT_NODE&&node.tagName!=='BR')extras.push(node);
     }
-    title.classList.add('has-title-motion');title.dataset.titleMotion=kind;
+    title.classList.add('has-title-motion');title.dataset.titleMotion=mode;
+    const step=words.length>1?Math.min(stagger,(1-span)/(words.length-1)):0;
     let previous=-1;
-    const smooth=t=>t*t*(3-2*t);
     const render=progress=>{
-      if(Math.abs(previous-progress)<.0001)return;previous=progress;
-      words.forEach((word,i)=>{
-        // Phrase order, rather than random letter delays, carries the meaning.
-        const delay=kind==='about'?(i<3?i*.018:.16+(i-3)*.025):
-          kind==='ai'?(i<2?i*.035:.16+(i-2)*.055):
-          kind==='contact'?(i<3?i*.02:.18+(i-3)*.035):i*.065;
-        const p=smooth(clamp((progress-delay)/(1-delay),0,1)),rest=1-p;
-        const presence=(kind==='about'&&i<3)||(kind==='ai'&&i<2)||(kind==='contact'&&i<3)?.55:1;
-        const blur=(kind==='about'?1.1:kind==='ai'?1.35:kind==='work'&&i===0?1.25:0)*amount*rest*presence;
-        const x=(kind==='tools'?-3:kind==='work'?(i===0?-7:5):kind==='ai'?3:0)*amount*rest;
-        const y=(kind==='about'?4:kind==='contact'?3:kind==='ai'?2:0)*amount*rest;
-        const sx=1-(kind==='tools'?.045:kind==='work'?.015:0)*amount*rest;
-        const sy=1-(kind==='about'?.018:0)*amount*rest;
-        const rotate=(kind==='ai'?(i%2?-.35:.35):0)*amount*rest;
-        word.style.transform=rest<.0001?'none':
-          'translate('+x.toFixed(3)+'px,'+y.toFixed(3)+'px) scale('+sx.toFixed(5)+','+sy.toFixed(5)+') rotate('+rotate.toFixed(3)+'deg)';
-        word.style.opacity=String(1-(kind==='tools'?.12:.28)*amount*rest*presence);
-        word.style.filter=blur<.015?'none':'blur('+blur.toFixed(3)+'px)';
-        word.style.setProperty('--word-accent',String(smooth(clamp((p-.55)/.45,0,1))));
+      if(Math.abs(previous-progress)<.0004)return;previous=progress;
+      words.forEach(({mask,inner},i)=>{
+        const t=easeOut(clamp((progress-i*step)/span,0,1)),rest=1-t;
+        mask.style.setProperty('--word-accent',clamp((t-.55)/.45,0,1).toFixed(3));
+        if(rest<.0005){inner.style.transform='';return;}
+        const x=mode==='converge'?(i%2?1:-1)*rest*104:0,y=mode==='converge'?0:rest*112,r=mode==='rise'?rest*4:0;
+        inner.style.transform='translate3d('+x.toFixed(2)+'%,'+y.toFixed(2)+'%,0) rotate('+r.toFixed(3)+'deg)';
       });
+      // Counts and similar marks arrive after the words they annotate.
+      const tail=easeOut(clamp((progress-.58)/.42,0,1));
+      extras.forEach(el=>{el.style.opacity=tail>.999?'':tail.toFixed(3);el.style.translate=tail>.999?'':'0 '+((1-tail)*.5).toFixed(3)+'em';});
     };
-    return {render,restore(){title.replaceChildren(...original);title.classList.remove('has-title-motion');delete title.dataset.titleMotion;}};
+    return {render,restore(){
+      title.replaceChildren(...original);title.classList.remove('has-title-motion');delete title.dataset.titleMotion;
+      extras.forEach(el=>{el.style.opacity='';el.style.translate='';});
+    }};
+  }
+
+  // Numbers roll up to their value on digit reels. Assistive technology reads
+  // a visually hidden copy of the original text instead of the reel digits.
+  function createStatReels(list) {
+    const gsap=window.gsap;if(!list||!gsap)return null;
+    const reels=[],restores=[];
+    $$('dd',list).forEach(dd=>{
+      const node=[...dd.childNodes].find(n=>n.nodeType===Node.TEXT_NODE&&/^\s*\d/.test(n.textContent));
+      if(!node)return;
+      const text=node.textContent,label=document.createElement('span'),value=document.createElement('span');
+      label.className='sr-only';label.textContent=text;value.className='stat-value';value.setAttribute('aria-hidden','true');
+      for(const ch of text){
+        if(!/\d/.test(ch)){value.append(ch);continue;}
+        const digit=document.createElement('span'),reel=document.createElement('span');
+        digit.className='stat-digit';reel.className='stat-reel';
+        for(let d=0;d<10;d++){const cell=document.createElement('span');cell.textContent=String(d);reel.append(cell);}
+        digit.append(reel);value.append(digit);reels.push({reel,target:+ch});
+      }
+      node.replaceWith(label,value);restores.push(()=>{label.remove();value.replaceWith(node);});
+    });
+    if(!reels.length)return null;
+    const tl=gsap.timeline({paused:true});
+    reels.forEach(({reel,target},i)=>tl.fromTo(reel,{yPercent:0},{yPercent:-target*10,duration:1.25,ease:'expo.out'},i*.09));
+    return {play:()=>tl.play(),progress:v=>tl.progress(v),destroy(){tl.kill();restores.forEach(restore=>restore());}};
   }
 
   function initAboutTheme(gsap,ST) {
@@ -294,6 +319,9 @@ let lenis = null;
       const next=isDark?1:0;
       if(target===next&&!immediate)return;
       target=next;tween?.kill();
+      // About's content choreography follows the same moment as its colour.
+      about.dataset.palette=isDark?'dark':'light';
+      about.dispatchEvent(new CustomEvent('aboutscene',{detail:{dark:isDark,immediate}}));
       if(immediate||matchMedia('(prefers-reduced-motion: reduce)').matches){
         state.progress=next;render();return;
       }
@@ -324,7 +352,8 @@ let lenis = null;
     const createScene=(section,panels,controlHost)=>{
       section.classList.add('is-scene');
       section.style.setProperty('--scene-count',String(panels.length));
-      section.style.setProperty('--scene-screens',String(1+panels.length*.50));
+      // Scroll length follows the content: about a third of a screen per step.
+      section.style.setProperty('--scene-screens',String(1+panels.length*.32));
       const controls=document.createElement('div');controls.className='scene-controls';
       const count=document.createElement('div');count.className='scene-controls__count';count.setAttribute('aria-hidden','true');
       const current=document.createElement('span');count.append(current,document.createTextNode(' / '+String(panels.length).padStart(2,'0')));
@@ -334,17 +363,23 @@ let lenis = null;
         const button=document.createElement('button');button.type='button';button.textContent=String(i+1).padStart(2,'0');
         button.setAttribute('aria-label',button.textContent+' '+$('h3',panel).textContent);nav.append(button);return button;
       });
-      let active=-1,stride=260;
+      let active=-1,stride=260,entry=1;
       const rise=t=>t*t*(3-2*t);
       const state={position:0};
+      const rollCount=direction=>{gsap.killTweensOf(current);gsap.fromTo(current,{yPercent:direction*55,opacity:0},{yPercent:0,opacity:1,duration:.42,ease:'power3.out'});};
       const measure=()=>{
         section.style.setProperty('--services-top',($('#nav')?.offsetHeight||68)+'px');
         stride=Math.max(...panels.map(p=>p.offsetHeight))+12;
       };
       const render=()=>{
         const index=Math.round(state.position);
+        if(active>=0&&index!==active)rollCount(index>active?1:-1);
         current.textContent=String(index+1).padStart(2,'0');section.dataset.phase=String(index);
         section.style.setProperty('--scene-index',String(index));section.style.setProperty('--scene-progress',String(state.position/Math.max(1,panels.length-1)));
+        // Arriving, the queue is fanned out and gathers as the section lands.
+        // On the last step the whole stack settles onto the column's centre,
+        // so the final card never leaves the lower half of the column empty.
+        const fan=1-entry,settle=clamp(state.position-(panels.length-2),0,1)*stride*.42;
         panels.forEach((panel,i)=>{
           const d=i-state.position;
           // Completed cards compress behind the current card; upcoming cards
@@ -353,10 +388,10 @@ let lenis = null;
           // afterwards rises over the outgoing card, so the focused card is never
           // covered. Surfaces stay opaque; depth dims content, not the card.
           let y,recede=0;
-          if(d>=0){const step=Math.floor(d),u=d-step;y=step*stride+(u>=.5?stride+(u-1)*24:(stride-12)*rise(u/.5));}
+          if(d>=0){const step=Math.floor(d),u=d-step;y=step*stride+(u>=.5?stride+(u-1)*24:(stride-12)*rise(u/.5))+d*stride*.55*fan;}
           else{y=Math.max(-66,d*24);recede=d>=-.5?0:d>=-1?(-d-.5)*2:-d;}
-          gsap.set(panel,{y,scale:1-Math.min(recede,3)*.035,z:-recede*20,
-            '--stack-dim':Math.min(.28,recede*.09),zIndex:i+1,visibility:'visible'});
+          gsap.set(panel,{y:y+settle+fan*56,scale:1-Math.min(recede,3)*.035,z:-recede*20,
+            '--stack-dim':Math.min(.28,recede*.09+(d>.5?fan*.22:0)),zIndex:i+1,visibility:'visible'});
           if(index!==active){
             panel.classList.toggle('is-active',i===index);
             if(i===index)buttons[i].setAttribute('aria-current','step');else buttons[i].removeAttribute('aria-current');
@@ -365,6 +400,8 @@ let lenis = null;
         active=index;
       };
       measure();render();
+      // The section's arrival progress (scene score) fans the queue in.
+      section.__stackEntry=value=>{if(Math.abs(value-entry)<.0005)return;entry=value;render();};
       const timeline=gsap.timeline({onUpdate:render});
       timeline.to(state,{position:0,duration:.10}).to(state,{position:panels.length-1,duration:1,ease:'none'}).to(state,{position:panels.length-1,duration:.10});
       const trigger=ST.create({trigger:section,start:()=> 'top '+($('#nav')?.offsetHeight||68),end:'bottom bottom',animation:timeline,
@@ -372,7 +409,7 @@ let lenis = null;
       const go=index=>moveTo(trigger.start+(.10+index/(panels.length-1))/1.20*(trigger.end-trigger.start));
       const clicks=buttons.map((button,i)=>{const click=()=>go(i);button.addEventListener('click',click);return click;});
       return()=>{
-        trigger.kill();timeline.kill();
+        trigger.kill();timeline.kill();gsap.killTweensOf(current);delete section.__stackEntry;
         buttons.forEach((button,i)=>button.removeEventListener('click',clicks[i]));controls.remove();
         section.classList.remove('is-scene');section.dataset.phase='0';
         ['--scene-screens','--scene-count','--scene-index','--scene-progress','--services-top'].forEach(p=>section.style.removeProperty(p));
@@ -382,26 +419,15 @@ let lenis = null;
     };
     mm.add('(prefers-reduced-motion: no-preference)',()=>{
       const hero=$('.hero');
-      const records=[],wrappers=[],textRestores=[];
-      // Initial visibility is always usable. Only an installed timeline masks content.
-      const once=(element,compose)=>{
-        if(!element||element.getBoundingClientRect().bottom<0)return;
-        // Main-page content is owned by the reversible scene score below.
-        if(hero)return;
-        const timeline=gsap.timeline({paused:true,defaults:{ease:'power3.out'}});
-        compose(timeline);
-        const record={element,timeline};records.push(record);
-        ST.create({trigger:element,start:hero?'top 84%':'top 91%',end:'bottom top',once:true,
-          onEnter:()=>timeline.play(),onLeave:()=>timeline.progress(1),onEnterBack:()=>timeline.play()});
-      };
+      // Initial visibility is always usable. Only an installed timeline masks
+      // content; the main page's scroll content is owned by the scene scores.
+      const records=[],textRestores=[];
       const revealWithin=target=>records.forEach(r=>{if(target.contains(r.element)||r.element.contains(target))r.timeline.progress(1);});
       window.portfolioMotion={revealWithin};
       const focus=e=>revealWithin(e.target);document.addEventListener('focusin',focus);
       const panelShown=e=>revealWithin(e.target);document.addEventListener('portfolio:panel-shown',panelShown);
       const restored=e=>{if(e.persisted){records.forEach(r=>{if(r.element.getBoundingClientRect().top<innerHeight)r.timeline.progress(1);});queueRefresh();}};
       addEventListener('pageshow',restored);
-      const clip=(el,duration=.55)=>once(el,t=>t.fromTo(el,{clipPath:'inset(0 0 100% 0)'},{clipPath:'inset(0 0 0% 0)',duration,clearProps:'clipPath'}));
-      const body=el=>once(el,t=>t.fromTo(el,{opacity:.3},{opacity:1,duration:.4,clearProps:'opacity'}));
       if(hero&&!location.hash&&scrollY<80&&performance.getEntriesByType?.('navigation')[0]?.type!=='back_forward'){
         const lines=$$('.type-mask > span',hero);
         const targets=[...lines,...$$('.site-nav__inner,.hero__identity,.hero__aside > p,.hero__aside > a')];
@@ -431,22 +457,7 @@ let lenis = null;
       }else{
         clearTimeout(window.introSafety);document.documentElement.classList.remove('intro-pending');
       }
-      if(!hero){
-        $$('[data-reveal]').forEach(el=>clip(el));
-        $$('.section-head > p,.contact__top p').forEach(body);
-        $$('.section-label,.cs-label').forEach(el=>once(el,t=>t.fromTo(el,{clipPath:'inset(0 100% 0 0)',letterSpacing:'.06em'},{clipPath:'inset(0 0% 0 0)',letterSpacing:'0em',duration:.4,clearProps:'clipPath,letterSpacing'})));
-      }
-      // Details use shorter masks and separate image wrappers so hover owns its transform.
-      $$('.detail-page .dh-hero__title,.detail-page .cs-title,.detail-page .dr-qa-group__title').forEach(el=>clip(el,.42));
-      $$('.detail-page .case-image').forEach(el=>{
-        const image=$('img',el);if(!image)return;
-        // Hidden tab panels retain their fully visible resting state when opened.
-        if(image.closest('.cs-tab-panel:not(.active)'))return;
-        const mask=document.createElement('div');mask.className='motion-image-mask';image.before(mask);mask.appendChild(image);wrappers.push([mask,image]);
-        once(el,t=>t.fromTo(mask,{clipPath:'inset(0 0 100% 0)'},{clipPath:'inset(0 0 0% 0)',duration:.48,clearProps:'clipPath'},0)
-          .fromTo(image,{scale:1.018},{scale:1,duration:.58,clearProps:'transform'},0));
-      });
-      return()=>{document.removeEventListener('focusin',focus);document.removeEventListener('portfolio:panel-shown',panelShown);removeEventListener('pageshow',restored);delete window.portfolioMotion;wrappers.forEach(([mask,image])=>{mask.before(image);mask.remove();});textRestores.forEach(restore=>restore());};
+      return()=>{document.removeEventListener('focusin',focus);document.removeEventListener('portfolio:panel-shown',panelShown);removeEventListener('pageshow',restored);delete window.portfolioMotion;textRestores.forEach(restore=>restore());};
     });
     // Pointer response belongs to the Hero sculpture; typography stays stable.
     mm.add('(min-width: 961px) and (min-height: 740px) and (prefers-reduced-motion: no-preference)',()=>{
@@ -487,43 +498,103 @@ let lenis = null;
       compact:'(max-width: 768px) and (prefers-reduced-motion: no-preference), (max-height: 739px) and (prefers-reduced-motion: no-preference)'
     },context=>{
       const hero=$('.hero');if(!hero)return;
-      const amount=context.conditions.compact?.42:context.conditions.tablet?.7:1,scores=[],scenes=[];
+      const amount=context.conditions.compact?.42:context.conditions.tablet?.7:1,scores=[],scenes=[],cleanups=[],vars=[];
       const about=$('#about'),portraitHost=$('#portrait-stage');
       const headerHeight=()=>$('#nav')?.offsetHeight||80;
       const syncAboutHeight=()=>about?.style.setProperty('--about-header-h',headerHeight()+'px');
       syncAboutHeight();ST.addEventListener('refreshInit',syncAboutHeight);
-
-      // Backgrounds stay in document flow and always meet edge-to-edge.
-      // Only content moves; sticky stages retain their native geometry.
-      const configurations=[
-        {section:hero,kind:'hero',recede:0,arrive:0},
-        {section:about,kind:'about',recede:0,arrive:0},
-        {section:$('.services'),kind:'ai',recede:.022,arrive:.018},
-        {section:$('.tools'),kind:'tools',recede:.045,arrive:.028},
-        {section:$('.work'),kind:'work',recede:.012,arrive:.012},
-        {section:$('.contact'),kind:'contact',recede:0,arrive:.018}
-      ];
       const smooth=t=>t*t*(3-2*t);
-      for(const {section,kind,recede,arrive} of configurations){
+
+      // Paused timelines are poses on a 0–1 axis. A scene's arrival or exit
+      // progress seeks them, so every scroll frame is a composed state and
+      // reverse travel retraces it exactly. Motion lives on content; section
+      // backgrounds stay in document flow and meet edge to edge.
+      const pose=()=>gsap.timeline({paused:true,defaults:{ease:'none'}}).set({},{},1);
+      const drive=(tl,el,name,at,duration,ease)=>{if(!el)return;vars.push([el,name]);tl.fromTo(el,{[name]:0},{[name]:1,duration,ease},at);};
+      const wipe=(tl,el,at)=>{if(el)tl.fromTo(el,{clipPath:'inset(-25% 100% -25% 0%)'},{clipPath:'inset(-25% 0% -25% 0%)',duration:.3,ease:'power2.inOut'},at);};
+      const lift=(tl,els,at,{y=18,duration=.32,stagger=.06}={})=>{els=els.filter(Boolean);if(els.length)tl.fromTo(els,{y:y*(.5+.5*amount),opacity:0},{y:0,opacity:1,duration,stagger,ease:'power3.out'},at);};
+      const entries={
+        work:section=>{const tl=pose();wipe(tl,$('.section-eyebrow',section),0);lift(tl,[$('.section-description',section)],.34);return tl;},
+        // The process column assembles before its first card takes focus.
+        ai:section=>{const tl=pose(),side=$('.section-side',section);if(!side)return tl;
+          wipe(tl,$('.section-eyebrow',side),0);lift(tl,[$('.services__intro',side)],.3);lift(tl,[$('.scene-controls',side)],.42,{y:12});return tl;},
+        // Each column is built in order: its rule, its heading, then its tools.
+        tools:section=>{const tl=pose();wipe(tl,$('.section-eyebrow',section),0);lift(tl,[$('.section-description',section)],.2);
+          $$('.tool-group',section).forEach((group,g)=>{
+            const at=.16+g*.1;
+            drive(tl,group,'--rule',at,.3,'power2.inOut');
+            drive(tl,group,'--head-in',at+.08,.26,'power3.out');
+            $$('.tool-row',group).forEach((row,r)=>{
+              drive(tl,row,'--row-in',at+.2+r*.08,.3,'power3.out');
+              drive(tl,row,'--logo-in',at+.24+r*.08,.32,'back.out(1.7)');
+            });
+          });
+          return tl;},
+        // The lines draw first, then the two ways to reach out.
+        contact:section=>{const tl=pose();wipe(tl,$('.contact__eyebrow',section),0);
+          $$('.contact__action',section).forEach((action,i)=>{drive(tl,action,'--line-in',.34+i*.12,.34,'power2.inOut');drive(tl,action,'--action-in',.46+i*.12,.3,'power3.out');});
+          return tl;}
+      };
+      const exits={
+        // Tools and Contact share one dark field, so the handoff is carried by
+        // content: the columns recede in depth, one after another.
+        tools:section=>{const tl=pose(),head=$('.section-header',section);
+          if(head)tl.fromTo(head,{opacity:1,y:0},{opacity:.18,y:-30*amount,duration:.66,ease:'power1.in'},.06);
+          $$('.tool-group',section).forEach((group,g)=>drive(tl,group,'--exit',.12+g*.08,.76-g*.08,'power1.in'));
+          return tl;}
+      };
+      // A project row composes while its top travels the lower 55% of the view:
+      // the divider draws, the image opens left to right, the copy meets it.
+      const workRows=section=>{
+        const rows=$$('.work-row',section);let tops=[];
+        const measure=()=>{tops=rows.map(row=>{let y=0;for(let node=row;node;node=node.offsetParent)y+=node.offsetTop;return y;});};
+        measure();ST.addEventListener('refresh',measure);
+        cleanups.push(()=>{ST.removeEventListener('refresh',measure);rows.forEach(row=>{['--row-line','--row-img','--row-copy'].forEach(p=>row.style.removeProperty(p));row.classList.remove('is-revealed');});});
+        return (enter,leave,scroll)=>{
+          const viewport=innerHeight;
+          rows.forEach((row,i)=>{
+            const p=clamp((scroll+viewport-tops[i])/(viewport*.55),0,1);
+            const image=easeInOut(clamp((p-.06)/.62,0,1));
+            row.style.setProperty('--row-line',easeOut(clamp(p/.5,0,1)).toFixed(4));
+            row.style.setProperty('--row-img',image.toFixed(4));
+            row.style.setProperty('--row-copy',easeOut(clamp((p-.26)/.74,0,1)).toFixed(4));
+            row.classList.toggle('is-revealed',image>.999);
+          });
+        };
+      };
+      const hooks={
+        // About lifts off the page: its lower corners round as it leaves.
+        about:section=>(enter,leave)=>section.style.setProperty('--about-radius',(44*amount*smooth(leave)).toFixed(2)+'px'),
+        // Tools rises as a dark sheet over the light page; it squares as it lands.
+        tools:section=>enter=>section.style.setProperty('--tools-radius',(44*amount*smooth(1-enter)).toFixed(2)+'px'),
+        ai:section=>enter=>section.__stackEntry?.(smooth(enter)),
+        work:workRows
+      };
+      const configurations=[
+        {section:hero,kind:'hero'},
+        {section:about,kind:'about'},
+        {section:$('.work'),kind:'work',title:{mode:'converge',stagger:.16,span:.68}},
+        {section:$('.services'),kind:'ai',title:{accent:'AI로',stagger:.08,span:.6}},
+        {section:$('.tools'),kind:'tools',title:{stagger:.06,span:.56}},
+        {section:$('.contact'),kind:'contact',title:{stagger:.1,span:.58}}
+      ];
+      for(const {section,kind,title:options} of configurations){
         if(!section)continue;
-        const titleMotion=kind==='hero'||kind==='about'?null:createSectionTitle(section,kind,amount);
+        const heading=options&&$('.section-title',section),title=heading?createTitleReveal(heading,options):null;
         section.classList.add('has-scene-transition');section.dataset.scene=kind;
+        const entry=entries[kind]?.(section)||null,exit=exits[kind]?.(section)||null,hook=hooks[kind]?.(section)||null;
         const state={progress:0};let trigger=null;
         const render=()=>{
           if(!trigger)return;
           const distance=state.progress*(trigger.end-trigger.start);
           const height=section.offsetHeight,viewport=innerHeight;
-          // Settle before reading/pinning. Exit starts only after sticky release.
+          // Arrival completes before reading or pinning; exit starts after release.
           const entrySpan=kind==='contact'?Math.min(viewport*.68,height*.85):viewport*.68;
-          const enter=kind==='hero'?1:smooth(clamp(distance/entrySpan,0,1));
-          titleMotion?.render(enter);
-          // Tools groups stagger in on the same entry progress as the title.
-          if(kind==='tools')section.style.setProperty('--tools-enter',enter.toFixed(4));
+          const enter=kind==='hero'?1:clamp(distance/entrySpan,0,1);
           const remaining=kind==='hero'?height-distance:height+viewport-distance;
-          const leave=kind==='contact'?0:smooth(clamp((viewport*.9-remaining)/(viewport*.9),0,1));
-          if(kind!=='hero'&&kind!=='about')section.style.setProperty('--scene-scale',(1-amount*(arrive*(1-enter)+recede*leave)).toFixed(5));
-          section.style.setProperty('--scene-y',(amount*((1-enter)*24-leave*16)).toFixed(3)+'px');
-          section.style.setProperty('--scene-depth',(amount*((1-enter)*10-leave*10)).toFixed(3)+'px');
+          const leave=kind==='contact'?0:clamp((viewport*.9-remaining)/(viewport*.9),0,1);
+          title?.render(enter);entry?.progress(enter);exit?.progress(leave);
+          hook?.(enter,leave,trigger.start+distance);
         };
         const score=gsap.timeline({paused:true,onUpdate:render})
           .to(state,{progress:1,duration:1,ease:'none'});
@@ -539,10 +610,44 @@ let lenis = null;
             if(kind==='hero'&&self.progress>.005)window.portfolioMotion?.revealWithin(hero);
           }
         });
-        render();scenes.push({section,score,trigger,titleMotion});
+        render();scenes.push({section,score,trigger,title,entry,exit});
       }
 
-      // Keep the portrait's existing assembly, independent of scene parallax.
+      // About arrives with its colour: the title rises at the flip; the career
+      // path and the numbers compose once each is on screen. Turning back to the
+      // Hero resets them, so the next arrival composes again.
+      if(about){
+        const heading=$('.section-title',about),reveal=heading?createTitleReveal(heading,{stagger:.05,span:.6}):null;
+        // Before the flip About shares the Hero's paper, so its heading waits
+        // unseen; eyebrow and title arrive together with the colour.
+        const proxy={p:0},titleTl=gsap.timeline({paused:true}).to(proxy,{p:1,duration:1.1,ease:'none',onUpdate:()=>reveal?.render(proxy.p)});
+        wipe(titleTl,$('.section-eyebrow',about),0);
+        reveal?.render(0);
+        const stages=$$('.career__stage',about),practice=$('.about__practice',about),career=gsap.timeline({paused:true});
+        stages.forEach((stage,i)=>{
+          const at=i*.32;
+          drive(career,stage,'--node-in',at,.5,'back.out(2.4)');
+          drive(career,stage,'--stage-in',at+.06,.62,'power3.out');
+          if(i<stages.length-1)drive(career,stage,'--rail-in',at+.26,.42,'power2.inOut');
+        });
+        if(practice)career.fromTo(practice,{opacity:0,y:12},{opacity:1,y:0,duration:.6,ease:'power2.out'},stages.length*.32);
+        const reels=createStatReels($('.about__metrics',about));
+        let observers=[];
+        const watch=(el,play)=>{if(!el)return null;const io=new IntersectionObserver(items=>{if(items.some(item=>item.isIntersecting)){io.disconnect();play();}},{threshold:.3});io.observe(el);return io;};
+        const release=()=>{observers.forEach(io=>io?.disconnect());observers=[];};
+        const set=(dark,immediate)=>{
+          release();
+          if(dark&&immediate){titleTl.progress(1);career.progress(1);reels?.progress(1);return;}
+          if(dark){titleTl.play();observers=[watch($('.career',about),()=>career.play()),watch($('.about__metrics',about),()=>reels?.play())];return;}
+          if(immediate)titleTl.progress(0);else titleTl.reverse();
+          career.pause().progress(0);reels?.progress(0);
+        };
+        const onScene=event=>set(event.detail.dark,event.detail.immediate);
+        about.addEventListener('aboutscene',onScene);set(about.dataset.palette==='dark',true);
+        cleanups.push(()=>{about.removeEventListener('aboutscene',onScene);release();titleTl.kill();career.kill();reels?.destroy();reveal?.restore();if(practice)gsap.set(practice,{clearProps:'transform,opacity'});});
+      }
+
+      // The portrait gathers only once it is actually in view.
       const portraitState={progress:about?.dataset.activated==='true'?1:0};
       const updatePortrait=()=>{if(portraitHost){portraitHost.__portraitProgress=portraitState.progress;portraitHost.dispatchEvent(new Event('portraitprogress'));}};
       let aboutObserver=null;
@@ -550,39 +655,26 @@ let lenis = null;
         const assembly=gsap.timeline({paused:true,onStart:()=>{about.dataset.activated='true';},onComplete:()=>{about.dataset.complete='true';}});
         assembly.to(portraitState,{progress:1,duration:1.05,ease:'power2.inOut',onUpdate:updatePortrait});
         scores.push(assembly);
-        aboutObserver=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){assembly.play();aboutObserver.disconnect();}},
-          {rootMargin:'0px 0px -12% 0px',threshold:0});
-        aboutObserver.observe(about);
+        aboutObserver=new IntersectionObserver(items=>{if(items.some(item=>item.isIntersecting)){assembly.play();aboutObserver.disconnect();}},{threshold:.35});
+        aboutObserver.observe(portraitHost||about);
       }
       updatePortrait();
-
-      // Keep sticky coordinates intact; only the nested Tools scene recedes.
-      const tools=$('.tools');let toolsExit=null;
-      if(tools){
-        const exit=gsap.timeline({paused:true}).fromTo(tools,
-          {'--tools-scene-scale':1,'--tools-scene-y':'0px','--tools-scene-radius':'0px'},
-          {'--tools-scene-scale':1-.05*amount,'--tools-scene-y':(-36*amount)+'px',
-            '--tools-scene-radius':(20*amount)+'px',duration:1,ease:'power1.inOut'});
-        toolsExit=ST.create({id:'tools-handoff',trigger:tools,start:'bottom 110%',end:'bottom 35%',
-          animation:exit,scrub:.18,invalidateOnRefresh:true,
-          onUpdate:self=>{if(Math.abs(self.progress-exit.progress())>.18){self.getTween()?.progress(1);exit.progress(self.progress);}}});
-        scores.push(exit);
-      }
 
       queueRefresh();
       return()=>{
         aboutObserver?.disconnect();
         if(portraitHost){portraitHost.__portraitProgress=1;portraitHost.dispatchEvent(new Event('portraitprogress'));}
-        toolsExit?.kill();
-        if(tools)['--tools-scene-scale','--tools-scene-y','--tools-scene-radius'].forEach(p=>tools.style.removeProperty(p));
         ST.removeEventListener('refreshInit',syncAboutHeight);
-        scores.forEach(t=>t.kill());
-        scenes.forEach(({section,score,trigger,titleMotion})=>{
-          trigger.kill();score.kill();
-          titleMotion?.restore();
+        scores.forEach(t=>t.kill());cleanups.forEach(cleanup=>cleanup());
+        scenes.forEach(({section,score,trigger,title,entry,exit})=>{
+          trigger.kill();score.kill();entry?.progress(1).kill();exit?.progress(0).kill();
+          title?.restore();
           section.classList.remove('has-scene-transition');delete section.dataset.scene;
-          ['--scene-y','--scene-depth','--scene-scale','--scene-origin-y','--tools-enter'].forEach(p=>section.style.removeProperty(p));
-        });queueRefresh();
+        });
+        vars.forEach(([el,name])=>el.style.removeProperty(name));
+        gsap.set($$('.section-eyebrow,.section-description,.services__intro,.scene-controls,.section-header'),{clearProps:'clipPath,transform,opacity'});
+        about?.style.removeProperty('--about-radius');$('.tools')?.style.removeProperty('--tools-radius');
+        queueRefresh();
       };
     });
     document.fonts?.ready.then(queueRefresh);

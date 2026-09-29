@@ -60,7 +60,8 @@ body.detail-page {
 /* Zero-specificity defaults; every component below may refine them. */
 .detail-page :where(.study-blocks) :where(p,dd,li) {font-size:.9375rem;line-height:1.75;color:var(--study-body);word-break:keep-all;text-wrap:pretty;}
 .detail-page :where(.study-section) h3 {margin:0;font:650 1.125rem/1.45 var(--f-body);letter-spacing:-.025em;color:var(--study-ink);word-break:keep-all;text-wrap:balance;}
-.detail-page .study-subhead {margin:0 0 1.25rem;font-size:1.0625rem;}
+/* A block title sits between the section title and its items. */
+.detail-page .study-subhead {margin:0 0 1.5rem;font-size:1.25rem;letter-spacing:-.03em;}
 .detail-page .study-block__intro {max-width:var(--study-measure);margin:-.5rem 0 1.25rem;font-size:1rem;line-height:1.8;}
 
 /* ---------- Layout rhythm ---------- */
@@ -68,7 +69,9 @@ body.detail-page {
 .study-section[data-tone="soft"],.study-next[data-tone="soft"] {background:var(--study-soft);}
 .study-blocks > .study-block + .study-block {margin-top:var(--study-block-gap);}
 .study-frame {display:grid;place-items:center;min-width:0;padding:clamp(.5rem,1.2vw,1rem);background:var(--study-frame);border-radius:var(--study-radius);overflow:hidden;}
-.study-frame img {display:block;width:auto;max-width:100%;height:auto;border-radius:6px;}
+/* Width comes from the width/height attributes, capped by the frame, so the
+   box is reserved before the image loads and lazy images never shift layout. */
+.study-frame img {display:block;max-width:100%;height:auto;border-radius:6px;}
 
 /* ---------- Hero and project facts ---------- */
 .detail-page .study-hero {padding:calc(var(--detail-header) + clamp(2.25rem,5vw,4.5rem)) 0 clamp(3rem,5vw,4.5rem);}
@@ -92,12 +95,15 @@ body.detail-page {
  @keyframes study-visual-in {from{opacity:.4;transform:translateY(12px)}to{opacity:1;transform:none}}
 }
 
-/* ---------- Problem cards and design perspective ---------- */
-.study-cards {display:grid;grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));gap:1rem;}
-.study-cards[data-count="3"] {--cols:3;}
-.study-card {min-width:0;padding:var(--study-card-pad);background:var(--study-soft);border-radius:var(--study-radius);}
-[data-tone="soft"] .study-card {background:var(--study-paper);}
-.study-card h3 {margin-bottom:.6rem;}
+/* ---------- Problems and design perspective ---------- */
+/* Problems read as statements: numbered, ruled and muted in tone, with no
+   container. The result's points answer them in the same system, in accent. */
+.study-issues {display:grid;grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));gap:2rem clamp(1.5rem,3vw,2.5rem);margin:0;padding:0;list-style:none;}
+.study-issues[data-count="3"] {--cols:3;}
+.study-issue {position:relative;min-width:0;padding-top:1.25rem;}
+.study-issue::before {content:'';position:absolute;inset:0 0 auto;height:1px;background:var(--study-line-strong);transform:scaleX(var(--rule,1));transform-origin:0 50%;}
+.detail-page .study-issue__index {display:block;margin-bottom:.9rem;font:600 .75rem/1 var(--f-body);letter-spacing:.02em;font-variant-numeric:tabular-nums;color:var(--study-muted);}
+.detail-page .study-issue h3 {margin-bottom:.5rem;font-size:1.1875rem;}
 .study-insight {display:grid;grid-template-columns:minmax(0,11rem) minmax(0,1fr);gap:.75rem 2rem;padding-top:1.75rem;border-top:1px solid var(--study-line-strong);}
 .detail-page .study-insight__label {margin:0;font:600 .8125rem/1.7 var(--f-body);color:var(--c-accent);}
 .detail-page .study-insight__text {max-width:34em;margin:0;font:500 clamp(1.1875rem,1.6vw,1.375rem)/1.7 var(--f-body);letter-spacing:-.02em;color:var(--study-ink);}
@@ -106,16 +112,20 @@ body.detail-page {
 .study-steps {display:grid;grid-template-columns:repeat(var(--cols,3),minmax(0,1fr));gap:2rem 1.5rem;margin:0;padding:0;list-style:none;}
 .study-steps[data-count="2"] {--cols:2;}
 .study-steps[data-count="4"] {--cols:4;}
-.study-step {position:relative;min-width:0;padding:1.25rem 1.5rem 0 0;border-top:2px solid var(--study-line-strong);}
+.study-step {position:relative;min-width:0;padding:1.25rem 1.5rem 0 0;}
+.study-step::before {content:'';position:absolute;inset:0 0 auto;height:2px;background:var(--study-line-strong);transform:scaleX(var(--rule,1));transform-origin:0 50%;}
 .study-step__index {display:block;margin-bottom:1rem;font:600 .75rem/1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--c-accent);}
 .study-step h3 {margin-bottom:.5rem;}
-.study-steps[data-variant="sequence"] .study-step:not(:last-child)::after {content:'';position:absolute;top:-6px;right:.75rem;width:9px;height:9px;border-top:2px solid var(--study-line-strong);border-right:2px solid var(--study-line-strong);transform:rotate(45deg);}
-.study-chains {display:grid;gap:.75rem;}
-.study-chain {display:grid;grid-template-columns:minmax(0,7rem) minmax(0,1fr);gap:.5rem 1.5rem;align-items:center;padding:1.1rem 1.5rem;background:var(--study-soft);border-radius:var(--study-radius);}
-[data-tone="soft"] .study-chain {background:var(--study-paper);}
+.study-steps[data-variant="sequence"] .study-step:not(:last-child)::after {content:'';position:absolute;top:-6px;right:.75rem;width:9px;height:9px;border-top:2px solid var(--study-line-strong);border-right:2px solid var(--study-line-strong);transform:rotate(45deg);opacity:var(--rule,1);}
+/* Before and after read as a diff. The unchanged path stays muted; the new
+   path sits on a track that hugs its own nodes instead of the full width. */
+.study-chains {display:grid;gap:.5rem;}
+.study-chain {display:grid;grid-template-columns:minmax(0,6.5rem) minmax(0,1fr);gap:.5rem 1.5rem;align-items:center;min-width:0;}
 .detail-page .study-chain__label {margin:0;font:600 .8125rem/1.5 var(--f-body);color:var(--study-muted);}
 .detail-page .study-chain[data-emphasis] .study-chain__label {color:var(--c-accent);}
-.study-chain__nodes {display:flex;flex-wrap:wrap;align-items:center;row-gap:.35rem;margin:0;padding:0;list-style:none;}
+.study-chain__nodes {display:flex;flex-wrap:wrap;align-items:center;row-gap:.35rem;width:fit-content;max-width:100%;margin:0;padding:.75rem 0;list-style:none;}
+.study-chain[data-emphasis] .study-chain__nodes {padding:.75rem 1.125rem;background:var(--study-soft);border-radius:10px;}
+[data-tone="soft"] .study-chain[data-emphasis] .study-chain__nodes {background:var(--study-paper);}
 .detail-page .study-chain__nodes li {display:inline-flex;align-items:center;font:500 .9375rem/1.5 var(--f-body);color:var(--study-body);white-space:nowrap;}
 .detail-page .study-chain[data-emphasis] .study-chain__nodes li {font-weight:600;color:var(--study-ink);}
 /* Arrows are drawn, not typeset: the fonts in use render U+2192 as a chevron.
@@ -123,32 +133,34 @@ body.detail-page {
    It stays inline (not inline-block) so the no-break space before it holds. */
 .study-chain__nodes li:not(:last-child)::after {content:'';flex:none;width:1rem;height:.625rem;margin-inline:.7rem;background:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 10%27 fill=%27none%27 stroke=%27%23686963%27 stroke-width=%271.5%27%3E%3Cpath d=%27M0 5h14.5M10.5 1l4 4-4 4%27/%3E%3C/svg%3E") center/contain no-repeat;}
 .detail-page .study-arrow {display:inline;padding-inline:.12em;color:transparent;background:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 10%27 fill=%27none%27 stroke=%27%23686963%27 stroke-width=%271.5%27%3E%3Cpath d=%27M0 5h14.5M10.5 1l4 4-4 4%27/%3E%3C/svg%3E") center/.9em auto no-repeat;}
-.study-chain__nodes s {color:var(--study-muted);text-decoration-color:var(--c-accent);text-decoration-thickness:1.5px;}
+/* The strike is drawn, so the removal can be seen happening. */
+.study-chain__nodes s {position:relative;color:var(--study-muted);text-decoration:none;}
+.study-chain__nodes s::after {content:'';position:absolute;left:-.1em;right:-.1em;top:54%;height:1.5px;background:var(--c-accent);transform:scaleX(var(--strike,1));transform-origin:0 50%;}
 .detail-page .study-chains__note {max-width:var(--study-measure);margin:.75rem 0 0;font-size:1rem;line-height:1.8;}
 
-/* ---------- Decision cards: problem → judgment → design ---------- */
-.study-decisions {display:grid;grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));gap:1rem;}
-.study-decisions[data-count="1"] {--cols:1;}
-.study-decisions[data-count="3"] {--cols:3;}
-.study-decision {display:flex;flex-direction:column;min-width:0;padding:var(--study-card-pad);background:var(--study-soft);border-radius:var(--study-radius);}
-[data-tone="soft"] .study-decision {background:var(--study-paper);}
-.detail-page .study-decision__index {display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .75rem;margin:0 0 .9rem;font:600 .75rem/1.5 var(--f-display);color:var(--c-accent);}
+/* ---------- Decision log: problem → judgment → design ---------- */
+/* Each decision is one entry: its head, then a track read left to right.
+   The design step carries the accent rule, the point the entry resolves to. */
+.study-decisions {display:grid;gap:clamp(2.75rem,5vw,4rem);}
+.study-decision {min-width:0;}
+.study-decision__head {margin-bottom:1.25rem;}
+.detail-page .study-decision__index {display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .75rem;margin:0 0 .75rem;font:600 .75rem/1.5 var(--f-display);font-variant-numeric:tabular-nums;color:var(--c-accent);}
 .study-decision__tag {padding:.1rem .5rem;border-radius:3px;background:var(--c-accent-soft);font:600 .6875rem/1.7 var(--f-body);color:var(--c-accent-ink);}
-.study-decision h3 {margin-bottom:1.25rem;font-size:1.1875rem;}
-.study-decision dl {display:grid;gap:1rem;margin:0;}
-.detail-page .study-decision__row dt {margin:0 0 .3rem;font:600 .75rem/1.5 var(--f-body);color:var(--study-muted);}
-.detail-page .study-decision__row dd {margin:0;}
-.study-decision__row[data-row="design"] {padding-top:1rem;border-top:1px solid var(--study-line);}
+.detail-page .study-decision h3 {margin:0;font-size:clamp(1.25rem,1.7vw,1.4375rem);line-height:1.4;}
+.study-decision__track {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.25rem clamp(1.25rem,2.5vw,2rem);margin:0;}
+.study-decision__row {position:relative;min-width:0;padding-top:1rem;}
+.study-decision__row::before {content:'';position:absolute;inset:0 0 auto;height:1px;background:var(--study-line-strong);transform:scaleX(var(--rule,1));transform-origin:0 50%;}
+.study-decision__row[data-row="design"]::before {height:2px;background:var(--c-accent);}
+.detail-page .study-decision__row dt {margin:0 0 .4rem;font:600 .75rem/1.5 var(--f-body);color:var(--study-muted);}
+.detail-page .study-decision__row dd {margin:0;text-wrap:balance;}
 .detail-page .study-decision__row[data-row="design"] dt {color:var(--c-accent);}
 .detail-page .study-decision__row[data-row="design"] dd {color:var(--study-ink);}
-.study-decision--media {grid-column:1/-1;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:clamp(1.5rem,3vw,3rem);align-items:center;}
-.study-decision--media:nth-child(even) > .study-frame {order:-1;}
-.study-decision--media[data-shape="wide"] {grid-template-columns:minmax(0,1fr);align-items:stretch;}
-.study-decision--media[data-shape="wide"] > .study-frame {order:0;}
-/* A lone or wide decision spreads its three rows across the row. */
-.study-decisions[data-count="1"] .study-decision:not(.study-decision--media) dl,.study-decision--media[data-shape="wide"] dl {grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem 2rem;}
-.study-decisions[data-count="1"] .study-decision:not(.study-decision--media) .study-decision__row,.study-decision--media[data-shape="wide"] .study-decision__row {padding-top:1rem;border-top:1px solid var(--study-line);}
-.study-decisions[data-count="1"] .study-decision:not(.study-decision--media) [data-row="design"],.study-decision--media[data-shape="wide"] [data-row="design"] {border-top-color:var(--c-accent);}
+/* Evidence joins its entry: a wide artifact below the track, a standard one
+   beside the text, where the track stacks into a single column. */
+.study-decision--media {display:grid;gap:clamp(1.5rem,3vw,2.5rem);}
+.study-decision--media[data-shape="standard"] {grid-template-columns:minmax(0,5fr) minmax(0,6fr);align-items:center;}
+.study-decision--media[data-shape="standard"] .study-decision__track {grid-template-columns:minmax(0,1fr);}
+.study-decision--media[data-shape="standard"]:nth-child(even) > .study-frame {order:-1;}
 
 /* ---------- Feature items: text with its artifact ---------- */
 .study-features {display:grid;gap:var(--study-block-gap);}
@@ -167,9 +179,11 @@ body.detail-page {
 .study-figure[data-shape="wide"] {width:auto;}
 
 /* ---------- AI workflow: what AI handled, what the designer decided ---------- */
-.study-ai {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;}
-.study-ai__col {min-width:0;padding:var(--study-card-pad);background:var(--study-soft);border-radius:var(--study-radius);}
-[data-tone="soft"] .study-ai__col {background:var(--study-paper);}
+/* Only the designer's judgment is a surface; what AI handled sits on the page
+   at the same baseline, so the weight of the comparison is visible. */
+.study-ai {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem clamp(1.5rem,3vw,2.5rem);}
+.study-ai__col {min-width:0;padding:var(--study-card-pad);border-radius:var(--study-radius);}
+.detail-page .study-ai__col[data-owner="ai"] {padding-inline:0;border-top:1px solid var(--study-line-strong);border-radius:0;}
 .detail-page .study-ai__col[data-owner="designer"] {background:var(--study-ink);}
 .detail-page .study-ai__owner {margin:0 0 .5rem;font:600 .6875rem/1.4 var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--study-muted);}
 .detail-page [data-owner="designer"] .study-ai__owner {color:var(--study-accent-on-dark);}
@@ -193,13 +207,27 @@ body.detail-page {
 .study-points li {min-width:0;padding-top:1.25rem;border-top:1px solid var(--study-line-strong);}
 .study-points__index {display:block;margin-bottom:.9rem;font:600 .75rem/1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--c-accent);}
 .study-points h3 {margin-bottom:.5rem;}
-.study-closing {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(2rem,5vw,5rem);padding:var(--study-card-pad);background:var(--study-soft);border-radius:var(--study-radius);}
-[data-tone="soft"] .study-closing {background:var(--study-paper);}
-.study-capabilities {display:grid;gap:1rem;margin:0;padding:0;list-style:none;}
-.study-capabilities li {display:grid;gap:.2rem;}
-.detail-page .study-capabilities strong {font:650 .9375rem/1.6 var(--f-body);color:var(--study-ink);}
-.detail-page .study-capabilities span {font-size:.9375rem;line-height:1.7;color:var(--study-body);}
-.detail-page .study-learning {max-width:30em;margin:0;font:500 clamp(1.125rem,1.5vw,1.25rem)/1.8 var(--f-body);letter-spacing:-.02em;color:var(--study-ink);}
+/* ---------- Takeaway: the case study's last scene ---------- */
+/* One principle set large, then the capabilities it rests on, on a dark band.
+   The painted field reaches the viewport edges without widening the layout
+   (box-shadow spread, clipped to the band's height), and the section drops
+   its bottom padding so the band meets the next section flush. */
+.study-section[data-ends="takeaway"] {padding-bottom:0;}
+.study-takeaway {
+ --on-dark:#F2F2EF;--on-dark-2:#B9B9B4;
+ position:relative;display:grid;gap:clamp(2.5rem,5vw,4rem);padding-block:clamp(3.5rem,7vw,6rem);
+ color:var(--on-dark);background:var(--study-ink);box-shadow:0 0 0 100vmax var(--study-ink);clip-path:inset(0 -100vmax);
+}
+.detail-page .study-takeaway__label {margin:0 0 1.25rem;font:600 .75rem/1.5 var(--f-body);letter-spacing:.04em;color:var(--on-dark-2);}
+.detail-page .study-takeaway__lead .study-takeaway__label {color:var(--study-accent-on-dark);}
+.detail-page .study-takeaway__text {max-width:27em;margin:0;font:500 clamp(1.5rem,2.5vw,2.125rem)/1.55 var(--f-body);letter-spacing:-.03em;color:var(--on-dark);word-break:keep-all;text-wrap:pretty;}
+.study-takeaway__skills {padding-top:clamp(2rem,4vw,2.75rem);border-top:1px solid rgba(242,242,239,.16);}
+.study-skills {display:grid;grid-template-columns:repeat(var(--cols,3),minmax(0,1fr));gap:1.75rem clamp(1.5rem,3vw,2.5rem);margin:0;padding:0;list-style:none;}
+.study-skills[data-count="2"],.study-skills[data-count="4"] {--cols:2;}
+.detail-page .study-skills li {display:grid;align-content:start;gap:.35rem;min-width:0;color:var(--on-dark);}
+.detail-page .study-skills__index {margin-bottom:.4rem;font:600 .75rem/1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--study-accent-on-dark);}
+.detail-page .study-skills strong {font:600 1.0625rem/1.5 var(--f-body);letter-spacing:-.02em;color:var(--on-dark);word-break:keep-all;}
+.detail-page .study-skills li > span:last-child {font-size:.9375rem;line-height:1.7;color:var(--on-dark-2);word-break:keep-all;text-wrap:pretty;}
 
 /* ---------- Next project and footer ---------- */
 .detail-page .study-next {padding:clamp(3.5rem,6vw,5rem) 0;}
@@ -231,22 +259,24 @@ body.detail-page {
 @media(max-width:56em) {
  .study-hero__grid {grid-template-columns:minmax(0,1fr);}
  .study-hero__intro {max-width:40rem;}
- .study-cards[data-count="3"],.study-decisions[data-count="3"] {--cols:1;}
- .study-decisions[data-count="1"] .study-decision:not(.study-decision--media) dl,.study-decision--media[data-shape="wide"] dl {grid-template-columns:minmax(0,1fr);}
- .study-decision--media {grid-template-columns:minmax(0,1fr);}
- .study-decision--media:nth-child(even) > .study-frame {order:0;}
+ .study-issues[data-count="3"] {--cols:1;}
+ .study-decision--media[data-shape="standard"] {grid-template-columns:minmax(0,1fr);}
+ .study-decision--media[data-shape="standard"]:nth-child(even) > .study-frame {order:0;}
  .study-feature {grid-template-columns:minmax(0,1fr);gap:1.25rem;}
  .study-features[data-layout="rows"] .study-feature:nth-child(even) .study-feature__text {order:0;}
- .study-points,.study-closing {--cols:1;grid-template-columns:minmax(0,1fr);}
+ .study-points {--cols:1;grid-template-columns:minmax(0,1fr);}
  .study-next__link {grid-template-columns:minmax(0,1fr) auto;}
  .study-next__visual {grid-column:1/-1;grid-row:2;max-width:24rem;}
 }
 @media(max-width:48em) {
- .study-cards,.study-decisions,.study-ai {--cols:1;grid-template-columns:minmax(0,1fr);}
+ .study-issues,.study-ai,.study-skills {--cols:1;grid-template-columns:minmax(0,1fr);}
+ .study-decision__track {grid-template-columns:minmax(0,1fr);gap:1rem;}
  .study-insight {grid-template-columns:minmax(0,1fr);}
- .study-chain {grid-template-columns:minmax(0,1fr);padding:1rem 1.25rem;}
+ .study-chain {grid-template-columns:minmax(0,1fr);gap:.25rem;}
+ .study-chain + .study-chain {margin-top:.5rem;}
  .study-steps,.study-steps[data-count="4"] {--cols:1;gap:1.5rem;}
- .study-step {padding:0 0 0 1.25rem;border-top:0;border-left:2px solid var(--study-line-strong);}
+ .study-step {padding:0 0 0 1.25rem;}
+ .study-step::before {inset:0 auto 0 0;width:2px;height:auto;transform:scaleY(var(--rule,1));transform-origin:50% 0;}
  .study-steps[data-variant="sequence"] .study-step:not(:last-child)::after {display:none;}
  .study-step__index {margin-bottom:.6rem;}
 }
@@ -260,4 +290,10 @@ body.detail-page {
 }
 @media(max-width:30em) {
  .case-nav__index {display:none;}
+}
+
+/* Print shows every component at rest, whatever its motion state. */
+@media print {
+ .detail-page main * {opacity:1!important;transform:none!important;translate:none!important;rotate:none!important;scale:none!important;clip-path:none!important;}
+ .detail-page .study-takeaway {clip-path:none!important;box-shadow:none;}
 }
