@@ -63,8 +63,9 @@ let lenis = null;
       nav.classList.toggle('is-scrolled',scrollY>70);
       // Change tone as soon as a dark section reaches the header's lower edge.
       // This keeps the full-width bar visually attached to the scene beneath it.
+      // A section that owns a live palette (About) sets the header tone itself.
       const toneLine=nav.getBoundingClientRect().bottom;
-      nav.classList.toggle('is-dark',tones.some(s=>{const r=s.getBoundingClientRect();return s.dataset.tone==='dark'&&r.top<=toneLine&&r.bottom>toneLine;}));
+      nav.classList.toggle('is-dark',tones.some(s=>{if(s.classList.contains('has-color-scene'))return false;const r=s.getBoundingClientRect();return s.dataset.tone==='dark'&&r.top<=toneLine&&r.bottom>toneLine;}));
       window.portfolioAboutTheme?.syncHeader();
       const active=sections.find(s=>{const r=s.getBoundingClientRect();return r.top<=innerHeight*.4&&r.bottom>innerHeight*.4;});
       links.forEach(a=>{if(active&&a.hash==='#'+active.id)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current');});
@@ -212,62 +213,6 @@ let lenis = null;
     });
   }
 
-
-  function initHeroType() {
-    const title=$('#hero-title');if(!title)return;
-    const lines=$$('.type-mask > span',title),glyphs=[];
-    let point=null,frame=0,last=0,ready=false,measureFrame=0;
-    // Original text keeps shaping, kerning, selection and the accessible name.
-    const records=lines.map(line=>{
-      const base=document.createElement('span');base.className='hero-type__base';
-      base.textContent=line.textContent;line.replaceChildren(base);
-      const layer=document.createElement('span');layer.className='hero-type__glyphs';layer.setAttribute('aria-hidden','true');line.append(layer);
-      return {line,base,layer};
-    });
-    const measure=()=>{
-      measureFrame=0;
-      records.forEach(({line,base,layer})=>{
-        layer.replaceChildren();
-        const r=line.getBoundingClientRect(),ratio=r.width/(line.offsetWidth||1)||1;
-        const text=base.firstChild,range=document.createRange();
-        for(let i=0;i<text.length;i++){
-          range.setStart(text,i);range.setEnd(text,i+1);const box=range.getBoundingClientRect();
-          const el=document.createElement('span');el.className='hero-glyph';el.textContent=text.textContent[i];
-          const x=(box.left-r.left)/ratio,y=(box.top-r.top)/ratio;
-          el.style.left=x+'px';el.style.top='0px';el.style.width=box.width/ratio+'px';
-          layer.append(el);glyphs.push({el,line,cx:x+box.width/ratio/2,cy:y+box.height/ratio/2,x:0,y:0});
-        }
-      });
-      title.classList.add('is-magnetic-ready');ready=true;
-    };
-    const remeasure=()=>{if(!ready)return;glyphs.length=0;cancelAnimationFrame(measureFrame);measureFrame=requestAnimationFrame(measure);};
-    const paint=time=>{
-      frame=0;const dt=Math.min(40,last?time-last:16.67),mix=1-Math.exp(-dt/75);last=time;
-      const rects=new Map(records.map(({line})=>[line,line.getBoundingClientRect()]));
-      let moving=false;
-      glyphs.forEach(g=>{
-        const r=rects.get(g.line),dx=point?point.x-r.left-g.cx:0,dy=point?point.y-r.top-g.cy:0;
-        const influence=point?Math.max(0,1-Math.hypot(dx,dy)/110)**2:0;
-        const tx=clamp(dx*.14,-5,5)*influence,ty=clamp(dy*.18,-4,4)*influence;
-        g.x+=(tx-g.x)*mix;g.y+=(ty-g.y)*mix;
-        if(Math.abs(g.x-tx)+Math.abs(g.y-ty)<.015){g.x=tx;g.y=ty;}else moving=true;
-        g.el.style.transform='translate3d('+g.x.toFixed(3)+'px,'+g.y.toFixed(3)+'px,0)';
-      });
-      if(moving)frame=requestAnimationFrame(paint);else last=0;
-    };
-    const request=()=>{if(!frame&&ready)frame=requestAnimationFrame(paint);};
-    const reset=()=>{point=null;request();};
-    title.addEventListener('pointermove',e=>{if(!fine.matches||reduce.matches||e.pointerType==='touch')return;point={x:e.clientX,y:e.clientY};request();},{passive:true});
-    title.addEventListener('pointerleave',reset);title.addEventListener('pointercancel',reset);
-    addEventListener('scroll',reset,{passive:true});addEventListener('resize',remeasure,{passive:true});
-    fine.addEventListener('change',reset);reduce.addEventListener('change',reset);
-    // Let the short tracking/mask intro finish before sampling the settled glyphs.
-    const timer=setTimeout(()=>{glyphs.length=0;measure();},1250);
-    document.fonts?.ready.then(remeasure);
-    addEventListener('pagehide',()=>{clearTimeout(timer);cancelAnimationFrame(frame);cancelAnimationFrame(measureFrame);frame=last=0;point=null;glyphs.forEach(g=>{g.x=g.y=0;g.el.style.transform='none';});});
-    addEventListener('pageshow',e=>{if(e.persisted){if(!ready)measure();else remeasure();}});
-  }
-
   function initToolsScroll() {
     const section=$('.tools'),viewport=$('.tools__viewport'),track=$('.tools__track');
     if(!section||!viewport||!track||!window.gsap||!window.ScrollTrigger)return;
@@ -324,7 +269,7 @@ let lenis = null;
       for(const token of node.textContent.match(/\s+|\S+/g)||[]){
         if(/^\s+$/.test(token)){fragment.append(document.createTextNode(token));continue;}
         const word=document.createElement('span');word.className='title-word';word.textContent=token;
-        if((kind==='about'&&token==='구조를')||(kind==='ai'&&token==='AI와'))word.classList.add('title-word--accent');
+        if((kind==='about'&&token==='구조를')||(kind==='ai'&&token==='AI로'))word.classList.add('title-word--accent');
         fragment.append(word);words.push(word);
       }
       node.replaceWith(fragment);
@@ -366,12 +311,17 @@ let lenis = null;
     const secondaryDark=getComputedStyle($('.about__story p',about)).color;
     const mutedDark=getComputedStyle($('.about__metrics dt',about)).color;
     const mix=gsap.utils.interpolate,state={progress:0};
-    let palette={},trigger,tween,target,initialized=false;
+    let palette={},trigger,tween,target,initialized=false,sceneHidden=null;
     const syncHeader=()=>{
-      const rect=about.getBoundingClientRect();
-      // Retain palette ownership until the reverse tween has reached light.
-      const active=(rect.top<=innerHeight*.67||state.progress>0)&&rect.bottom>nav.getBoundingClientRect().bottom;
+      // The header follows the scene directly beneath it, never the trigger:
+      // over Hero it stays light; About's palette applies once About reaches
+      // the bar's midline. While an About edge crosses the bar, the bar is
+      // transparent so the real boundary shows instead of a separate slab.
+      const rect=about.getBoundingClientRect(),bar=nav.getBoundingClientRect(),middle=(bar.top+bar.bottom)/2;
+      const active=rect.top<=middle&&rect.bottom>middle;
+      const crossing=(rect.top>bar.top&&rect.top<bar.bottom)||(rect.bottom>bar.top&&rect.bottom<bar.bottom);
       nav.classList.toggle('is-about-theme',active);
+      nav.classList.toggle('is-scene-crossing',crossing);
       if(active)for(const [key,value] of Object.entries(palette))nav.style.setProperty(key,value);
     };
     const render=()=>{
@@ -382,6 +332,9 @@ let lenis = null;
       for(const [key,value] of Object.entries(palette))about.style.setProperty(key,value);
       hero.style.setProperty('--hero-scene-opacity',String(1-p));
       hero.style.setProperty('--hero-scene-visibility',p===1?'hidden':'visible');
+      // The Hero renderer idles only once the scene is fully hidden; any reverse
+      // tween step reveals it again, so fresh frames exist before it is seen.
+      if(sceneHidden!==(p===1)){sceneHidden=p===1;hero.toggleAttribute('data-scene-hidden',sceneHidden);hero.dispatchEvent(new Event('heroscenechange'));}
       syncHeader();
     };
     const setTheme=(isDark,immediate=false)=>{
@@ -402,8 +355,8 @@ let lenis = null;
     window.portfolioAboutTheme={syncHeader};
     addEventListener('pagehide',event=>{
       if(event.persisted)return;
-      tween?.kill();trigger.kill();about.classList.remove('has-color-scene');nav.classList.remove('is-about-theme');
-      hero.style.removeProperty('--hero-scene-opacity');hero.style.removeProperty('--hero-scene-visibility');
+      tween?.kill();trigger.kill();about.classList.remove('has-color-scene');nav.classList.remove('is-about-theme','is-scene-crossing');
+      hero.style.removeProperty('--hero-scene-opacity');hero.style.removeProperty('--hero-scene-visibility');hero.removeAttribute('data-scene-hidden');
       for(const key of Object.keys(palette)){about.style.removeProperty(key);nav.style.removeProperty(key);}
       delete window.portfolioAboutTheme;
     });
@@ -429,6 +382,7 @@ let lenis = null;
         button.setAttribute('aria-label',button.textContent+' '+$('h3',panel).textContent);nav.append(button);return button;
       });
       let active=-1,stride=260;
+      const rise=t=>t*t*(3-2*t);
       const state={position:0};
       const measure=()=>{
         section.style.setProperty('--services-top',($('#nav')?.offsetHeight||68)+'px');
@@ -441,10 +395,15 @@ let lenis = null;
         panels.forEach((panel,i)=>{
           const d=i-state.position;
           // Completed cards compress behind the current card; upcoming cards
-          // stay legible below it. Geometry follows every fractional scroll step.
-          const y=d<0?Math.max(-66,d*24):d*stride;
-          gsap.set(panel,{y,scale:d<0?1-Math.min(-d,3)*.035:1,z:d<0?d*20:0,
-            opacity:d<0?Math.max(.72,1+d*.09):1,zIndex:i+1,visibility:'visible'});
+          // stay legible below it. Focus changes at the midpoint: until then the
+          // next card waits one stride below, drifting with the column, and only
+          // afterwards rises over the outgoing card, so the focused card is never
+          // covered. Surfaces stay opaque; depth dims content, not the card.
+          let y,recede=0;
+          if(d>=0){const step=Math.floor(d),u=d-step;y=step*stride+(u>=.5?stride+(u-1)*24:(stride-12)*rise(u/.5));}
+          else{y=Math.max(-66,d*24);recede=d>=-.5?0:d>=-1?(-d-.5)*2:-d;}
+          gsap.set(panel,{y,scale:1-Math.min(recede,3)*.035,z:-recede*20,
+            '--stack-dim':Math.min(.28,recede*.09),zIndex:i+1,visibility:'visible'});
           if(index!==active){
             panel.classList.toggle('is-active',i===index);
             if(i===index)buttons[i].setAttribute('aria-current','step');else buttons[i].removeAttribute('aria-current');
@@ -465,7 +424,7 @@ let lenis = null;
         section.classList.remove('is-scene');section.dataset.phase='0';
         ['--scene-screens','--scene-count','--scene-index','--scene-progress','--services-top'].forEach(p=>section.style.removeProperty(p));
         gsap.set(panels,{clearProps:'transform,opacity,visibility,clipPath,zIndex'});
-        panels.forEach(panel=>{panel.inert=false;panel.removeAttribute('aria-hidden');panel.classList.remove('is-active');});
+        panels.forEach(panel=>{panel.inert=false;panel.removeAttribute('aria-hidden');panel.classList.remove('is-active');panel.style.removeProperty('--stack-dim');});
       };
     };
     mm.add('(prefers-reduced-motion: no-preference)',()=>{
@@ -678,7 +637,7 @@ let lenis = null;
   }
 
   function start(){
-    initScroll();initNavigation();initProjectIndex();initToolPointers();initVisualDepth();initHeroType();initToolsScroll();
+    initScroll();initNavigation();initProjectIndex();initToolPointers();initVisualDepth();initToolsScroll();
     const exp=$('#hero-exp');if(exp){const now=new Date();const months=(now.getFullYear()-2023)*12+now.getMonth()-8;exp.textContent=Math.max(1,Math.floor(months/12)+1)+'년차';}
     // Old detail reveal hooks must never hide information if motion is unavailable.
     $$('.reveal').forEach(el=>el.classList.add('in-view'));

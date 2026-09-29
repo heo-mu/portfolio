@@ -51,8 +51,8 @@ async function initPortrait(host) {
       vec3 c=vec3(texture2D(uImage,sampleUv+vec2(shift,0.)).r,source.g,texture2D(uImage,sampleUv-vec2(shift,0.)).b);
       float gray=dot(c,vec3(.2126,.7152,.0722));c=mix(vec3(gray),c,.64);
       float cell=step(.12,fract(vUv.x*210.0))*step(.12,fract(vUv.y*210.0));
-      c*=.85+.15*cell;c+=vec3(.055,.068,.025)*local;
-      if(uGhost>.5){float screen=step(.74,fract(vUv.y*125.0));c=vec3(.36,.45,.20);source.a*=screen*.22*smoothstep(.94,1.0,uAssembly);}
+      c*=.85+.15*cell;c+=vec3(.062)*local;
+      if(uGhost>.5){float screen=step(.74,fract(vUv.y*125.0));c=vec3(.41);source.a*=screen*.22*smoothstep(.94,1.0,uAssembly);}
       gl_FragColor=vec4(c,source.a*max(.14*vSeed*(1.0-vGather),smoothstep(.0,.22,vGather)));
       #include <tonemapping_fragment>
       #include <colorspace_fragment>

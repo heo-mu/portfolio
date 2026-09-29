@@ -1,4 +1,4 @@
-import {UI_KIT,uiBounds} from './hero-ui.js?v=8';
+import {UI_KIT,uiBounds} from './hero-ui.js?v=7fcdf7e2';
 // Deterministic occupancy in Hero-local coordinates. Scroll never replans it.
 const smooth=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t);};
 // Ease only the ends: stacking full eases made long routes whip past the copy.

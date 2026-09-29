@@ -1,4 +1,4 @@
-import {applyUIVolume,createUIRelief} from './hero-ui.js?v=8';
+import {applyUIVolume,createUIRelief} from './hero-ui.js?v=7fcdf7e2';
 // Rest, assembly and pointer displacement are independent motion layers.
 export const CYCLE=4.2;
 export const PITCH=.36;

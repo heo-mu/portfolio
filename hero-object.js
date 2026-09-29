@@ -4,7 +4,7 @@ if(host) startObject(host).catch(()=>host.classList.remove('is-ready'));
 
 async function startObject(host) {
   if(navigator.connection?.saveData)return;
-  const [T,{createStructure,PARTS},{createContactShadow},{createScatterField}]=await Promise.all([import('./vendor/three.module.js'),import('./hero-structure.js?v=21'),import('./hero-shadow.js?v=4'),import('./hero-field.js?v=16')]);
+  const [T,{createStructure,PARTS},{createContactShadow},{createScatterField}]=await Promise.all([import('./vendor/three.module.js'),import('./hero-structure.js?v=fc1f9ac8'),import('./hero-shadow.js?v=dc2f0992'),import('./hero-field.js?v=53ab71ff')]);
   const hero=host.closest('.hero'),anchor=document.getElementById('hero-object-anchor');
   const reduce=matchMedia('(prefers-reduced-motion: reduce)');
   const compact=matchMedia('(max-width: 640px)');
@@ -43,6 +43,8 @@ async function startObject(host) {
   const contact=createContactShadow(T,renderer,scene,{resolution:compact.matches?256:512,floorY:-2.72});
   renderer.shadowMap.autoUpdate=false;
   let visible=false,dead=false,lost=false,raf=0,last=0,elapsed=0,intro=0;
+  // About owns the fade; a fully hidden scene needs no frames after the first.
+  let sceneHidden=hero.hasAttribute('data-scene-hidden'),primed=false;
   let hovering=false,aspect=1,layoutDirty=true;
   let anchorX=0,anchorY=0,anchorWidth=1,anchorHeight=1;
   const cameraDirection=new T.Vector3(5.8,4.63,8.4).normalize(),cameraTarget=new T.Vector3(0,-.13,.1);
@@ -54,7 +56,7 @@ async function startObject(host) {
   const raycaster=new T.Raycaster(),pointer=new T.Vector2(),hit=new T.Vector3(),hitNormal=new T.Vector3();
   const localRay=new T.Ray(),inverseWorld=new T.Matrix4();
   function stop(){cancelAnimationFrame(raf);raf=0;last=0;}
-  function request(){if(!raf&&visible&&!document.hidden&&!dead&&!lost)raf=requestAnimationFrame(draw);}
+  function request(){if(!raf&&visible&&(!sceneHidden||!primed)&&!document.hidden&&!dead&&!lost)raf=requestAnimationFrame(draw);}
   function frame(){
     // Scene receding is a CSS presentation transform, not a new camera frame.
     // Recover layout coordinates so refresh during a transition cannot zoom or
@@ -80,7 +82,7 @@ async function startObject(host) {
       if(heading&&measure){
         measure.font=textStyle.font;
         const tracking=parseFloat(textStyle.letterSpacing)||0;
-        const label=(el.querySelector('.hero-type__base')?.textContent||el.textContent).trim();
+        const label=el.textContent.trim();
         textWidth=Math.min(textWidth,measure.measureText(label).width+tracking*(label.length-1)+12);
       }
       // Protect the resting text only. Transit and scroll travel remain unconstrained.
@@ -152,7 +154,7 @@ async function startObject(host) {
     // Capture the just-updated instances on every rendered frame. No old pose or
     // separately throttled ground layer can remain during a return/hover transition.
     contact.update(shadowExclusions,float,scatter);renderer.shadowMap.needsUpdate=true;
-    renderer.render(scene,renderCamera);host.classList.add('is-ready');
+    renderer.render(scene,renderCamera);host.classList.add('is-ready');primed=true;
     if(!reduce.matches)request();
   }
   function resize(){
@@ -173,6 +175,7 @@ async function startObject(host) {
   function reset(){hovering=false;aim.x=aim.y=0;target.strength=0;request();}
   function mode(){reset();orientation.x=orientation.y=0;Object.assign(target,neutral);Object.assign(influence,neutral);influenceAxes.forEach(axis=>velocity[axis]=0);stop();resize();}
   function visibility(){document.hidden?stop():request();}
+  function sceneChange(){sceneHidden=hero.hasAttribute('data-scene-hidden');sceneHidden?stop():request();}
   function contextLost(e){e.preventDefault();lost=true;stop();host.classList.remove('is-ready');}
   function contextRestored(){lost=false;resize();}
   const io=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;visible?request():stop();});io.observe(host);
@@ -182,7 +185,7 @@ async function startObject(host) {
   const introTimer=setTimeout(refreshLayout,2600);
   document.fonts?.ready.then(()=>{if(!dead)refreshLayout();});
   reduce.addEventListener('change',mode);compact.addEventListener('change',mode);
-  document.addEventListener('visibilitychange',visibility);
+  document.addEventListener('visibilitychange',visibility);hero.addEventListener('heroscenechange',sceneChange);
   renderer.domElement.addEventListener('webglcontextlost',contextLost);renderer.domElement.addEventListener('webglcontextrestored',contextRestored);
   function pageShow(){resize();}
   function cleanup(e){
@@ -190,7 +193,7 @@ async function startObject(host) {
     io.disconnect();ro.disconnect();hero.removeEventListener('pointermove',move);hero.removeEventListener('pointerleave',reset);hero.removeEventListener('pointercancel',reset);
     clearTimeout(introTimer);
     reduce.removeEventListener('change',mode);compact.removeEventListener('change',mode);
-    document.removeEventListener('visibilitychange',visibility);removeEventListener('pageshow',pageShow);removeEventListener('pagehide',cleanup);
+    document.removeEventListener('visibilitychange',visibility);hero.removeEventListener('heroscenechange',sceneChange);removeEventListener('pageshow',pageShow);removeEventListener('pagehide',cleanup);
     renderer.domElement.removeEventListener('webglcontextlost',contextLost);renderer.domElement.removeEventListener('webglcontextrestored',contextRestored);
     sculpture.dispose();environment.dispose();contact.dispose();key.shadow.dispose();renderer.dispose();renderer.domElement.remove();
   }

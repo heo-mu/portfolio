@@ -82,9 +82,8 @@ projects.forEach((d,i)=>{
  let after=before.replace(/<nav class="case-index"[\s\S]*?<\/nav>\s*/, '').replace(/<main id="main-content">[\s\S]*?<\/main>/,render(d,i));
  const globalHeader=`<header class="case-nav"><div class="container case-nav__inner"><a href="index.html" class="case-nav__name" aria-label="허창무 포트폴리오 홈">heo_mu.</a><a href="index.html#projects" class="case-back">Projects</a><a href="index.html#contact" class="study-nav-contact">Contact ↗</a><span class="case-nav__index">${number(i+1)} / 05</span></div><div class="read-progress" id="read-progress" aria-hidden="true"></div></header>`;
  after=after.replace(/<header class="case-nav">[\s\S]*?<\/header>/,globalHeader);
- after=after.replace(/detail\.js\?v=\d+/,'detail.js?v=33');
- if(!after.includes('css/case-study.css'))after=after.replace('</head>','  <link rel="stylesheet" href="css/case-study.css?v=5">\n</head>');
- after=after.replace(/case-study\.css\?v=\d+/,'case-study.css?v=5');
+ // Asset ?v= values belong to scripts/asset-versions.mjs; a new link gets a placeholder it replaces.
+ if(!after.includes('css/case-study.css'))after=after.replace('</head>','  <link rel="stylesheet" href="css/case-study.css?v=0">\n</head>');
  if(before!==after){
   changed++;
   const a=before.trimEnd().split(/\r?\n/),b=after.trimEnd().split(/\r?\n/);
