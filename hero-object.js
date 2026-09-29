@@ -4,7 +4,7 @@ if(host) startObject(host).catch(()=>host.classList.remove('is-ready'));
 
 async function startObject(host) {
   if(navigator.connection?.saveData)return;
-  const [T,{createStructure,PARTS},{createContactShadow},{createScatterField}]=await Promise.all([import('./vendor/three.module.js'),import('./hero-structure.js?v=fc1f9ac8'),import('./hero-shadow.js?v=dc2f0992'),import('./hero-field.js?v=53ab71ff')]);
+  const [T,{createStructure,PARTS,retrace},{createContactShadow},{createScatterField}]=await Promise.all([import('./vendor/three.module.js'),import('./hero-structure.js?v=a00c86a7'),import('./hero-shadow.js?v=dc2f0992'),import('./hero-field.js?v=46545e23')]);
   const hero=host.closest('.hero'),anchor=document.getElementById('hero-object-anchor');
   const reduce=matchMedia('(prefers-reduced-motion: reduce)');
   const compact=matchMedia('(max-width: 640px)');
@@ -46,6 +46,9 @@ async function startObject(host) {
   // About owns the fade; a fully hidden scene needs no frames after the first.
   let sceneHidden=hero.hasAttribute('data-scene-hidden'),primed=false;
   let hovering=false,aspect=1,layoutDirty=true;
+  // Structural phase: opens once after load, then follows scroll (see draw).
+  let structure=0,heroTop=0,assemblySpan=1;
+  const pageTop=el=>{let y=0;for(let node=el;node;node=node.offsetParent)y+=node.offsetTop;return y;};
   let anchorX=0,anchorY=0,anchorWidth=1,anchorHeight=1;
   const cameraDirection=new T.Vector3(5.8,4.63,8.4).normalize(),cameraTarget=new T.Vector3(0,-.13,.1);
   const neutral={x:0,y:0,z:1.26,nx:0,ny:0,nz:1,strength:0};
@@ -64,6 +67,10 @@ async function startObject(host) {
     const container=hero.querySelector('.hero__container'),c=container.getBoundingClientRect(),visual=anchor.getBoundingClientRect();
     const sx=c.width/container.offsetWidth,sy=c.height/container.offsetHeight;
     const r={width:hero.clientWidth,height:hero.clientHeight};
+    // The cube must be whole before About takes the scene; its colour flip
+    // starts once About's top reaches 67% of the viewport.
+    const about=document.getElementById('about');heroTop=pageTop(hero);
+    assemblySpan=Math.max(1,((about?pageTop(about)-innerHeight*.67:heroTop+r.height*.33)-heroTop)*.9);
     const a={left:container.offsetLeft+(visual.left-c.left)/sx,top:container.offsetTop+(visual.top-c.top)/sy,width:visual.width/sx,height:visual.height/sy};
     anchorX=a.left+a.width/2;anchorY=a.top+a.height/2;anchorWidth=a.width;anchorHeight=a.height;
     const halfH=3.28*Math.max(1,a.height/a.width)*r.height/a.height;
@@ -120,7 +127,6 @@ async function startObject(host) {
     const delta=last?Math.min((now-last)/1000,.06):0;
     if(last&&compact.matches&&delta<1/30){request();return;}
     last=now;elapsed+=delta;intro=Math.min(1,intro+delta/.85);
-    const sceneTime=reduce.matches?0:elapsed;
     const response=1-Math.exp(-delta*10);
     orientation.x+=(aim.x-orientation.x)*response;orientation.y+=(aim.y-orientation.y)*response;
     const float=reduce.matches?0:Math.sin(elapsed*1.3)*.036;
@@ -146,7 +152,13 @@ async function startObject(host) {
       velocity[axis]+=((target[axis]-influence[axis])*760-velocity[axis]*55)*dt;
       influence[axis]+=velocity[axis]*dt;
     }
-    sculpture.update(sceneTime,influence,reduce.matches?undefined:field);
+    // The kit opens once after load, then holds its dispersed plateau. Scroll
+    // alone retraces the departure lanes into the cube and releases it again
+    // in reverse; the ambient clock keeps the held modules floating.
+    const assembly=Math.min(1,Math.max(0,(scrollY-heroTop)/assemblySpan));
+    const goal=Math.min(elapsed,retrace(assembly));
+    structure+=(goal-structure)*(1-Math.exp(-delta*12));
+    sculpture.update(reduce.matches?0:structure,influence,reduce.matches?undefined:field,elapsed);
     const scatter=sculpture.spread;
     const shadowExtent=3.5+scatter*12;
     Object.assign(key.shadow.camera,{left:-shadowExtent,right:shadowExtent,top:shadowExtent,bottom:-shadowExtent});

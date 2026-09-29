@@ -187,7 +187,7 @@ let lenis = null;
   }
 
   function initToolPointers() {
-    $$('.tool').forEach(card=>{
+    $$('.tool-row').forEach(card=>{
       let frame=0,point=null;
       const paint=()=>{
         frame=0;if(!point)return;
@@ -195,11 +195,10 @@ let lenis = null;
         const u=clamp((point.x-r.left)/r.width,0,1),v=clamp((point.y-r.top)/r.height,0,1);
         card.style.setProperty('--local-x',u*100+'%');card.style.setProperty('--local-y',v*100+'%');
         card.style.setProperty('--logo-x',(u-.5)*4+'px');card.style.setProperty('--logo-y',(v-.5)*4+'px');
-        card.style.setProperty('--name-x',(u-.5)*1.2+'px');card.style.setProperty('--name-y',(v-.5)*1.2+'px');
       };
       const reset=()=>{
         cancelAnimationFrame(frame);frame=0;point=null;card.classList.remove('is-pointed');
-        ['--local-x','--local-y','--logo-x','--logo-y','--name-x','--name-y'].forEach(p=>card.style.removeProperty(p));
+        ['--local-x','--local-y','--logo-x','--logo-y'].forEach(p=>card.style.removeProperty(p));
       };
       card.addEventListener('pointermove',e=>{
         if(reduce.matches||!fine.matches||e.pointerType==='touch')return;
@@ -207,58 +206,12 @@ let lenis = null;
         if(!frame)frame=requestAnimationFrame(paint);
       },{passive:true});
       card.addEventListener('pointerleave',reset);card.addEventListener('pointercancel',reset);
-      // A moving track invalidates pointer-local coordinates; never leave a stale hotspot.
+      // Scrolling invalidates pointer-local coordinates; never leave a stale hotspot.
       addEventListener('scroll',reset,{passive:true});addEventListener('pagehide',reset);
       reduce.addEventListener('change',reset);fine.addEventListener('change',reset);
     });
   }
 
-  function initToolsScroll() {
-    const section=$('.tools'),viewport=$('.tools__viewport'),track=$('.tools__track');
-    if(!section||!viewport||!track||!window.gsap||!window.ScrollTrigger)return;
-    gsap.registerPlugin(ScrollTrigger);
-    const items=$$('.tool-item',track),progress=$('.tools__progress > span');
-    viewport.removeAttribute('data-lenis-prevent-touch');
-    const mm=gsap.matchMedia();
-    mm.add('(min-width: 769px) and (min-height: 660px) and (prefers-reduced-motion: no-preference)',()=>{
-      section.classList.add('is-scroll-deck');
-      const state={position:0};let step=300,active=-1,trigger;
-      const measure=()=>{
-        section.style.setProperty('--tools-top',($('#nav')?.offsetHeight||68)+'px');
-        section.style.setProperty('--tools-run',Math.round(innerHeight*2.8)+'px');
-        step=items[0].offsetWidth*.88;
-      };
-      const render=()=>{
-        const index=Math.round(state.position);
-        items.forEach((item,i)=>{
-          const d=i-state.position,a=Math.abs(d);
-          gsap.set(item,{x:d*step,y:Math.min(a,3)*20,scale:1-Math.min(a,3)*.085,
-            rotationY:clamp(d,-2,2)*-9,z:-Math.min(a,3)*65,
-            opacity:clamp(2.6-a,0,1),zIndex:20-Math.round(a*4)});
-          if(index!==active){item.classList.toggle('is-current',i===index);item.inert=i!==index;}
-        });
-        active=index;
-        if(progress)progress.style.transform='scaleX('+((state.position+1)/items.length)+')';
-      };
-      measure();
-      const timeline=gsap.timeline({onUpdate:render});
-      timeline.to(state,{position:0,duration:.12}).to(state,{position:items.length-1,duration:1,ease:'none'}).to(state,{position:items.length-1,duration:.12});
-      trigger=ScrollTrigger.create({trigger:section,start:()=> 'top '+($('#nav')?.offsetHeight||68),end:'bottom bottom',
-        animation:timeline,scrub:.22,invalidateOnRefresh:true,onRefreshInit:measure,onRefresh:render});
-      const go=index=>moveTo(trigger.start+(.12+clamp(index,0,items.length-1)/(items.length-1))/1.24*(trigger.end-trigger.start));
-      const key=e=>{
-        if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
-        e.preventDefault();go(e.key==='Home'?0:e.key==='End'?items.length-1:active+(e.key==='ArrowRight'?1:-1));
-      };
-      viewport.addEventListener('keydown',key);render();queueRefresh();
-      return()=>{
-        trigger.kill();timeline.kill();viewport.removeEventListener('keydown',key);
-        section.classList.remove('is-scroll-deck');['--tools-top','--tools-run'].forEach(p=>section.style.removeProperty(p));
-        gsap.set(items,{clearProps:'transform,opacity,zIndex'});items.forEach(item=>{item.inert=false;item.classList.remove('is-current');});
-        if(progress)progress.style.removeProperty('transform');queueRefresh();
-      };
-    });
-  }
   function createSectionTitle(section,kind,amount) {
     const title=$('.section-title',section);if(!title)return null;
     const original=[...title.childNodes],words=[];
@@ -564,6 +517,8 @@ let lenis = null;
           const entrySpan=kind==='contact'?Math.min(viewport*.68,height*.85):viewport*.68;
           const enter=kind==='hero'?1:smooth(clamp(distance/entrySpan,0,1));
           titleMotion?.render(enter);
+          // Tools groups stagger in on the same entry progress as the title.
+          if(kind==='tools')section.style.setProperty('--tools-enter',enter.toFixed(4));
           const remaining=kind==='hero'?height-distance:height+viewport-distance;
           const leave=kind==='contact'?0:smooth(clamp((viewport*.9-remaining)/(viewport*.9),0,1));
           if(kind!=='hero'&&kind!=='about')section.style.setProperty('--scene-scale',(1-amount*(arrive*(1-enter)+recede*leave)).toFixed(5));
@@ -626,7 +581,7 @@ let lenis = null;
           trigger.kill();score.kill();
           titleMotion?.restore();
           section.classList.remove('has-scene-transition');delete section.dataset.scene;
-          ['--scene-y','--scene-depth','--scene-scale','--scene-origin-y'].forEach(p=>section.style.removeProperty(p));
+          ['--scene-y','--scene-depth','--scene-scale','--scene-origin-y','--tools-enter'].forEach(p=>section.style.removeProperty(p));
         });queueRefresh();
       };
     });
@@ -637,7 +592,7 @@ let lenis = null;
   }
 
   function start(){
-    initScroll();initNavigation();initProjectIndex();initToolPointers();initVisualDepth();initToolsScroll();
+    initScroll();initNavigation();initProjectIndex();initToolPointers();initVisualDepth();
     const exp=$('#hero-exp');if(exp){const now=new Date();const months=(now.getFullYear()-2023)*12+now.getMonth()-8;exp.textContent=Math.max(1,Math.floor(months/12)+1)+'년차';}
     // Old detail reveal hooks must never hide information if motion is unavailable.
     $$('.reveal').forEach(el=>el.classList.add('in-view'));

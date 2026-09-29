@@ -135,7 +135,7 @@ export function createScatterField(T,camera,group,parts=[]){
     routePoint.x=a.x+(b.x-a.x)*f;routePoint.y=a.y+(b.y-a.y)*f;
   }
   function begin(){inverse.copy(group.matrixWorld).invert();nodes.length=0;}
-  function scatter(p,part,travel,floatWindow,phase){
+  function scatter(p,part,travel,floatWindow,clock){
     const target=targets.get(part);if(!target||!travel)return;
     // Face-normal release precedes lateral travel. Return retraces the same curve.
     const release=smooth(travel/.28),flight=flightProgress((travel-.20)/.80),clearance=(part.kind==='shell'?.68:1.02)*release;
@@ -144,12 +144,13 @@ export function createScatterField(T,camera,group,parts=[]){
     const startX=screen.x,startY=screen.y,startDepth=-view.z;
     const drift=travel*floatWindow;along(target.route,flight);
     // One small outward pulse resolves while floating; reverse retraces the lane.
+    // Hero can hold the float indefinitely, so the idle bob stays a few pixels.
     const pulse=Math.sin(Math.PI*floatWindow)*travel*(2+part.r*3);
     const radialLength=Math.hypot(target.x-core.x,target.y-core.y)||1;
     const first=target.route.points[0];
-    const x=routePoint.x+(startX-first.x)*(1-flight)+(target.x-core.x)/radialLength*pulse+Math.sin(phase*(1.05+part.r*.25)+part.phase)*(1.6+part.r*.9)*drift;
-    const y=routePoint.y+(startY-first.y)*(1-flight)+(target.y-core.y)/radialLength*pulse+Math.cos(phase*(.85+part.r*.2)+part.phase)*(1.2+part.r*.8)*drift;
-    const depth=startDepth+(target.depth-startDepth)*flight+Math.sin(Math.PI*flight)*(.3+target.index%3*.36)+Math.sin(phase+part.phase)*.025*drift;
+    const x=routePoint.x+(startX-first.x)*(1-flight)+(target.x-core.x)/radialLength*pulse+Math.sin(clock*(1.05+part.r*.25)+part.phase)*(2.2+part.r*1.4)*drift;
+    const y=routePoint.y+(startY-first.y)*(1-flight)+(target.y-core.y)/radialLength*pulse+Math.cos(clock*(.85+part.r*.2)+part.phase)*(3+part.r*2)*drift;
+    const depth=startDepth+(target.depth-startDepth)*flight+Math.sin(Math.PI*flight)*(.3+target.index%3*.36)+Math.sin(clock+part.phase)*.025*drift;
     resolve(p,x,y,depth);
   }
   function constrain(n,strength){

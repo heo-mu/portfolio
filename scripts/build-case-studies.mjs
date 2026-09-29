@@ -35,9 +35,12 @@ function size(src){
 }
 // Very wide artifacts read better stacked under their text than beside it.
 const shape=image=>{const {width,height}=size(image.src);return width/height>=1.9?'wide':'standard';};
+// Pages serve a lighter sibling .webp when one exists; the JSON keeps naming
+// the original, which also stays the source of the intrinsic dimensions.
+const served=src=>{const webp=src.replace(/.(png|jpe?g)$/i,'.webp');return webp!==src&&fs.existsSync(path.join(root,webp))?webp:src;};
 const img=(image,{priority=false,decorative=false}={})=>{
  const {width,height}=size(image.src);
- return `<img src="${esc(image.src)}" alt="${decorative?'':esc(image.alt)}" width="${width}" height="${height}" ${priority?'fetchpriority="high"':'loading="lazy"'} decoding="async">`;
+ return `<img src="${esc(served(image.src))}" alt="${decorative?'':esc(image.alt)}" width="${width}" height="${height}" ${priority?'fetchpriority="high"':'loading="lazy"'} decoding="async">`;
 };
 // Images carry no captions: the heading and text before them give the context.
 const frame=(image,{cls='',...options}={})=>`<div class="study-frame${cls?' '+cls:''}">${img(image,options)}</div>`;

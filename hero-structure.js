@@ -1,6 +1,20 @@
 import {applyUIVolume,createUIRelief} from './hero-ui.js?v=7fcdf7e2';
 // Rest, assembly and pointer displacement are independent motion layers.
 export const CYCLE=4.2;
+// Opening starts here; by HOLD every lane has departed and none has begun to
+// return. Hero holds this plateau and scroll retraces the departure to OPEN_AT.
+export const OPEN_AT=.80,HOLD=2.48;
+// Assembly progress (0 dispersed → 1 whole) as a departure phase. Departures
+// leave fast and arrive slowly, so even scroll steps take uneven phase steps:
+// the float settles, UI casings fold back to voxels, lanes fly home, seams close.
+const RETRACE=[[0,HOLD],[.06,2.02],[.16,1.8],[.45,1.6],[.70,1.45],[.88,1.1],[1,OPEN_AT]];
+export function retrace(progress){
+  for(let i=1;i<RETRACE.length;i++){
+    const [a0,p0]=RETRACE[i-1],[a1,p1]=RETRACE[i];
+    if(progress<=a1)return p0+(p1-p0)*Math.max(0,progress-a0)/(a1-a0);
+  }
+  return OPEN_AT;
+}
 export const PITCH=.36;
 const HALF=1.26;
 const STILL={strength:0};
@@ -11,7 +25,7 @@ const ease=t=>{t=Math.max(0,Math.min(1,t));return t*t*t*(t*(t*6-15)+10);};
 export function assemblyState(time,out={}){
   const phase=((time%CYCLE)+CYCLE)%CYCLE;
   out.phase=phase;
-  out.open=ease((phase-.80)/.30)*(1-ease((phase-3.90)/.30));
+  out.open=ease((phase-OPEN_AT)/.30)*(1-ease((phase-3.90)/.30));
   out.assembled=out.open===0;
   out.stage=phase<.80?'assembled':phase<1.10?'loosen':phase<2?'disperse':phase<2.75?'float':phase<3.90?'return':'resolve';
   return out;
@@ -62,13 +76,15 @@ for(let y=-2;y<=2;y+=2)for(let x=-1;x<=1;x++){
   part(.745,y*PITCH+.095,x*.54,.024,.026,.20,'signal',y);
 }
 export function modulePose(time,p,pointer=STILL,state=assemblyState(time),out={},field){
-  const {phase,open}=state;
+  // Structure (phase) sets where each module is; the ambient clock only moves
+  // enveloped drift, so a held phase keeps floating and rest stays exact.
+  const {phase,open}=state,clock=state.clock??phase;
   const departDuration=field?.duration(p)??p.departDuration;
   const departure=ease((phase-p.departAt)/departDuration);
   const returnProgress=ease(Math.pow(Math.max(0,(phase-p.returnAt)/p.returnDuration),.86));
   const travel=departure*(1-returnProgress);
   const floatWindow=ease((phase-p.departAt-departDuration*.8)/.28)*(1-ease((phase-p.returnAt)/.32));
-  const driftDepth=(p.cohort==='far'?.045:p.cohort==='mid'?.022:p.cohort==='near'?.012:0)*Math.sin(phase*(1.9+p.r*.4)+p.phase)*travel*floatWindow;
+  const driftDepth=(p.cohort==='far'?.045:p.cohort==='mid'?.022:p.cohort==='near'?.012:0)*Math.sin(clock*(1.9+p.r*.4)+p.phase)*travel*floatWindow;
   const detached=field?.has(p);
   const reach=(field&&p.kind==='shell'&&!detached) ? 0 : p.distance*travel+driftDepth;
   const clearance=p.cohort==='far'?ease((reach-.84)/.16):p.cohort==='mid'?.045*ease((reach-.32)/.2):0;
@@ -77,21 +93,21 @@ export function modulePose(time,p,pointer=STILL,state=assemblyState(time),out={}
   const offset=release+reach;
   const arc=Math.sin(Math.PI*travel)*clearance;
   const drift=p.drift*clearance*floatWindow;
-  const side=Math.sin(p.phase+phase*(1.8+p.r*.4))*drift+p.spin*.12*arc;
-  const rise=Math.sin(p.phase*.7+phase*(2.2-p.r*.3))*drift*.65;
+  const side=Math.sin(p.phase+clock*(1.8+p.r*.4))*drift+p.spin*.12*arc;
+  const rise=Math.sin(p.phase*.7+clock*(2.2-p.r*.3))*drift*.65;
   let x=p.x+p.nx*offset+p.tx*side;
   let y=p.y+p.ny*offset+p.ty*rise;
   let z=p.z+p.nz*offset+p.tz*side;
   if(field&&detached){
     out.x=x;out.y=y;out.z=z;
-    field.scatter(out,p,travel,floatWindow,phase);
+    field.scatter(out,p,travel,floatWindow,clock);
     x=out.x;y=out.y;z=out.z;
   }
   // Each retained module has a stable phase; the assembly envelope removes every
   // offset and rotation at rest, in either time direction, without accumulated noise.
   const breathing=field&&!detached?open*ease(travel):0;
   const weight=p.kind==='shell'?1:CORE_MOTION.innerWeight;
-  const breathPhase=phase*p.tempo+p.phase;
+  const breathPhase=clock*p.tempo+p.phase;
   if(breathing){
     // Two low-frequency waves give a smooth irregular rhythm with no frame noise.
     // Depth stays normal to each face, preserving the grid's lateral clearances.
@@ -113,7 +129,7 @@ export function modulePose(time,p,pointer=STILL,state=assemblyState(time),out={}
     const amount=activation*(boundary?.22+(detached?-.08:.02)*open:.06*open);
     x+=pointer.nx/length*amount;y+=pointer.ny/length*amount;z+=pointer.nz/length*amount;
   }
-  const turn=field&&!detached?0:p.spin*clearance*(travel+floatWindow*.10*Math.sin(phase*2+p.phase));
+  const turn=field&&!detached?0:p.spin*clearance*(travel+floatWindow*.10*Math.sin(clock*2+p.phase));
   const shrink=p.kind==='shell'?1-(field&&!detached?.105+p.r*.04:.07)*open:1;
   out.x=x;out.y=y;out.z=z;out.sx=p.sx*shrink;out.sy=p.sy*shrink;out.sz=p.sz*shrink;
   out.rx=turn*(.5+p.r);out.ry=turn;out.rz=turn*.35;out.activation=activation;out.travel=travel;
@@ -127,7 +143,7 @@ export function modulePose(time,p,pointer=STILL,state=assemblyState(time),out={}
   }
   if(detached){
     const freeTurn=ease((travel-.28)/.4);
-    out.rx+=p.spin*freeTurn*.65;out.ry+=Math.sin(phase+p.phase)*freeTurn*.12;
+    out.rx+=p.spin*freeTurn*.65;out.ry+=Math.sin(clock+p.phase)*freeTurn*.12;
   }
   applyUIVolume(out,field?.profile(p));
   return out;
@@ -181,8 +197,9 @@ export function createStructure(T,{accent='#C94324',ink='#1B1C19',environment=nu
   const pickRay=new T.Ray(),candidate=new T.Vector3(),worldHit=new T.Vector3(),faceNormal=new T.Vector3();
   let previousOpen=-1,wasResting=null,spreadAmount=0;
   for(const b of batches)b.parts.forEach((p,i)=>b.mesh.setColorAt(i,color.setScalar(b.kind==='shell'?1:.93+p.r*.07)));
-  function update(time,pointer=STILL,field){
-    const state=assemblyState(time,motionState),open=state.open,resting=state.assembled&&pointer.strength<.00001;
+  function update(time,pointer=STILL,field,clock=time){
+    const state=assemblyState(time,motionState),open=state.open;state.clock=clock;
+    const resting=state.assembled&&pointer.strength<.00001;
     solid.visible=resting;for(const b of batches)b.mesh.visible=!resting;
     const changed=wasResting!==resting;wasResting=resting;
     spreadAmount=0;
