@@ -590,5 +590,10 @@
 @media(hover:hover) {.home-page .contact.has-scene-transition .contact__action:hover::before {background:var(--c-accent);}}
 /* A reel is all ten cells tall; its window (.stat-digit) shows one line. */
 .home-page .about__metrics .stat-reel {height:auto;}
-/* Each window matches the display face's tabular figure advance (tracking included). */
-.home-page .about__metrics .stat-digit {width:.565em;}
+/* Windows are sized per digit in JS; figures stay proportional like the plain text. */
+.home-page .about__metrics :is(.stat-digit,.stat-reel > span) {font-variant-numeric:normal;}
+/* One image radius across the portfolio (--image-radius, motion.css). */
+.home-page :is(.work-row__reveal,.work-row__thumb,.work-row__thumb img,.work-preview__visual) {border-radius:var(--image-radius);}
+.work.has-scene-transition .work-row__reveal {clip-path:inset(0 calc((1 - var(--row-img,1)) * 100%) 0 0 round var(--image-radius));}
+/* Step titles balance their lines, so no title ends on a lone word. */
+.home-page .service h3 {text-wrap:balance;}

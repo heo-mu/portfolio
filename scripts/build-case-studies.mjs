@@ -43,7 +43,9 @@ const img=(image,{priority=false,decorative=false}={})=>{
  return `<img src="${esc(served(image.src))}" alt="${decorative?'':esc(image.alt)}" width="${width}" height="${height}" ${priority?'fetchpriority="high"':'loading="lazy"'} decoding="async">`;
 };
 // Images carry no captions: the heading and text before them give the context.
-const frame=(image,{cls='',...options}={})=>`<div class="study-frame${cls?' '+cls:''}">${img(image,options)}</div>`;
+// A screenshot whose border is near-white is flagged edge:'light' in the JSON,
+// so only it gets the faint shadow that keeps its boundary against the page.
+const frame=(image,{cls='',...options}={})=>`<div class="study-frame${cls?' '+cls:''}"${image.edge==='light'?' data-edge="light"':''}>${img(image,options)}</div>`;
 const tokens=values=>values.map(value=>`<span class="study-token">${esc(value)}</span>`).join('');
 
 const LABELS={problem:'문제',judgment:'판단',design:'설계',insight:'설계 관점',

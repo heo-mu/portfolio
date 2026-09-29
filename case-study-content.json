@@ -17,7 +17,7 @@
       ],
       "liveUrl": "https://deurim.co.kr",
       "liveLabel": "서비스 보기",
-      "hero": {"src": "image/deurim/deurim_thumb.png", "alt": "들임 3D 냉장고 설치 검증 서비스 화면"},
+      "hero": {"src": "image/deurim/deurim_thumb.png", "alt": "들임 3D 냉장고 설치 검증 서비스 화면", "edge": "light"},
       "sections": [
         {
           "id": "context",
@@ -145,7 +145,7 @@
           "title": "기능별로 흩어진 에너지 데이터",
           "lead": "기존 시스템은 에너지 데이터를 기능 단위로 나눠 보여줬어요. 그래서 수치를 볼 때마다 그 값이 어느 건물·층·설비의 것인지 다시 해석해야 했어요.",
           "blocks": [
-            {"type": "figure", "heading": "기존 시스템 구조", "image": {"src": "image/bees/bees_system.png", "alt": "파편화된 기존 시스템 구조도"}},
+            {"type": "figure", "heading": "기존 시스템 구조", "image": {"src": "image/bees/bees_system.png", "alt": "파편화된 기존 시스템 구조도", "edge": "light"}},
             {"type": "cards", "items": [
               {"title": "공간과 분리된 데이터", "body": "데이터가 기능 단위로 나뉘어 있어, 어느 공간의 값인지 함께 읽기 어려웠어요."},
               {"title": "확인과 대응의 단절", "body": "상태를 확인하는 화면과 조치하는 화면이 나뉘면 확인한 맥락이 이어지지 않아요."}
@@ -184,7 +184,7 @@
                "problem": "설비 상태와 이상 신호가 여러 화면과 수치로 나뉘면, 상황을 파악하고 대응하기까지 오래 걸려요.",
                "judgment": "알림을 확인하는 데서 끝나지 않고, 필요한 행동까지 한 흐름으로 이어져야 한다고 봤어요.",
                "design": "실시간 알림과 대화형 인터페이스를 묶어, 위험 징후와 필요한 조치·경로를 먼저 보여주는 통합 관제 에이전트를 설계했어요.",
-               "image": {"src": "image/bees/bees_agent.png", "alt": "에너지 통합 관제 에이전트 와이드 대시보드"}}
+               "image": {"src": "image/bees/bees_agent.png", "alt": "에너지 통합 관제 에이전트 와이드 대시보드", "edge": "light"}}
             ]}
           ]
         },
@@ -196,8 +196,8 @@
           "lead": "컬러·타이포그래피 기준을 표준화하고, 구현에 필요한 상태와 예외는 Figma 안에서 바로 확인하게 했어요.",
           "blocks": [
             {"type": "features", "items": [
-              {"title": "슬롯 기반 컴포넌트", "body": "Figma 슬롯으로 여러 UI를 하나의 패턴 안에서 조합해, 같은 구조를 반복해서 만들지 않게 했어요.", "image": {"src": "image/bees/bees_figma01.png", "alt": "Figma 슬롯 기능을 활용한 시스템 설계"}},
-              {"title": "주석으로 전달한 구현 기준", "body": "UI 상태·인터랙션·예외 케이스를 주석에 함께 적어, 구현 기준을 화면에서 바로 확인하게 했어요.", "image": {"src": "image/bees/bees_figma02.png", "alt": "Figma 주석을 활용한 개발 협업 화면"}}
+              {"title": "슬롯 기반 컴포넌트", "body": "Figma 슬롯으로 여러 UI를 하나의 패턴 안에서 조합해, 같은 구조를 반복해서 만들지 않게 했어요.", "image": {"src": "image/bees/bees_figma01.png", "alt": "Figma 슬롯 기능을 활용한 시스템 설계", "edge": "light"}},
+              {"title": "주석으로 전달한 구현 기준", "body": "UI 상태·인터랙션·예외 케이스를 주석에 함께 적어, 구현 기준을 화면에서 바로 확인하게 했어요.", "image": {"src": "image/bees/bees_figma02.png", "alt": "Figma 주석을 활용한 개발 협업 화면", "edge": "light"}}
             ]}
           ]
         },
@@ -256,7 +256,7 @@
         {"label": "Scope", "values": ["UX Planning", "UI Design", "Design System"]},
         {"label": "Period", "values": ["2024.12 – 2025.12"]}
       ],
-      "hero": {"src": "image/edk/edk_thumb.png", "alt": "EDK ESG 통합 관리 플랫폼 화면"},
+      "hero": {"src": "image/edk/edk_thumb.png", "alt": "EDK ESG 통합 관리 플랫폼 화면", "edge": "light"},
       "sections": [
         {
           "id": "context",
@@ -303,7 +303,7 @@
                "problem": "검토 내용을 한 덩어리로 보여주면 먼저 확인할 부분을 찾기 어려워요.",
                "judgment": "사용자가 항목별로 작성하고, 필요한 시점에 검토를 실행하도록 흐름을 나눴어요.",
                "design": "탭 기반 작성 화면과 항목별 리뷰 결과를 연결하고, 먼저 확인할 내용이 드러나도록 우선순위를 정했어요.",
-               "image": {"src": "image/edk/edk_guida.png", "alt": "AI 보고서 검토 GUIDA 화면"}}
+               "image": {"src": "image/edk/edk_guida.png", "alt": "AI 보고서 검토 GUIDA 화면", "edge": "light"}}
             ]}
           ]
         },
@@ -315,9 +315,9 @@
           "lead": "기획과 디자인에서 쓰는 이름과 문장, 인터랙션 기준을 먼저 정하고, 컴포넌트와 Figma 주석으로 개발까지 같은 기준을 이어갔어요.",
           "blocks": [
             {"type": "features", "items": [
-              {"title": "UI/UX 설계 기준", "body": "기능 간 관계와 이동 경로, 화면 이름과 문장, 사용자 행동에 따른 상태 변화와 오류 대응 방식을 하나의 가이드로 정리했어요.", "image": {"src": "image/edk/edk_guide.png", "alt": "UI/UX 설계 기준 가이드"}},
-              {"title": "디자인 시스템", "body": "컬러·타이포그래피 기준과 재사용 컴포넌트를 묶어, 화면마다 달랐던 UI를 같은 규칙으로 맞췄어요.", "image": {"src": "image/edk/edk_system.png", "alt": "EDK 디자인 시스템"}},
-              {"title": "Figma 주석과 개발 디스크립션", "body": "UI 요소에 주석을 연결해 기능·동작·예외 상태를 화면 안에서 확인하게 하고, 화면과 기능 흐름을 디스크립션으로 적어 같은 기준으로 구현하게 했어요.", "image": {"src": "image/edk/edk_figma.png", "alt": "Figma 디자인 워크스페이스"}}
+              {"title": "UI/UX 설계 기준", "body": "기능 간 관계와 이동 경로, 화면 이름과 문장, 사용자 행동에 따른 상태 변화와 오류 대응 방식을 하나의 가이드로 정리했어요.", "image": {"src": "image/edk/edk_guide.png", "alt": "UI/UX 설계 기준 가이드", "edge": "light"}},
+              {"title": "디자인 시스템", "body": "컬러·타이포그래피 기준과 재사용 컴포넌트를 묶어, 화면마다 달랐던 UI를 같은 규칙으로 맞췄어요.", "image": {"src": "image/edk/edk_system.png", "alt": "EDK 디자인 시스템", "edge": "light"}},
+              {"title": "Figma 주석과 개발 디스크립션", "body": "UI 요소에 주석을 연결해 기능·동작·예외 상태를 화면 안에서 확인하게 하고, 화면과 기능 흐름을 디스크립션으로 적어 같은 기준으로 구현하게 했어요.", "image": {"src": "image/edk/edk_figma.png", "alt": "Figma 디자인 워크스페이스", "edge": "light"}}
             ]}
           ]
         },
@@ -330,13 +330,13 @@
           "blocks": [
             {"type": "gallery", "groups": [
               {"images": [
-                {"src": "image/edk/edk_main01.png", "alt": "EDK 대시보드 화면"},
-                {"src": "image/edk/edk_main02.png", "alt": "EDK 결과보고서 편집 화면"},
+                {"src": "image/edk/edk_main01.png", "alt": "EDK 대시보드 화면", "edge": "light"},
+                {"src": "image/edk/edk_main02.png", "alt": "EDK 결과보고서 편집 화면", "edge": "light"},
                 {"src": "image/edk/edk_main03.png", "alt": "EDK AI 진단 화면"},
-                {"src": "image/edk/edk_main04.png", "alt": "EDK 목표 화면"},
+                {"src": "image/edk/edk_main04.png", "alt": "EDK 목표 화면", "edge": "light"},
                 {"src": "image/edk/edk_main05.png", "alt": "EDK 목표 상세 화면"},
-                {"src": "image/edk/edk_main06.png", "alt": "EDK 평가 문항 수정 화면"},
-                {"src": "image/edk/edk_main07.png", "alt": "EDK 평가 등급 화면"}
+                {"src": "image/edk/edk_main06.png", "alt": "EDK 평가 문항 수정 화면", "edge": "light"},
+                {"src": "image/edk/edk_main07.png", "alt": "EDK 평가 등급 화면", "edge": "light"}
               ]}
             ]}
           ]
@@ -377,7 +377,7 @@
         {"label": "Platform", "values": ["Responsive Web"]},
         {"label": "Scope", "values": ["UX Planning", "UI Design", "Design System"]}
       ],
-      "hero": {"src": "image/ax/ax_thumb.png", "alt": "고용노동부 사업장 자율점검 통합 시스템 화면"},
+      "hero": {"src": "image/ax/ax_thumb.png", "alt": "고용노동부 사업장 자율점검 통합 시스템 화면", "edge": "light"},
       "sections": [
         {
           "id": "context",
@@ -421,7 +421,7 @@
                "problem": "인식 결과만 보여주면 잘못 읽힌 항목을 확인하기 어려워요.",
                "judgment": "사용자가 결과를 직접 검증할 수 있어야 한다고 봤어요.",
                "design": "원문과 OCR 결과를 함께 보여주고, 확인이 필요한 항목과 그 이유를 나눠 보여줬어요.",
-               "image": {"src": "image/ax/ax_ocr.png", "alt": "OCR 결과 화면 설계"}},
+               "image": {"src": "image/ax/ax_ocr.png", "alt": "OCR 결과 화면 설계", "edge": "light"}},
               {"title": "익숙한 공공 서비스 구조",
                "problem": "연령과 디지털 숙련도가 다른 사용자가 함께 이용해요.",
                "judgment": "낯선 조작보다 익숙한 구조와 분명한 문장이 필요했어요.",
@@ -435,7 +435,7 @@
               {"title": "세로로 긴 문서", "body": "상하 스크롤을 중심으로 내용을 이어서 확인해요.", "image": {"src": "image/ax/ax_case01.png", "alt": "세로 비율이 높은 이미지 첨부 파일 확인 화면"}},
               {"title": "가로로 넓은 이미지", "body": "이미지가 잘리지 않도록 영역을 맞춰 전체 내용을 한눈에 봐요.", "image": {"src": "image/ax/ax_case02.png", "alt": "가로 비율이 높은 이미지 첨부 파일 확인 화면"}},
               {"title": "PDF 첨부 파일", "body": "문서 형식을 유지하면서 페이지 단위로 확인하는 뷰어로 보여줘요.", "image": {"src": "image/ax/ax_case03.png", "alt": "PDF 첨부 파일 확인 화면"}},
-              {"title": "이미지 확대", "body": "세부 내용을 확대해 OCR 결과를 더 정확히 확인해요.", "image": {"src": "image/ax/ax_case04.png", "alt": "이미지 첨부 파일 확대 화면"}}
+              {"title": "이미지 확대", "body": "세부 내용을 확대해 OCR 결과를 더 정확히 확인해요.", "image": {"src": "image/ax/ax_case04.png", "alt": "이미지 첨부 파일 확대 화면", "edge": "light"}}
             ]}
           ]
         },
@@ -449,7 +449,7 @@
             {"type": "ai",
              "ai": ["ChatGPT로 장면과 위험 요소를 구체화했어요.", "Firefly와 나노바나나로 이미지를 생성했어요."],
              "designer": ["설명할 상황과 위험 요소를 정했어요.", "생성 결과를 검토하며 프롬프트를 다듬었어요."]},
-            {"type": "figure", "image": {"src": "image/ax/ax_ai.png", "alt": "현장 위험을 설명하는 생성 이미지"}}
+            {"type": "figure", "image": {"src": "image/ax/ax_ai.png", "alt": "현장 위험을 설명하는 생성 이미지", "edge": "light"}}
           ]
         },
         {
@@ -461,18 +461,18 @@
           "blocks": [
             {"type": "gallery", "groups": [
               {"label": "Web", "images": [
-                {"src": "image/ax/ax_main01.jpg", "alt": "고용노동부 AX 메인 홈 화면"},
+                {"src": "image/ax/ax_main01.jpg", "alt": "고용노동부 AX 메인 홈 화면", "edge": "light"},
                 {"src": "image/ax/ax_main02.png", "alt": "고용노동부 AX 시작 전 팝업 화면"},
-                {"src": "image/ax/ax_main03.png", "alt": "고용노동부 AX OCR 인식 결과 확인 화면"},
-                {"src": "image/ax/ax_main04.png", "alt": "고용노동부 AX 진단 결과 화면"},
-                {"src": "image/ax/ax_main05.png", "alt": "고용노동부 AX 사업장 위험 요소 화면"},
-                {"src": "image/ax/ax_main06.png", "alt": "고용노동부 AX 추천 교육 자료 화면"}
+                {"src": "image/ax/ax_main03.png", "alt": "고용노동부 AX OCR 인식 결과 확인 화면", "edge": "light"},
+                {"src": "image/ax/ax_main04.png", "alt": "고용노동부 AX 진단 결과 화면", "edge": "light"},
+                {"src": "image/ax/ax_main05.png", "alt": "고용노동부 AX 사업장 위험 요소 화면", "edge": "light"},
+                {"src": "image/ax/ax_main06.png", "alt": "고용노동부 AX 추천 교육 자료 화면", "edge": "light"}
               ]},
               {"label": "Mobile", "images": [
-                {"src": "image/ax/ax_sub01.png", "alt": "고용노동부 AX 모바일 파일 업로드 화면"},
-                {"src": "image/ax/ax_sub02.png", "alt": "고용노동부 AX 모바일 OCR 인식 결과 확인 화면"},
-                {"src": "image/ax/ax_sub03.png", "alt": "고용노동부 AX 모바일 분석 결과 화면"},
-                {"src": "image/ax/ax_sub04.png", "alt": "고용노동부 AX 모바일 산재위험요소 자율점검 화면"}
+                {"src": "image/ax/ax_sub01.png", "alt": "고용노동부 AX 모바일 파일 업로드 화면", "edge": "light"},
+                {"src": "image/ax/ax_sub02.png", "alt": "고용노동부 AX 모바일 OCR 인식 결과 확인 화면", "edge": "light"},
+                {"src": "image/ax/ax_sub03.png", "alt": "고용노동부 AX 모바일 분석 결과 화면", "edge": "light"},
+                {"src": "image/ax/ax_sub04.png", "alt": "고용노동부 AX 모바일 산재위험요소 자율점검 화면", "edge": "light"}
               ]}
             ]}
           ]
@@ -514,7 +514,7 @@
         {"label": "Scope", "values": ["UX Planning", "UI Design", "Design System"]},
         {"label": "Period", "values": ["2025.12 – 2026.04"]}
       ],
-      "hero": {"src": "image/groupware/groupware_thumb.png", "alt": "사내 그룹웨어 HR 관리 플랫폼 화면"},
+      "hero": {"src": "image/groupware/groupware_thumb.png", "alt": "사내 그룹웨어 HR 관리 플랫폼 화면", "edge": "light"},
       "sections": [
         {
           "id": "context",
@@ -571,8 +571,8 @@
           "lead": "모달, 스크롤, 토스트처럼 반복되는 동작의 규칙을 먼저 정해 디자인과 개발의 해석 차이를 줄였어요.",
           "blocks": [
             {"type": "features", "items": [
-              {"title": "인터랙션 동작 기준", "body": "모달과 토스트의 위치, 드롭다운 동작, 페이지 이동과 스크롤 영역, 모달의 진입·종료 상태를 하나의 기준으로 정리했어요.", "image": {"src": "image/groupware/groupware_guide.png", "alt": "UI/UX 설계 정책 가이드"}},
-              {"title": "디자인 시스템", "body": "컬러·타이포그래피 기준과 재사용 컴포넌트로 반복되는 화면 구조를 맞췄어요.", "image": {"src": "image/groupware/groupware_system.png", "alt": "사내 그룹웨어 디자인 시스템"}}
+              {"title": "인터랙션 동작 기준", "body": "모달과 토스트의 위치, 드롭다운 동작, 페이지 이동과 스크롤 영역, 모달의 진입·종료 상태를 하나의 기준으로 정리했어요.", "image": {"src": "image/groupware/groupware_guide.png", "alt": "UI/UX 설계 정책 가이드", "edge": "light"}},
+              {"title": "디자인 시스템", "body": "컬러·타이포그래피 기준과 재사용 컴포넌트로 반복되는 화면 구조를 맞췄어요.", "image": {"src": "image/groupware/groupware_system.png", "alt": "사내 그룹웨어 디자인 시스템", "edge": "light"}}
             ]}
           ]
         },
@@ -585,20 +585,20 @@
           "blocks": [
             {"type": "gallery", "groups": [
               {"label": "사용자", "images": [
-                {"src": "image/groupware/groupware_user01.png", "alt": "사내 그룹웨어 사용자 대시보드 화면"},
-                {"src": "image/groupware/groupware_user02.png", "alt": "사내 그룹웨어 회원가입 화면"},
-                {"src": "image/groupware/groupware_user03.png", "alt": "사내 그룹웨어 근태관리 화면"},
-                {"src": "image/groupware/groupware_user04.png", "alt": "사내 그룹웨어 신청과 요청 화면"},
-                {"src": "image/groupware/groupware_user05.png", "alt": "사내 그룹웨어 마이페이지 화면"},
-                {"src": "image/groupware/groupware_user06.png", "alt": "사내 그룹웨어 공지사항 화면"}
+                {"src": "image/groupware/groupware_user01.png", "alt": "사내 그룹웨어 사용자 대시보드 화면", "edge": "light"},
+                {"src": "image/groupware/groupware_user02.png", "alt": "사내 그룹웨어 회원가입 화면", "edge": "light"},
+                {"src": "image/groupware/groupware_user03.png", "alt": "사내 그룹웨어 근태관리 화면", "edge": "light"},
+                {"src": "image/groupware/groupware_user04.png", "alt": "사내 그룹웨어 신청과 요청 화면", "edge": "light"},
+                {"src": "image/groupware/groupware_user05.png", "alt": "사내 그룹웨어 마이페이지 화면", "edge": "light"},
+                {"src": "image/groupware/groupware_user06.png", "alt": "사내 그룹웨어 공지사항 화면", "edge": "light"}
               ]},
               {"label": "관리자", "images": [
-                {"src": "image/groupware/groupware_admin01.png", "alt": "사내 그룹웨어 관리자 대시보드 화면"},
-                {"src": "image/groupware/groupware_admin02.png", "alt": "사내 그룹웨어 회원관리 화면"},
-                {"src": "image/groupware/groupware_admin03.png", "alt": "사내 그룹웨어 회원관리 상세 화면"},
-                {"src": "image/groupware/groupware_admin04.png", "alt": "사내 그룹웨어 조직관리 화면"},
-                {"src": "image/groupware/groupware_admin05.png", "alt": "사내 그룹웨어 관리자 근태관리 화면"},
-                {"src": "image/groupware/groupware_admin06.png", "alt": "사내 그룹웨어 근태관리 상세 화면"}
+                {"src": "image/groupware/groupware_admin01.png", "alt": "사내 그룹웨어 관리자 대시보드 화면", "edge": "light"},
+                {"src": "image/groupware/groupware_admin02.png", "alt": "사내 그룹웨어 회원관리 화면", "edge": "light"},
+                {"src": "image/groupware/groupware_admin03.png", "alt": "사내 그룹웨어 회원관리 상세 화면", "edge": "light"},
+                {"src": "image/groupware/groupware_admin04.png", "alt": "사내 그룹웨어 조직관리 화면", "edge": "light"},
+                {"src": "image/groupware/groupware_admin05.png", "alt": "사내 그룹웨어 관리자 근태관리 화면", "edge": "light"},
+                {"src": "image/groupware/groupware_admin06.png", "alt": "사내 그룹웨어 근태관리 상세 화면", "edge": "light"}
               ]}
             ]}
           ]

@@ -5,15 +5,12 @@
 body.detail-page {
  --study-paper:#FFFFFF;
  --study-soft:var(--c-bg);
- --study-frame:#EFEFEC;
  --study-ink:var(--c-ink);
  --study-body:#474844;
  --study-muted:#686963;
  --study-line:rgba(27,28,25,.12);
  --study-line-strong:rgba(27,28,25,.22);
  --study-accent-on-dark:color-mix(in srgb,var(--c-accent),#FFF 38%);
- --study-gutter:clamp(1.25rem,5vw,4rem);
- --study-max:72rem;
  --study-measure:40rem;
  --study-section-y:clamp(4.5rem,8vw,7.5rem);
  --study-block-gap:clamp(2.75rem,5vw,4rem);
@@ -26,7 +23,8 @@ body.detail-page {
 .detail-page ::selection {background:color-mix(in srgb,var(--c-accent) 24%,#FFF);color:var(--study-ink);}
 .detail-page :focus-visible {outline:2px solid var(--c-accent);outline-offset:4px;}
 .detail-page .sr-only {position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0;}
-.detail-page .container {width:min(calc(100% - var(--study-gutter)*2),var(--study-max));max-width:none;margin-inline:auto;padding:0;}
+/* The Main page grid (motion.css): same outer edges on every page. */
+.detail-page .container {width:min(calc(100% - var(--page-gutter)*2),var(--page-max));max-width:none;margin-inline:auto;padding:0;}
 
 /* ---------- Header, reading progress and chapter index ---------- */
 .detail-page .case-nav {position:fixed;inset:0 0 auto;z-index:100;background:var(--study-paper);}
@@ -59,6 +57,8 @@ body.detail-page {
 .detail-page .study-heading__lead {max-width:var(--study-measure);margin:1.1rem 0 0;font:400 1.0625rem/1.85 var(--f-body);color:var(--study-body);}
 /* Zero-specificity defaults; every component below may refine them. */
 .detail-page :where(.study-blocks) :where(p,dd,li) {font-size:.9375rem;line-height:1.75;color:var(--study-body);word-break:keep-all;text-wrap:pretty;}
+/* Item titles share one size (1.125rem); entry titles (decisions) and block
+   titles (subheads) sit one step up, section titles above them. */
 .detail-page :where(.study-section) h3 {margin:0;font:650 1.125rem/1.45 var(--f-body);letter-spacing:-.025em;color:var(--study-ink);word-break:keep-all;text-wrap:balance;}
 /* A block title sits between the section title and its items. */
 .detail-page .study-subhead {margin:0 0 1.5rem;font-size:1.25rem;letter-spacing:-.03em;}
@@ -68,10 +68,14 @@ body.detail-page {
 .detail-page .study-section {padding-block:var(--study-section-y);scroll-margin-top:calc(var(--detail-header) + var(--detail-tabs) + 1rem);}
 .study-section[data-tone="soft"],.study-next[data-tone="soft"] {background:var(--study-soft);}
 .study-blocks > .study-block + .study-block {margin-top:var(--study-block-gap);}
-.study-frame {display:grid;place-items:center;min-width:0;padding:clamp(.5rem,1.2vw,1rem);background:var(--study-frame);border-radius:var(--study-radius);overflow:hidden;}
+/* Images are the content, not cards: no mat, no padding. The frame hugs the
+   image (up to its column) and carries the one image radius. Light-edged
+   screenshots get a faint shadow only so their boundary reads. */
+.study-frame {display:block;width:fit-content;max-width:100%;min-width:0;border-radius:var(--image-radius);overflow:hidden;}
+.study-frame[data-edge="light"] {box-shadow:0 1px 2px rgba(27,28,25,.04),0 2px 12px rgba(27,28,25,.05);}
 /* Width comes from the width/height attributes, capped by the frame, so the
    box is reserved before the image loads and lazy images never shift layout. */
-.study-frame img {display:block;max-width:100%;height:auto;border-radius:6px;}
+.study-frame img {display:block;max-width:100%;height:auto;}
 
 /* ---------- Hero and project facts ---------- */
 .detail-page .study-hero {padding:calc(var(--detail-header) + clamp(2.25rem,5vw,4.5rem)) 0 clamp(3rem,5vw,4.5rem);}
@@ -81,7 +85,6 @@ body.detail-page {
 .study-back > span[aria-hidden] {width:1rem;height:.625rem;overflow:hidden;color:transparent;background:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 10%27 fill=%27none%27 stroke=%27%23686963%27 stroke-width=%271.5%27%3E%3Cpath d=%27M16 5H1.5M5.5 1l-4 4 4 4%27/%3E%3C/svg%3E") center/contain no-repeat;}
 .study-live {display:inline-block;margin-top:1rem;padding-block:.65rem;font:600 .9375rem/1.5 var(--f-body);color:var(--study-ink);text-decoration:underline;text-decoration-color:var(--study-line-strong);text-underline-offset:6px;}
 .study-live > span[aria-hidden] {font-family:var(--f-display);}
-.study-frame--hero img {width:100%;}
 .study-meta {display:flex;flex-wrap:wrap;gap:1.5rem clamp(2rem,5vw,4rem);margin:clamp(2.5rem,4vw,3.5rem) 0 0;padding:1.5rem 0 0;border-top:1px solid var(--study-line);}
 .study-meta__item {min-width:0;}
 .detail-page .study-meta dt {margin:0 0 .5rem;font:600 .6875rem/1.4 var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--study-muted);}
@@ -98,34 +101,33 @@ body.detail-page {
 /* ---------- Problems and design perspective ---------- */
 /* Problems read as statements: numbered, ruled and muted in tone, with no
    container. The result's points answer them in the same system, in accent. */
-.study-issues {display:grid;grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));gap:2rem clamp(1.5rem,3vw,2.5rem);margin:0;padding:0;list-style:none;}
+.study-issues {display:grid;grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));gap:2rem var(--grid-gap);margin:0;padding:0;list-style:none;}
 .study-issues[data-count="3"] {--cols:3;}
-.study-issue {position:relative;min-width:0;padding-top:1.25rem;}
-.study-issue::before {content:'';position:absolute;inset:0 0 auto;height:1px;background:var(--study-line-strong);transform:scaleX(var(--rule,1));transform-origin:0 50%;}
+.study-issue {min-width:0;padding-top:1.25rem;border-top:1px solid var(--study-line-strong);}
 .detail-page .study-issue__index {display:block;margin-bottom:.9rem;font:600 .75rem/1 var(--f-body);letter-spacing:.02em;font-variant-numeric:tabular-nums;color:var(--study-muted);}
-.detail-page .study-issue h3 {margin-bottom:.5rem;font-size:1.1875rem;}
+.detail-page .study-issue h3 {margin-bottom:.5rem;}
 .study-insight {display:grid;grid-template-columns:minmax(0,11rem) minmax(0,1fr);gap:.75rem 2rem;padding-top:1.75rem;border-top:1px solid var(--study-line-strong);}
 .detail-page .study-insight__label {margin:0;font:600 .8125rem/1.7 var(--f-body);color:var(--c-accent);}
 .detail-page .study-insight__text {max-width:34em;margin:0;font:500 clamp(1.1875rem,1.6vw,1.375rem)/1.7 var(--f-body);letter-spacing:-.02em;color:var(--study-ink);}
 
 /* ---------- Flow steps and node chains ---------- */
-.study-steps {display:grid;grid-template-columns:repeat(var(--cols,3),minmax(0,1fr));gap:2rem 1.5rem;margin:0;padding:0;list-style:none;}
+.study-steps {display:grid;grid-template-columns:repeat(var(--cols,3),minmax(0,1fr));gap:2rem var(--grid-gap);margin:0;padding:0;list-style:none;}
 .study-steps[data-count="2"] {--cols:2;}
 .study-steps[data-count="4"] {--cols:4;}
+.study-steps {--step-line:linear-gradient(#000 0 0) 0 50%/100% 2px no-repeat;
+ --step-arrow:linear-gradient(#000 0 0) 0 50%/calc(100% - 1px) 2px no-repeat,url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 7 10%27 fill=%27none%27 stroke=%27%23000%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M2 1l4 4-4 4%27/%3E%3C/svg%3E") 100% 50%/7px 10px no-repeat;}
 .study-step {position:relative;min-width:0;padding:1.25rem 1.5rem 0 0;}
-.study-step::before {content:'';position:absolute;inset:0 0 auto;height:2px;background:var(--study-line-strong);transform:scaleX(var(--rule,1));transform-origin:0 50%;}
+.study-step::before {content:'';position:absolute;top:-4px;left:0;right:0;height:10px;background:var(--study-line-strong);-webkit-mask:var(--step-line);mask:var(--step-line);}
 .study-step__index {display:block;margin-bottom:1rem;font:600 .75rem/1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--c-accent);}
 .study-step h3 {margin-bottom:.5rem;}
-.study-steps[data-variant="sequence"] .study-step:not(:last-child)::after {content:'';position:absolute;top:-6px;right:.75rem;width:9px;height:9px;border-top:2px solid var(--study-line-strong);border-right:2px solid var(--study-line-strong);transform:rotate(45deg);opacity:var(--rule,1);}
-/* Before and after read as a diff. The unchanged path stays muted; the new
-   path sits on a track that hugs its own nodes instead of the full width. */
+.study-steps[data-variant="sequence"] .study-step:not(:last-child)::before {-webkit-mask:var(--step-arrow);mask:var(--step-arrow);}
+/* Before and after read as a diff: the unchanged path stays muted with the
+   removed step struck through, the new path is set in ink. No boxes. */
 .study-chains {display:grid;gap:.5rem;}
 .study-chain {display:grid;grid-template-columns:minmax(0,6.5rem) minmax(0,1fr);gap:.5rem 1.5rem;align-items:center;min-width:0;}
 .detail-page .study-chain__label {margin:0;font:600 .8125rem/1.5 var(--f-body);color:var(--study-muted);}
 .detail-page .study-chain[data-emphasis] .study-chain__label {color:var(--c-accent);}
-.study-chain__nodes {display:flex;flex-wrap:wrap;align-items:center;row-gap:.35rem;width:fit-content;max-width:100%;margin:0;padding:.75rem 0;list-style:none;}
-.study-chain[data-emphasis] .study-chain__nodes {padding:.75rem 1.125rem;background:var(--study-soft);border-radius:10px;}
-[data-tone="soft"] .study-chain[data-emphasis] .study-chain__nodes {background:var(--study-paper);}
+.study-chain__nodes {display:flex;flex-wrap:wrap;align-items:center;row-gap:.35rem;min-width:0;margin:0;padding:.625rem 0;list-style:none;}
 .detail-page .study-chain__nodes li {display:inline-flex;align-items:center;font:500 .9375rem/1.5 var(--f-body);color:var(--study-body);white-space:nowrap;}
 .detail-page .study-chain[data-emphasis] .study-chain__nodes li {font-weight:600;color:var(--study-ink);}
 /* Arrows are drawn, not typeset: the fonts in use render U+2192 as a chevron.
@@ -133,9 +135,11 @@ body.detail-page {
    It stays inline (not inline-block) so the no-break space before it holds. */
 .study-chain__nodes li:not(:last-child)::after {content:'';flex:none;width:1rem;height:.625rem;margin-inline:.7rem;background:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 10%27 fill=%27none%27 stroke=%27%23686963%27 stroke-width=%271.5%27%3E%3Cpath d=%27M0 5h14.5M10.5 1l4 4-4 4%27/%3E%3C/svg%3E") center/contain no-repeat;}
 .detail-page .study-arrow {display:inline;padding-inline:.12em;color:transparent;background:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 10%27 fill=%27none%27 stroke=%27%23686963%27 stroke-width=%271.5%27%3E%3Cpath d=%27M0 5h14.5M10.5 1l4 4-4 4%27/%3E%3C/svg%3E") center/.9em auto no-repeat;}
-/* The strike is drawn, so the removal can be seen happening. */
-.study-chain__nodes s {position:relative;color:var(--study-muted);text-decoration:none;}
-.study-chain__nodes s::after {content:'';position:absolute;left:-.1em;right:-.1em;top:54%;height:1.5px;background:var(--c-accent);transform:scaleX(var(--strike,1));transform-origin:0 50%;}
+.study-chain__nodes s {color:var(--study-muted);text-decoration:line-through 1.5px var(--c-accent);}
+/* Repeated items share row tracks: index, title and body start on the same
+   lines across a row, however any single title or body wraps. */
+:is(.study-issues,.study-steps,.study-points,.study-skills) > li {display:grid;grid-row:span 3;grid-template-rows:subgrid;row-gap:0;align-content:start;}
+@supports not (grid-template-rows:subgrid) {:is(.study-issues,.study-steps,.study-points,.study-skills) > li {display:block;grid-row:auto;}}
 .detail-page .study-chains__note {max-width:var(--study-measure);margin:.75rem 0 0;font-size:1rem;line-height:1.8;}
 
 /* ---------- Decision log: problem → judgment → design ---------- */
@@ -147,9 +151,9 @@ body.detail-page {
 .detail-page .study-decision__index {display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .75rem;margin:0 0 .75rem;font:600 .75rem/1.5 var(--f-display);font-variant-numeric:tabular-nums;color:var(--c-accent);}
 .study-decision__tag {padding:.1rem .5rem;border-radius:3px;background:var(--c-accent-soft);font:600 .6875rem/1.7 var(--f-body);color:var(--c-accent-ink);}
 .detail-page .study-decision h3 {margin:0;font-size:clamp(1.25rem,1.7vw,1.4375rem);line-height:1.4;}
-.study-decision__track {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.25rem clamp(1.25rem,2.5vw,2rem);margin:0;}
+.study-decision__track {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.25rem var(--grid-gap);margin:0;}
 .study-decision__row {position:relative;min-width:0;padding-top:1rem;}
-.study-decision__row::before {content:'';position:absolute;inset:0 0 auto;height:1px;background:var(--study-line-strong);transform:scaleX(var(--rule,1));transform-origin:0 50%;}
+.study-decision__row::before {content:'';position:absolute;inset:0 0 auto;height:1px;background:var(--study-line-strong);}
 .study-decision__row[data-row="design"]::before {height:2px;background:var(--c-accent);}
 .detail-page .study-decision__row dt {margin:0 0 .4rem;font:600 .75rem/1.5 var(--f-body);color:var(--study-muted);}
 .detail-page .study-decision__row dd {margin:0;text-wrap:balance;}
@@ -169,11 +173,10 @@ body.detail-page {
 .study-feature[data-shape="wide"] {grid-template-columns:minmax(0,1fr);gap:1.5rem;}
 .study-features[data-layout="rows"] .study-feature[data-shape="wide"] .study-feature__text {order:0;}
 .study-feature__text {min-width:0;max-width:var(--study-measure);}
-.study-feature__text h3 {margin-bottom:.6rem;font-size:1.1875rem;}
+.study-feature__text h3 {margin-bottom:.6rem;}
 .detail-page .study-feature__text p {font-size:1rem;line-height:1.8;}
-.study-features[data-layout="grid"] {grid-template-columns:repeat(2,minmax(0,1fr));gap:2.5rem 2rem;}
+.study-features[data-layout="grid"] {grid-template-columns:repeat(2,minmax(0,1fr));gap:2.5rem var(--grid-gap);}
 .study-features[data-layout="grid"] .study-feature {grid-template-columns:minmax(0,1fr);gap:1rem;align-content:start;align-items:start;}
-.study-features[data-layout="grid"] .study-feature__text h3 {font-size:1.0625rem;}
 .detail-page .study-features[data-layout="grid"] .study-feature__text p {font-size:.9375rem;}
 .study-figure {width:fit-content;max-width:100%;margin:0;}
 .study-figure[data-shape="wide"] {width:auto;}
@@ -181,7 +184,7 @@ body.detail-page {
 /* ---------- AI workflow: what AI handled, what the designer decided ---------- */
 /* Only the designer's judgment is a surface; what AI handled sits on the page
    at the same baseline, so the weight of the comparison is visible. */
-.study-ai {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem clamp(1.5rem,3vw,2.5rem);}
+.study-ai {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem var(--grid-gap);}
 .study-ai__col {min-width:0;padding:var(--study-card-pad);border-radius:var(--study-radius);}
 .detail-page .study-ai__col[data-owner="ai"] {padding-inline:0;border-top:1px solid var(--study-line-strong);border-radius:0;}
 .detail-page .study-ai__col[data-owner="designer"] {background:var(--study-ink);}
@@ -197,12 +200,11 @@ body.detail-page {
 /* ---------- Key screens ---------- */
 .study-gallery-group + .study-gallery-group {margin-top:var(--study-block-gap);}
 .detail-page .study-gallery__label {margin-bottom:1rem;font:600 .75rem/1.5 var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--study-muted);}
-.study-gallery {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.25rem;}
+.study-gallery {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--grid-gap);align-items:start;}
 .study-gallery > .is-featured {grid-column:1/-1;}
-.study-gallery .study-frame img {width:100%;}
 
 /* ---------- Result: outcomes, capabilities, learning ---------- */
-.study-points {display:grid;grid-template-columns:repeat(var(--cols,3),minmax(0,1fr));gap:2rem clamp(1.5rem,3vw,2.5rem);margin:0;padding:0;list-style:none;}
+.study-points {display:grid;grid-template-columns:repeat(var(--cols,3),minmax(0,1fr));gap:2rem var(--grid-gap);margin:0;padding:0;list-style:none;}
 .study-points[data-count="2"],.study-points[data-count="4"] {--cols:2;}
 .study-points li {min-width:0;padding-top:1.25rem;border-top:1px solid var(--study-line-strong);}
 .study-points__index {display:block;margin-bottom:.9rem;font:600 .75rem/1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--c-accent);}
@@ -222,9 +224,10 @@ body.detail-page {
 .detail-page .study-takeaway__lead .study-takeaway__label {color:var(--study-accent-on-dark);}
 .detail-page .study-takeaway__text {max-width:27em;margin:0;font:500 clamp(1.5rem,2.5vw,2.125rem)/1.55 var(--f-body);letter-spacing:-.03em;color:var(--on-dark);word-break:keep-all;text-wrap:pretty;}
 .study-takeaway__skills {padding-top:clamp(2rem,4vw,2.75rem);border-top:1px solid rgba(242,242,239,.16);}
-.study-skills {display:grid;grid-template-columns:repeat(var(--cols,3),minmax(0,1fr));gap:1.75rem clamp(1.5rem,3vw,2.5rem);margin:0;padding:0;list-style:none;}
+.study-skills {display:grid;grid-template-columns:repeat(var(--cols,3),minmax(0,1fr));gap:1.75rem var(--grid-gap);margin:0;padding:0;list-style:none;}
 .study-skills[data-count="2"],.study-skills[data-count="4"] {--cols:2;}
-.detail-page .study-skills li {display:grid;align-content:start;gap:.35rem;min-width:0;color:var(--on-dark);}
+.detail-page .study-skills li {min-width:0;color:var(--on-dark);}
+.detail-page .study-skills strong {margin-bottom:.35rem;}
 .detail-page .study-skills__index {margin-bottom:.4rem;font:600 .75rem/1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--study-accent-on-dark);}
 .detail-page .study-skills strong {font:600 1.0625rem/1.5 var(--f-body);letter-spacing:-.02em;color:var(--on-dark);word-break:keep-all;}
 .detail-page .study-skills li > span:last-child {font-size:.9375rem;line-height:1.7;color:var(--on-dark-2);word-break:keep-all;text-wrap:pretty;}
@@ -235,8 +238,7 @@ body.detail-page {
 .study-next__link {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,20rem) auto;gap:clamp(1.5rem,4vw,3rem);align-items:center;padding-top:1.5rem;border-top:1px solid var(--study-line-strong);color:inherit;}
 .detail-page .study-next__text h2 {margin:0 0 .5rem;font:650 clamp(1.5rem,2.4vw,2rem)/1.3 var(--f-body);letter-spacing:-.035em;color:var(--study-ink);transition:color .25s;}
 .detail-page .study-next__text p {margin:0;font-size:1rem;line-height:1.7;color:var(--study-body);}
-.study-next__visual {padding:.5rem;}
-.study-next__visual img {width:100%;}
+
 .study-next__arrow {display:block;width:1.75rem;height:1.25rem;color:transparent;overflow:hidden;background:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 10%27 fill=%27none%27 stroke=%27%23C94324%27 stroke-width=%271.5%27%3E%3Cpath d=%27M0 5h14.5M10.5 1l4 4-4 4%27/%3E%3C/svg%3E") center/contain no-repeat;transition:transform .25s var(--ease);}
 @media(hover:hover) {
  .study-next__link:hover .study-next__arrow {transform:translateX(4px);}
@@ -254,7 +256,7 @@ body.detail-page {
 /* ---------- Responsive ---------- */
 @media(max-width:64em) {
  .study-steps[data-count="4"] {--cols:2;}
- .study-steps[data-count="4"] .study-step:nth-child(2)::after {display:none;}
+ .study-steps[data-variant="sequence"][data-count="4"] .study-step:nth-child(2)::before {-webkit-mask:var(--step-line);mask:var(--step-line);}
 }
 @media(max-width:56em) {
  .study-hero__grid {grid-template-columns:minmax(0,1fr);}
@@ -276,8 +278,7 @@ body.detail-page {
  .study-chain + .study-chain {margin-top:.5rem;}
  .study-steps,.study-steps[data-count="4"] {--cols:1;gap:1.5rem;}
  .study-step {padding:0 0 0 1.25rem;}
- .study-step::before {inset:0 auto 0 0;width:2px;height:auto;transform:scaleY(var(--rule,1));transform-origin:50% 0;}
- .study-steps[data-variant="sequence"] .study-step:not(:last-child)::after {display:none;}
+ .study-step::before,.study-steps[data-variant="sequence"] .study-step:not(:last-child)::before,.study-steps[data-variant="sequence"][data-count="4"] .study-step:nth-child(2)::before {inset:0 auto 0 0;width:2px;height:auto;-webkit-mask:none;mask:none;}
  .study-step__index {margin-bottom:.6rem;}
 }
 @media(max-width:40em) {
@@ -292,8 +293,5 @@ body.detail-page {
  .case-nav__index {display:none;}
 }
 
-/* Print shows every component at rest, whatever its motion state. */
-@media print {
- .detail-page main * {opacity:1!important;transform:none!important;translate:none!important;rotate:none!important;scale:none!important;clip-path:none!important;}
- .detail-page .study-takeaway {clip-path:none!important;box-shadow:none;}
-}
+/* Print keeps the takeaway band inside its own box. */
+@media print {.detail-page .study-takeaway {clip-path:none;box-shadow:none;}}

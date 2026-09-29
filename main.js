@@ -265,14 +265,18 @@ let lenis = null;
       if(!node)return;
       const text=node.textContent,label=document.createElement('span'),value=document.createElement('span');
       label.className='sr-only';label.textContent=text;value.className='stat-value';value.setAttribute('aria-hidden','true');
+      // Each window is exactly its resting digit's advance (proportional figures,
+      // tracking included, in em), so the settled number sets like plain text.
+      const probe=document.createElement('span'),size=parseFloat(getComputedStyle(dd).fontSize)||16;dd.append(probe);
+      const advance=ch=>{probe.textContent=ch;return (probe.getBoundingClientRect().width/size).toFixed(4)+'em';};
       for(const ch of text){
         if(!/\d/.test(ch)){value.append(ch);continue;}
         const digit=document.createElement('span'),reel=document.createElement('span');
-        digit.className='stat-digit';reel.className='stat-reel';
+        digit.className='stat-digit';reel.className='stat-reel';digit.style.width=advance(ch);
         for(let d=0;d<10;d++){const cell=document.createElement('span');cell.textContent=String(d);reel.append(cell);}
         digit.append(reel);value.append(digit);reels.push({reel,target:+ch});
       }
-      node.replaceWith(label,value);restores.push(()=>{label.remove();value.replaceWith(node);});
+      probe.remove();node.replaceWith(label,value);restores.push(()=>{label.remove();value.replaceWith(node);});
     });
     if(!reels.length)return null;
     const tl=gsap.timeline({paused:true});
