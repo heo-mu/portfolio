@@ -1,4 +1,4 @@
-import {applyUIVolume,createUIRelief} from './hero-ui.js?v=7';
+import {applyUIVolume,createUIRelief} from './hero-ui.js?v=8';
 // Rest, assembly and pointer displacement are independent motion layers.
 export const CYCLE=4.2;
 export const PITCH=.36;
@@ -165,14 +165,14 @@ export function createStructure(T,{accent='#C94324',ink='#1B1C19',environment=nu
   const solidGeometry=new T.BoxGeometry(HALF*2,HALF*2,HALF*2),solid=new T.Mesh(solidGeometry,materials.shell);
   solid.castShadow=true;solid.receiveShadow=true;group.add(solid);
   const dummy=new T.Object3D(),color=new T.Color(),motionState={},poses=PARTS.map(()=>({}));
-  // Dedicated finishes keep the cube matte while the detached UI gains a
-  // polished casing, a satin face and crisp, readable raised controls.
-  const finish=(color,roughness,extra={})=>new T.MeshPhysicalMaterial({color,roughness,metalness:.08,
-    clearcoat:.7,clearcoatRoughness:.14,envMap:environment,envMapIntensity:.75,...extra});
+  // The detached kit uses opaque satin surfaces, independent of the cube.
+  // No transmission/clearcoat pass: fine edges carry the volume, not reflections.
+  const finish=(color,roughness)=>new T.MeshStandardMaterial({color,roughness,metalness:0,
+    envMap:environment,envMapIntensity:.18});
   const uiMaterials={
-    glass:finish(0xe8e8e8,.15,{transmission,thickness:.09,ior:1.46,metalness:0,clearcoat:1}),
-    white:finish(0xf1f1f1,.29),surface:finish(0xd6d6d6,.36),
-    soft:finish(0xababab,.4),ink:finish(ink,.28),accent:finish(accent,.25)
+    glass:finish(0xc6c7c4,.72),
+    white:finish(0xf1f1ee,.68),surface:finish(0xdcded9,.76),
+    soft:finish(0x8d928c,.78),ink:finish(0x30332f,.72),accent:finish(accent,.64)
   };
   const relief=createUIRelief(T,group,innerGeometry,uiMaterials);
   const shellColor=materials.shell.color,coreColor=materials.core.color;

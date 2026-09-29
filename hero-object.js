@@ -4,7 +4,7 @@ if(host) startObject(host).catch(()=>host.classList.remove('is-ready'));
 
 async function startObject(host) {
   if(navigator.connection?.saveData)return;
-  const [T,{createStructure,PARTS},{createContactShadow},{createScatterField}]=await Promise.all([import('./vendor/three.module.js'),import('./hero-structure.js?v=20'),import('./hero-shadow.js?v=4'),import('./hero-field.js?v=15')]);
+  const [T,{createStructure,PARTS},{createContactShadow},{createScatterField}]=await Promise.all([import('./vendor/three.module.js'),import('./hero-structure.js?v=21'),import('./hero-shadow.js?v=4'),import('./hero-field.js?v=16')]);
   const hero=host.closest('.hero'),anchor=document.getElementById('hero-object-anchor');
   const reduce=matchMedia('(prefers-reduced-motion: reduce)');
   const compact=matchMedia('(max-width: 640px)');
@@ -16,6 +16,7 @@ async function startObject(host) {
   renderer.domElement.setAttribute('aria-hidden','true');host.append(renderer.domElement);
   const scene=new T.Scene();
   const camera=new T.PerspectiveCamera(34,1,.1,160);
+  const renderCamera=new T.PerspectiveCamera();
   camera.position.set(5.8,4.5,8.5);camera.lookAt(0,-.13,.1);
   scene.add(new T.HemisphereLight(0xf7f7f7,0x535353,.74));
   const key=new T.DirectionalLight(0xffffff,3.8);key.position.set(-3.6,6.8,4.2);
@@ -60,7 +61,7 @@ async function startObject(host) {
     // replan the sculpture around a temporarily scaled bounding rectangle.
     const container=hero.querySelector('.hero__container'),c=container.getBoundingClientRect(),visual=anchor.getBoundingClientRect();
     const sx=c.width/container.offsetWidth,sy=c.height/container.offsetHeight;
-    const r={width:host.clientWidth,height:host.clientHeight};
+    const r={width:hero.clientWidth,height:hero.clientHeight};
     const a={left:container.offsetLeft+(visual.left-c.left)/sx,top:container.offsetTop+(visual.top-c.top)/sy,width:visual.width/sx,height:visual.height/sy};
     anchorX=a.left+a.width/2;anchorY=a.top+a.height/2;anchorWidth=a.width;anchorHeight=a.height;
     const halfH=3.28*Math.max(1,a.height/a.width)*r.height/a.height;
@@ -89,6 +90,27 @@ async function startObject(host) {
     // Header height is constant in stage coordinates. Subtracting the scrolling
     // stage's viewport top here used to push every target downward on scroll.
     field.configure(r.width,r.height,{x:anchorX,y:anchorY,top:a.top,bottom:a.top+a.height},safeZones,header.offsetHeight);
+    // Project the field's ground footprints, including penumbra, into the
+    // original camera frame. Extend only the render window, never the layout
+    // or the camera used by the scatter solver and pointer interaction.
+    let bottom=r.height;
+    const world=new T.Vector3(),ground=new T.Vector3();
+    for(const item of field.objects()){
+      const depth=item.depth;
+      const z=(camera.far+camera.near)/(camera.far-camera.near)-2*camera.far*camera.near/((camera.far-camera.near)*depth);
+      world.set(item.x/r.width*2-1,1-item.y/r.height*2,z).unproject(camera);
+      const margin=item.r*2*depth/(r.height*camera.projectionMatrix.elements[5])+1;
+      for(const dx of [-margin,margin])for(const dz of [-margin,margin]){
+        ground.set(world.x+dx,-2.72,world.z+dz).project(camera);
+        if(ground.z<1)bottom=Math.max(bottom,(1-ground.y)*r.height/2);
+      }
+    }
+    const renderHeight=Math.ceil(bottom+32);
+    host.style.height=renderHeight+'px';
+    renderCamera.copy(camera);
+    renderCamera.setViewOffset(r.width,r.height,r.width/2-anchorX,r.height/2-anchorY,r.width,renderHeight);
+    renderer.setPixelRatio(Math.min(devicePixelRatio||1,compact.matches?1.25:1.5,Math.sqrt(2800000/(r.width*renderHeight))));
+    renderer.setSize(r.width,renderHeight,false);
     layoutDirty=false;
   }
   function draw(now){
@@ -130,25 +152,23 @@ async function startObject(host) {
     // Capture the just-updated instances on every rendered frame. No old pose or
     // separately throttled ground layer can remain during a return/hover transition.
     contact.update(shadowExclusions,float,scatter);renderer.shadowMap.needsUpdate=true;
-    renderer.render(scene,camera);host.classList.add('is-ready');
+    renderer.render(scene,renderCamera);host.classList.add('is-ready');
     if(!reduce.matches)request();
   }
   function resize(){
-    const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;
+    const w=hero.clientWidth,h=hero.clientHeight;if(!w||!h)return;
     const shadowSize=compact.matches?1024:2048;
     if(key.shadow.mapSize.x!==shadowSize){key.shadow.mapSize.set(shadowSize,shadowSize);key.shadow.map?.dispose();key.shadow.map=null;}
     contact.resize(compact.matches?256:512);
-    // Full-bleed pixel budget is capped independently from viewport size.
-    renderer.setPixelRatio(Math.min(devicePixelRatio||1,compact.matches?1.25:1.5,Math.sqrt(2800000/(w*h))));renderer.setSize(w,h,false);
     aspect=w/h;frame();request();
   }
   function move(e){
     if(reduce.matches||e.pointerType==='touch')return;
     const r=host.getBoundingClientRect();
     if(e.target.closest('a,button')){reset();return;}
-    const u=(e.clientX-r.left)/r.width,v=(e.clientY-r.top)/r.height;
+    const u=(e.clientX-r.left)/hero.clientWidth,v=(e.clientY-r.top)/hero.clientHeight;
     pointer.set(u*2-1,-v*2+1);
-    hovering=true;aim.x=Math.max(-1,Math.min(1,(v*host.clientHeight-anchorY)/(anchorHeight*.5)))*.24;aim.y=Math.max(-1,Math.min(1,(u*host.clientWidth-anchorX)/(anchorWidth*.5)))*.36;request();
+    hovering=true;aim.x=Math.max(-1,Math.min(1,(v*hero.clientHeight-anchorY)/(anchorHeight*.5)))*.24;aim.y=Math.max(-1,Math.min(1,(u*hero.clientWidth-anchorX)/(anchorWidth*.5)))*.36;request();
   }
   function reset(){hovering=false;aim.x=aim.y=0;target.strength=0;request();}
   function mode(){reset();orientation.x=orientation.y=0;Object.assign(target,neutral);Object.assign(influence,neutral);influenceAxes.forEach(axis=>velocity[axis]=0);stop();resize();}
@@ -156,7 +176,7 @@ async function startObject(host) {
   function contextLost(e){e.preventDefault();lost=true;stop();host.classList.remove('is-ready');}
   function contextRestored(){lost=false;resize();}
   const io=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;visible?request():stop();});io.observe(host);
-  const ro=new ResizeObserver(resize);ro.observe(host);ro.observe(anchor);
+  const ro=new ResizeObserver(resize);ro.observe(hero);ro.observe(anchor);
   hero.addEventListener('pointermove',move,{passive:true});hero.addEventListener('pointerleave',reset);hero.addEventListener('pointercancel',reset);
   function refreshLayout(){layoutDirty=true;request();}
   const introTimer=setTimeout(refreshLayout,2600);

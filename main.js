@@ -65,6 +65,7 @@ let lenis = null;
       // This keeps the full-width bar visually attached to the scene beneath it.
       const toneLine=nav.getBoundingClientRect().bottom;
       nav.classList.toggle('is-dark',tones.some(s=>{const r=s.getBoundingClientRect();return s.dataset.tone==='dark'&&r.top<=toneLine&&r.bottom>toneLine;}));
+      window.portfolioAboutTheme?.syncHeader();
       const active=sections.find(s=>{const r=s.getBoundingClientRect();return r.top<=innerHeight*.4&&r.bottom>innerHeight*.4;});
       links.forEach(a=>{if(active&&a.hash==='#'+active.id)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current');});
       $('#scrollToTop')?.classList.toggle('visible',scrollY>600);
@@ -313,9 +314,105 @@ let lenis = null;
       };
     });
   }
+  function createSectionTitle(section,kind,amount) {
+    const title=$('.section-title',section);if(!title)return null;
+    const original=[...title.childNodes],words=[];
+    // Preserve spaces, explicit line breaks, the work count and accessible text.
+    for(const node of original){
+      if(node.nodeType!==Node.TEXT_NODE)continue;
+      const fragment=document.createDocumentFragment();
+      for(const token of node.textContent.match(/\s+|\S+/g)||[]){
+        if(/^\s+$/.test(token)){fragment.append(document.createTextNode(token));continue;}
+        const word=document.createElement('span');word.className='title-word';word.textContent=token;
+        if((kind==='about'&&token==='구조를')||(kind==='ai'&&token==='AI와'))word.classList.add('title-word--accent');
+        fragment.append(word);words.push(word);
+      }
+      node.replaceWith(fragment);
+    }
+    title.classList.add('has-title-motion');title.dataset.titleMotion=kind;
+    let previous=-1;
+    const smooth=t=>t*t*(3-2*t);
+    const render=progress=>{
+      if(Math.abs(previous-progress)<.0001)return;previous=progress;
+      words.forEach((word,i)=>{
+        // Phrase order, rather than random letter delays, carries the meaning.
+        const delay=kind==='about'?(i<3?i*.018:.16+(i-3)*.025):
+          kind==='ai'?(i<2?i*.035:.16+(i-2)*.055):
+          kind==='contact'?(i<3?i*.02:.18+(i-3)*.035):i*.065;
+        const p=smooth(clamp((progress-delay)/(1-delay),0,1)),rest=1-p;
+        const presence=(kind==='about'&&i<3)||(kind==='ai'&&i<2)||(kind==='contact'&&i<3)?.55:1;
+        const blur=(kind==='about'?1.1:kind==='ai'?1.35:kind==='work'&&i===0?1.25:0)*amount*rest*presence;
+        const x=(kind==='tools'?-3:kind==='work'?(i===0?-7:5):kind==='ai'?3:0)*amount*rest;
+        const y=(kind==='about'?4:kind==='contact'?3:kind==='ai'?2:0)*amount*rest;
+        const sx=1-(kind==='tools'?.045:kind==='work'?.015:0)*amount*rest;
+        const sy=1-(kind==='about'?.018:0)*amount*rest;
+        const rotate=(kind==='ai'?(i%2?-.35:.35):0)*amount*rest;
+        word.style.transform=rest<.0001?'none':
+          'translate('+x.toFixed(3)+'px,'+y.toFixed(3)+'px) scale('+sx.toFixed(5)+','+sy.toFixed(5)+') rotate('+rotate.toFixed(3)+'deg)';
+        word.style.opacity=String(1-(kind==='tools'?.12:.28)*amount*rest*presence);
+        word.style.filter=blur<.015?'none':'blur('+blur.toFixed(3)+'px)';
+        word.style.setProperty('--word-accent',String(smooth(clamp((p-.55)/.45,0,1))));
+      });
+    };
+    return {render,restore(){title.replaceChildren(...original);title.classList.remove('has-title-motion');delete title.dataset.titleMotion;}};
+  }
+
+  function initAboutTheme(gsap,ST) {
+    const about=$('#about'),hero=$('.hero'),nav=$('#nav');
+    if(!about||!hero||!nav)return;
+    const original=getComputedStyle(about),light=getComputedStyle(hero).backgroundColor;
+    const dark=original.backgroundColor,lineDark=getComputedStyle($('.about__metrics',about)).borderTopColor;
+    const primaryDark=getComputedStyle($('.section-title',about)).color;
+    const secondaryDark=getComputedStyle($('.about__story p',about)).color;
+    const mutedDark=getComputedStyle($('.about__metrics dt',about)).color;
+    const mix=gsap.utils.interpolate,state={progress:0};
+    let palette={},trigger,tween,target,initialized=false;
+    const syncHeader=()=>{
+      const rect=about.getBoundingClientRect();
+      // Retain palette ownership until the reverse tween has reached light.
+      const active=(rect.top<=innerHeight*.67||state.progress>0)&&rect.bottom>nav.getBoundingClientRect().bottom;
+      nav.classList.toggle('is-about-theme',active);
+      if(active)for(const [key,value] of Object.entries(palette))nav.style.setProperty(key,value);
+    };
+    const render=()=>{
+      const p=state.progress;
+      palette={'--about-bg':mix(light,dark,p),'--about-text':mix('#1B1C19',primaryDark,p),
+        '--about-muted':mix('#626262',secondaryDark,p),'--about-caption':mix('#626262',mutedDark,p),
+        '--about-line':mix('#B8B8B5',lineDark,p)};
+      for(const [key,value] of Object.entries(palette))about.style.setProperty(key,value);
+      hero.style.setProperty('--hero-scene-opacity',String(1-p));
+      hero.style.setProperty('--hero-scene-visibility',p===1?'hidden':'visible');
+      syncHeader();
+    };
+    const setTheme=(isDark,immediate=false)=>{
+      const next=isDark?1:0;
+      if(target===next&&!immediate)return;
+      target=next;tween?.kill();
+      if(immediate||matchMedia('(prefers-reduced-motion: reduce)').matches){
+        state.progress=next;render();return;
+      }
+      tween=gsap.to(state,{progress:next,duration:.45,ease:'power2.inOut',onUpdate:render,onComplete:syncHeader});
+    };
+    about.classList.add('has-color-scene');
+    render();
+    trigger=ST.create({id:'about-color',trigger:about,start:'top 67%',end:'bottom top',
+      onEnter:()=>setTheme(true),onLeaveBack:()=>setTheme(false),
+      onRefresh:self=>{setTheme(self.scroll()>=self.start,!initialized);initialized=true;}});
+    if(!initialized){setTheme(trigger.scroll()>=trigger.start,true);initialized=true;}
+    window.portfolioAboutTheme={syncHeader};
+    addEventListener('pagehide',event=>{
+      if(event.persisted)return;
+      tween?.kill();trigger.kill();about.classList.remove('has-color-scene');nav.classList.remove('is-about-theme');
+      hero.style.removeProperty('--hero-scene-opacity');hero.style.removeProperty('--hero-scene-visibility');
+      for(const key of Object.keys(palette)){about.style.removeProperty(key);nav.style.removeProperty(key);}
+      delete window.portfolioAboutTheme;
+    });
+  }
+
   function initMotion() {
     if(!window.gsap||!window.ScrollTrigger){document.documentElement.classList.remove('intro-pending');return;}
     const gsap=window.gsap,ST=window.ScrollTrigger;gsap.registerPlugin(ST);
+    initAboutTheme(gsap,ST);
     const mm=gsap.matchMedia();
     // Native scroll continuously controls a layered reading stack.
     const createScene=(section,panels,controlHost)=>{
@@ -487,16 +584,17 @@ let lenis = null;
       // Backgrounds stay in document flow and always meet edge-to-edge.
       // Only content moves; sticky stages retain their native geometry.
       const configurations=[
-        {section:hero,kind:'hero'},
-        {section:about,kind:'about'},
-        {section:$('.services'),kind:'ai'},
-        {section:$('.tools'),kind:'tools'},
-        {section:$('.work'),kind:'work'},
-        {section:$('.contact'),kind:'contact'}
+        {section:hero,kind:'hero',recede:0,arrive:0},
+        {section:about,kind:'about',recede:0,arrive:0},
+        {section:$('.services'),kind:'ai',recede:.022,arrive:.018},
+        {section:$('.tools'),kind:'tools',recede:.045,arrive:.028},
+        {section:$('.work'),kind:'work',recede:.012,arrive:.012},
+        {section:$('.contact'),kind:'contact',recede:0,arrive:.018}
       ];
       const smooth=t=>t*t*(3-2*t);
-      for(const {section,kind} of configurations){
+      for(const {section,kind,recede,arrive} of configurations){
         if(!section)continue;
+        const titleMotion=kind==='hero'||kind==='about'?null:createSectionTitle(section,kind,amount);
         section.classList.add('has-scene-transition');section.dataset.scene=kind;
         const state={progress:0};let trigger=null;
         const render=()=>{
@@ -506,8 +604,10 @@ let lenis = null;
           // Settle before reading/pinning. Exit starts only after sticky release.
           const entrySpan=kind==='contact'?Math.min(viewport*.68,height*.85):viewport*.68;
           const enter=kind==='hero'?1:smooth(clamp(distance/entrySpan,0,1));
+          titleMotion?.render(enter);
           const remaining=kind==='hero'?height-distance:height+viewport-distance;
           const leave=kind==='contact'?0:smooth(clamp((viewport*.9-remaining)/(viewport*.9),0,1));
+          if(kind!=='hero'&&kind!=='about')section.style.setProperty('--scene-scale',(1-amount*(arrive*(1-enter)+recede*leave)).toFixed(5));
           section.style.setProperty('--scene-y',(amount*((1-enter)*24-leave*16)).toFixed(3)+'px');
           section.style.setProperty('--scene-depth',(amount*((1-enter)*10-leave*10)).toFixed(3)+'px');
         };
@@ -525,7 +625,7 @@ let lenis = null;
             if(kind==='hero'&&self.progress>.005)window.portfolioMotion?.revealWithin(hero);
           }
         });
-        render();scenes.push({section,score,trigger});
+        render();scenes.push({section,score,trigger,titleMotion});
       }
 
       // Keep the portrait's existing assembly, independent of scene parallax.
@@ -540,15 +640,34 @@ let lenis = null;
           {rootMargin:'0px 0px -12% 0px',threshold:0});
         aboutObserver.observe(about);
       }
-      updatePortrait();queueRefresh();
+      updatePortrait();
+
+      // Keep sticky coordinates intact; only the nested Tools scene recedes.
+      const tools=$('.tools');let toolsExit=null;
+      if(tools){
+        const exit=gsap.timeline({paused:true}).fromTo(tools,
+          {'--tools-scene-scale':1,'--tools-scene-y':'0px','--tools-scene-radius':'0px'},
+          {'--tools-scene-scale':1-.05*amount,'--tools-scene-y':(-36*amount)+'px',
+            '--tools-scene-radius':(20*amount)+'px',duration:1,ease:'power1.inOut'});
+        toolsExit=ST.create({id:'tools-handoff',trigger:tools,start:'bottom 110%',end:'bottom 35%',
+          animation:exit,scrub:.18,invalidateOnRefresh:true,
+          onUpdate:self=>{if(Math.abs(self.progress-exit.progress())>.18){self.getTween()?.progress(1);exit.progress(self.progress);}}});
+        scores.push(exit);
+      }
+
+      queueRefresh();
       return()=>{
-        aboutObserver?.disconnect();ST.removeEventListener('refreshInit',syncAboutHeight);
+        aboutObserver?.disconnect();
         if(portraitHost){portraitHost.__portraitProgress=1;portraitHost.dispatchEvent(new Event('portraitprogress'));}
+        toolsExit?.kill();
+        if(tools)['--tools-scene-scale','--tools-scene-y','--tools-scene-radius'].forEach(p=>tools.style.removeProperty(p));
+        ST.removeEventListener('refreshInit',syncAboutHeight);
         scores.forEach(t=>t.kill());
-        scenes.forEach(({section,score,trigger})=>{
+        scenes.forEach(({section,score,trigger,titleMotion})=>{
           trigger.kill();score.kill();
+          titleMotion?.restore();
           section.classList.remove('has-scene-transition');delete section.dataset.scene;
-          ['--scene-y','--scene-depth'].forEach(p=>section.style.removeProperty(p));
+          ['--scene-y','--scene-depth','--scene-scale','--scene-origin-y'].forEach(p=>section.style.removeProperty(p));
         });queueRefresh();
       };
     });
