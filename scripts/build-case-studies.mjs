@@ -3,7 +3,11 @@
 // description metadata; everything else in the HTML stays as written.
 // Every case study follows one grammar — problem → criteria → before/after →
 // solution → screens → AI → outcome — and every content type maps to one
-// component, whatever the project; only counts and emphasis change.
+// component, whatever the project; only counts and emphasis change. A study
+// with a fuller record (들임) adds components for the same story: a worked
+// problem (equation), an audit, decisions read problem → observation → change
+// → result (choice), principles, device structures, QA evidence and the AI
+// working loop, with an AI note beside each decision it served.
 // node scripts/build-case-studies.mjs            reports pages out of sync
 // node scripts/build-case-studies.mjs --write    regenerates them (drafts shown, marked)
 // node scripts/build-case-studies.mjs --write --publish  regenerates without drafts
@@ -44,9 +48,11 @@ const shape=image=>{const {width,height}=size(image.src);return width/height>=1.
 // Pages serve a lighter sibling .webp when one exists; the JSON keeps naming
 // the original, which also stays the source of the intrinsic dimensions.
 const served=src=>{const webp=src.replace(/.(png|jpe?g)$/i,'.webp');return webp!==src&&fs.existsSync(path.join(root,webp))?webp:src;};
+// A screenshot captured at 2x declares density:2, so its reserved box is its
+// CSS size and the extra pixels only sharpen it.
 const img=(image,{priority=false,decorative=false}={})=>{
- const {width,height}=size(image.src);
- return `<img src="${esc(served(image.src))}" alt="${decorative?'':esc(image.alt)}" width="${width}" height="${height}" ${priority?'fetchpriority="high"':'loading="lazy"'} decoding="async">`;
+ const {width,height}=size(image.src),k=image.density||1;
+ return `<img src="${esc(served(image.src))}" alt="${decorative?'':esc(image.alt)}" width="${Math.round(width/k)}" height="${Math.round(height/k)}" ${priority?'fetchpriority="high"':'loading="lazy"'} decoding="async">`;
 };
 // Images carry no captions: the heading and text around them give the context.
 // A screenshot whose border is near-white is flagged edge:'light' in the JSON,
@@ -84,14 +90,31 @@ const visual=(data,other)=>{
  if(data.specimen)return ['specimen',`<dl class="study-specimen" data-count="${data.specimen.length}">${data.specimen.map(row=>`<div><dt>${esc(row.value)}</dt><dd>${esc(row.note)}</dd></div>`).join('')}</dl>`];
  throw Error('Unknown compare side');
 };
-const pair=(item,index)=>{
+// A side is labelled Before / After unless it names its own moment (a flow
+// comparison reads "처음 시점 → 누른 뒤", not two versions of the product).
+const side=(key,data,other)=>{const [kind,body]=visual(data,other);
+ return `<div class="study-pair__side" data-side="${key}" data-kind="${kind}"><p class="study-pair__label">${esc(data.label||(key==='before'?'Before':'After'))}</p>${body}</div>`;};
+const pair=(item,index,alone=false)=>{
  const sides=[['before',item.before,item.after],['after',item.after,item.before]].filter(([,data])=>!(publish&&data.placeholder));
  const wide=[item.before,item.after].some(data=>data.image&&shape(data.image)==='wide');
  const slotted=[item.before,item.after].some(data=>data.placeholder)&&[item.before,item.after].some(data=>data.image);
- const layout=sides.length<2?'single':wide||slotted?'lead':'even';
- const html=sides.map(([side,data,other])=>{const [kind,body]=visual(data,other);
-  return `<div class="study-pair__side" data-side="${side}" data-kind="${kind}"><p class="study-pair__label">${side==='before'?'Before':'After'}</p>${body}</div>`;}).join('');
- return `<li class="study-pair" data-layout="${layout}"><div class="study-pair__sides">${html}</div><div class="study-pair__text"><p class="study-pair__index"><span>${pad(index)}</span>${tag(item.tag)}</p><h3>${esc(item.title)}</h3><p class="study-pair__why">${esc(item.why)}</p></div></li>`;
+ const layout=sides.length<2?'single':item.layout||(wide||slotted?'lead':'even');
+ const html=sides.map(([key,data,other])=>side(key,data,other)).join('');
+ // A lone, untagged pair needs no number: there is nothing to count it against.
+ const head=alone&&!item.tag?'':`<p class="study-pair__index"><span>${pad(index)}</span>${tag(item.tag)}</p>`;
+ return `<li class="study-pair" data-layout="${esc(layout)}"><div class="study-pair__sides">${html}</div><div class="study-pair__text">${head}<h3>${esc(item.title)}</h3><p class="study-pair__why">${esc(item.why)}</p></div></li>`;
+};
+
+// AI note: what AI took on beside what was decided directly, so every mention
+// of AI in a story sits next to the judgment it served.
+const aiNote=note=>`<div class="study-ainote">${['ai','designer'].filter(owner=>note[owner]).map(owner=>`<p class="study-ainote__cell" data-owner="${owner}"><span class="study-ainote__owner">${LABELS[owner]}</span>${esc(note[owner])}</p>`).join('')}</div>`;
+// A design decision reads problem → observation → change → result, then shows
+// its evidence in the layout that suits it: two versions side by side (even),
+// one moment leading to the next (flow), or two paths through the same task.
+const TRACK=[['problem','문제'],['observation','관찰'],['decision','변경'],['result','결과']];
+const choiceVisual=v=>{
+ const action=v.action?`<p class="study-choice__action"><span>${esc(v.action)}</span></p>`:'';
+ return `<div class="study-choice__visual" data-layout="${esc(v.layout||'even')}">${side('before',v.before,v.after)}${action}${side('after',v.after,v.before)}</div>`;
 };
 
 // AI and designer lanes: each stage of the work shows what AI helped with and
@@ -118,7 +141,7 @@ const components={
  issues:b=>`<ol class="study-issues" data-count="${b.items.length}">${b.items.map((item,i)=>`<li class="study-issue"><span class="study-issue__index">문제 ${pad(i+1)}</span>${titled(item)}</li>`).join('')}</ol>`,
  // Criteria read as priorities: what was put aside, then what came first.
  criteria:b=>`<ol class="study-criteria" data-count="${b.items.length}">${b.items.map((item,i)=>`<li><span class="study-criteria__index">${pad(i+1)}</span><p class="study-criteria__instead">${esc(item.instead)}</p><p class="study-criteria__first">${esc(item.first)}</p></li>`).join('')}</ol>`,
- compare:b=>`<ol class="study-compare" data-count="${b.pairs.length}">${b.pairs.map((item,i)=>pair(item,i+1)).join('')}</ol>`,
+ compare:b=>`<ol class="study-compare" data-count="${b.pairs.length}">${b.pairs.map((item,i)=>pair(item,i+1,b.pairs.length===1)).join('')}</ol>`,
  steps:b=>`<ol class="study-steps" data-count="${b.items.length}" data-variant="${esc(b.variant||'sequence')}">${b.items.map((item,i)=>`<li class="study-step"><span class="study-step__index">${pad(i+1)}</span>${titled(item)}</li>`).join('')}</ol>`,
  chains:b=>`<div class="study-chains">${b.rows.map(row=>`<div class="study-chain"${row.emphasis?' data-emphasis':''}><p class="study-chain__label">${esc(row.label)}</p><ol class="study-chain__nodes">${row.nodes.map(node=>typeof node==='string'?`<li>${esc(node)}</li>`:`<li class="is-removed"><s>${esc(node.text)}</s></li>`).join('')}</ol></div>`).join('')}${b.note?`<p class="study-chains__note">${esc(b.note)}</p>`:''}</div>`,
  decisions:b=>`<div class="study-decisions" data-count="${b.items.length}">${b.items.map((item,i)=>decision(item,i+1,!!item.image)).join('')}</div>`,
@@ -131,6 +154,25 @@ const components={
   return `<div class="study-gallery-group">${group.label?`<h3 class="study-subhead study-gallery__label">${esc(group.label)}</h3>`:''}<div class="study-gallery" data-count="${group.images.length}">${group.images.map((image,i)=>frame(image,{cls:featured&&i===0?'is-featured':''})).join('')}</div></div>`;
  }).join(''),
  points:b=>`<ol class="study-points" data-count="${b.items.length}">${b.items.map((item,i)=>`<li><span class="study-points__index">${pad(i+1)}</span>${titled(item)}</li>`).join('')}</ol>`,
+ // The core problem as the reader would have to work it out: the two sets of
+ // figures, then each question with the arithmetic it takes and its answer.
+ equation:b=>`<div class="study-equation">${b.example?`<p class="study-equation__example">${esc(b.example)}</p>`:''}<div class="study-equation__sets">${b.sets.map((set,i)=>`${i?'<span class="study-equation__join" aria-hidden="true">+</span>':''}<div class="study-equation__set"><p class="study-equation__label">${esc(set.label)}</p><dl>${set.items.map(item=>`<div><dt>${esc(item.k)}</dt><dd>${esc(item.v)}</dd></div>`).join('')}</dl></div>`).join('')}</div><ol class="study-equation__checks">${b.checks.map(check=>`<li data-state="${esc(check.state||'ok')}"><span class="study-equation__q">${esc(check.q)}</span><span class="study-equation__calc">${esc(check.calc)}</span><strong class="study-equation__a">${esc(check.a)}</strong></li>`).join('')}</ol></div>`,
+ // An audit: the screen as it was, the questions asked of it, and the answer.
+ audit:b=>`<div class="study-audit">${b.image?`<div class="study-audit__media">${frame(b.image)}</div>`:''}<div class="study-audit__body"><ol class="study-audit__rows">${b.items.map((item,i)=>`<li class="study-audit__row"><span class="study-audit__index">Q${i+1}</span><h3 class="study-audit__q">${esc(item.q)}</h3><p class="study-audit__a">${esc(item.a)}</p><p class="study-audit__note">${esc(item.body)}</p></li>`).join('')}</ol>${b.conclusion?`<p class="study-audit__conclusion">${esc(b.conclusion)}</p>`:''}</div></div>`,
+ choice:b=>`<article class="study-choice"><header class="study-choice__head"><p class="study-choice__index"><span>${pad(b.index)}</span>${tag(b.tag)}</p><h3>${esc(b.title)}</h3></header><dl class="study-choice__track">${TRACK.filter(([key])=>b.track[key]).map(([key,label])=>`<div class="study-choice__step" data-step="${key}"><dt>${label}</dt><dd>${esc(b.track[key])}</dd></div>`).join('')}</dl>${b.visual?choiceVisual(b.visual):''}${b.details?`<ul class="study-choice__details" data-count="${b.details.length}">${b.details.map(item=>`<li><strong>${esc(item.title)}</strong><span>${esc(item.body)}</span></li>`).join('')}</ul>`:''}${b.ai?aiNote(b.ai):''}</article>`,
+ 'ai-note':b=>aiNote(b),
+ // A policy read as condition → behaviour → the case that shows it.
+ principles:b=>`<ol class="study-principles" data-count="${b.items.length}">${b.items.map((item,i)=>`<li><span class="study-principles__index">${pad(i+1)}</span><p class="study-principles__when">${esc(item.when)}</p><p class="study-principles__do">${esc(item.do)}</p><p class="study-principles__eg">${esc(item.eg)}</p></li>`).join('')}</ol>`,
+ // One structure per device, each with the roles its regions play; a phone
+ // flow shows the screen it leads to after the action that opens it.
+ devices:b=>`<div class="study-devices">${b.items.map(item=>`<div class="study-device" data-kind="${esc(item.kind)}"><div class="study-device__head"><p class="study-device__label">${esc(item.label)}<span>${esc(item.size)}</span></p><ol class="study-device__roles">${item.roles.map(role=>`<li>${esc(role)}</li>`).join('')}</ol></div><div class="study-device__screens">${item.images.map((image,i)=>`${i&&item.link?`<p class="study-device__link"><span>${esc(item.link)}</span></p>`:''}${frame(image)}`).join('')}</div></div>`).join('')}</div>`,
+ rows:b=>`<ol class="study-rows" data-count="${b.items.length}">${b.items.map((item,i)=>`<li class="study-row"><span class="study-row__index">${pad(i+1)}</span>${titled(item)}</li>`).join('')}</ol>`,
+ // QA cases: where it was seen, what was wrong and why, then the evidence.
+ qa:b=>`<ol class="study-qa">${b.items.map((item,i)=>`<li class="study-qa__case"><div class="study-qa__text"><p class="study-qa__where"><span>${pad(i+1)}</span>${esc(item.where)}</p><h3>${esc(item.title)}</h3><p>${esc(item.body)}</p></div><div class="study-qa__pair">${['before','after'].map(key=>`<div class="study-qa__side" data-side="${key}"><p class="study-pair__label">${key==='before'?'Before':'After'}</p>${frame(item[key])}</div>`).join('')}</div></li>`).join('')}</ol>`,
+ // The working loop in three phases; steps are numbered through the loop.
+ workflow:b=>{let n=0;return `<ol class="study-workflow" data-count="${b.phases.length}">${b.phases.map(phase=>`<li class="study-workflow__phase" data-owner="${esc(phase.owner)}"><p class="study-workflow__label">${esc(phase.label)}<span>${esc(phase.who)}</span></p><ol class="study-workflow__steps">${phase.steps.map(step=>`<li><span class="study-workflow__n">${pad(++n)}</span><strong>${esc(step.title)}</strong><span class="study-workflow__body">${esc(step.body)}</span></li>`).join('')}</ol></li>`).join('')}</ol>`;},
+ guardrails:b=>`<ul class="study-guardrails" data-count="${b.items.length}">${b.items.map(item=>`<li><span class="study-guardrails__tag">${esc(item.tag)}</span><strong>${esc(item.rule)}</strong><span class="study-guardrails__why">${esc(item.why)}</span></li>`).join('')}</ul>`,
+ split:b=>`<div class="study-split">${b.columns.map(col=>`<div class="study-split__col" data-owner="${esc(col.owner)}"><p class="study-split__label">${esc(col.label)}</p><ul>${col.items.map(text=>`<li>${esc(text)}</li>`).join('')}</ul></div>`).join('')}</div>`,
  // The closing is the case study's last scene: one principle set large, then
  // the capabilities it rests on, on a dark full-bleed band.
  closing:b=>`<div class="study-takeaway"><div class="study-takeaway__lead"><h3 class="study-takeaway__label">${LABELS.learning}</h3><p class="study-takeaway__text">${esc(b.learning)}</p></div><div class="study-takeaway__skills"><h3 class="study-takeaway__label">${LABELS.capabilities}</h3><ol class="study-skills" data-count="${b.capabilities.length}">${b.capabilities.map((item,i)=>`<li><span class="study-skills__index">${pad(i+1)}</span><strong>${esc(item.title)}</strong><span>${esc(item.body)}</span></li>`).join('')}</ol></div></div>`
@@ -145,7 +187,9 @@ function block(b){
 // column. Tone is the section's own (the core problem reads as a dark band);
 // rhythm comes from the content, not from alternating backgrounds.
 const tone=s=>s.tone||'paper';
-const sectionHtml=(s,i)=>`<section class="study-section" id="${esc(s.id)}" data-tone="${tone(s)}"${s.draft?' data-draft':''}${s.blocks.at(-1)?.type==='closing'?' data-ends="takeaway"':''} aria-labelledby="${esc(s.id)}-title"><div class="container study-grid"><p class="study-eyebrow study-rail"><span>${pad(i+1)}</span>${esc(s.eyebrow)}${s.draft?DRAFT_TAG:''}</p><div class="study-main"><header class="study-heading"><h2 id="${esc(s.id)}-title">${esc(s.title)}</h2>${s.lead?`<p class="study-heading__lead">${esc(s.lead)}</p>`:''}</header><div class="study-blocks">${s.blocks.map(block).join('')}</div></div></div></section>`;
+// A chapter whose screens need the whole width (layout:'wide') sets its label
+// above the heading instead of in the rail.
+const sectionHtml=(s,i)=>`<section class="study-section" id="${esc(s.id)}" data-tone="${tone(s)}"${s.layout?` data-layout="${esc(s.layout)}"`:''}${s.draft?' data-draft':''}${s.blocks.at(-1)?.type==='closing'?' data-ends="takeaway"':''} aria-labelledby="${esc(s.id)}-title"><div class="container study-grid"><p class="study-eyebrow study-rail"><span>${pad(i+1)}</span>${esc(s.eyebrow)}${s.draft?DRAFT_TAG:''}</p><div class="study-main"><header class="study-heading"><h2 id="${esc(s.id)}-title">${esc(s.title)}</h2>${s.lead?`<p class="study-heading__lead">${esc(s.lead)}</p>`:''}</header><div class="study-blocks">${s.blocks.map(block).join('')}</div></div></div></section>`;
 
 function render(d,index){
  const next=projects[(index+1)%projects.length];

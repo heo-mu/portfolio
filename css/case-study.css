@@ -105,6 +105,10 @@ body.detail-page {
  /* The label keeps the reader's place while its chapter scrolls. */
  .study-rail {position:sticky;top:calc(var(--chrome) + 1.75rem);display:block;margin:.35rem 0 0;}
  .study-rail > span:first-child {display:block;margin-bottom:.5rem;}
+ /* A wide chapter gives its screens the whole width; its label leads the heading. */
+ .study-section[data-layout="wide"] .study-grid {grid-template-columns:minmax(0,1fr);}
+ .study-section[data-layout="wide"] .study-rail {position:static;display:flex;margin:0 0 1.5rem;}
+ .study-section[data-layout="wide"] .study-rail > span:first-child {display:inline;margin:0;}
 }
 .study-blocks > .study-block + .study-block {margin-top:var(--study-block-gap);}
 /* Images are the content, not cards: no mat, no padding. The frame hugs the
@@ -152,7 +156,7 @@ body.detail-page {
 /* ---------- Statement: the one reading the study follows ---------- */
 .study-statement {max-width:46rem;}
 .detail-page .study-statement__label {margin:0 0 1.25rem;font:600 .8125rem/1.5 var(--f-body);color:var(--study-accent);}
-.detail-page .study-statement__text {margin:0;font:500 clamp(1.4375rem,2.4vw,2rem)/1.6 var(--f-body);letter-spacing:-.03em;color:var(--study-ink);word-break:keep-all;text-wrap:pretty;}
+.detail-page .study-statement__text {margin:0;font:500 clamp(1.4375rem,2.4vw,2rem)/1.6 var(--f-body);letter-spacing:-.03em;color:var(--study-ink);word-break:keep-all;text-wrap:balance;}
 .study-statement mark {padding:.04em .18em;border-radius:3px;background:var(--c-accent);color:#FFF7F4;box-decoration-break:clone;-webkit-box-decoration-break:clone;}
 .study-section[data-tone="paper"] .study-statement mark {background:var(--c-accent-soft);color:var(--c-accent-ink);}
 
@@ -173,7 +177,7 @@ body.detail-page {
 .study-pair[data-layout="single"] .study-pair__sides {grid-template-columns:minmax(0,1fr);}
 .study-pair__side {display:flex;flex-direction:column;gap:.75rem;min-width:0;}
 .detail-page .study-pair__label {margin:0;font:600 .6875rem/1.4 var(--f-display);letter-spacing:.12em;text-transform:uppercase;color:var(--study-muted);}
-.detail-page .study-pair__side[data-side="after"] .study-pair__label {color:var(--c-accent);}
+.detail-page .study-pair__side[data-side="after"] .study-pair__label {color:var(--study-accent);}
 .study-pair__side:is([data-kind="flow"],[data-kind="specimen"]) > :last-child {flex:1;align-content:center;box-sizing:border-box;min-height:12rem;margin:0;padding:clamp(1.5rem,3vw,2.5rem);border-radius:var(--image-radius);background:var(--panel);}
 .study-pair__text {display:grid;gap:.45rem;max-width:46rem;}
 .detail-page .study-pair__index {display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .75rem;margin:0 0 .15rem;font:600 .75rem/1.5 var(--f-display);font-variant-numeric:tabular-nums;color:var(--study-muted);}
@@ -362,6 +366,196 @@ body.detail-page {
 .detail-page .study-skills__index {margin-bottom:.4rem;font:600 .75rem/1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--on-dark-2);}
 .detail-page .study-skills strong {margin-bottom:.35rem;font:600 1.0625rem/1.5 var(--f-body);letter-spacing:-.02em;color:var(--on-dark);word-break:keep-all;}
 .detail-page .study-skills li > span:last-child {font-size:.9375rem;line-height:1.7;color:var(--on-dark-2);word-break:keep-all;text-wrap:pretty;}
+
+/* ---------- Worked problem: the figures a shopper had to combine ---------- */
+/* Two lists of figures, then each question with the arithmetic it takes and
+   its answer. The one answer that fails carries the accent; the one that
+   depends on a choice stays in ink, because it is not a verdict yet. */
+.study-equation {display:grid;gap:clamp(1.5rem,3vw,2.25rem);}
+.detail-page .study-equation__example {margin:0;font:600 .8125rem/1.5 var(--f-body);color:var(--study-muted);}
+.study-equation__sets {display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);column-gap:clamp(1rem,2.5vw,2rem);}
+.study-equation__set {min-width:0;padding-top:1.1rem;border-top:1px solid var(--study-line-strong);}
+.detail-page .study-equation__label {margin:0 0 1rem;font:600 .75rem/1.5 var(--f-body);color:var(--study-muted);}
+.study-equation__set dl {display:grid;gap:.55rem;margin:0;}
+.study-equation__set dl > div {display:flex;justify-content:space-between;align-items:baseline;gap:1rem;min-width:0;}
+.detail-page .study-equation__set dt {font:500 .9375rem/1.5 var(--f-body);color:var(--study-body);}
+.detail-page .study-equation__set dd {margin:0;font:600 1.0625rem/1.5 var(--f-display);letter-spacing:-.01em;font-variant-numeric:tabular-nums;color:var(--study-ink);white-space:nowrap;}
+.study-equation__join {align-self:center;font:300 1.75rem/1 var(--f-display);color:var(--study-muted);}
+.study-equation__checks {margin:0;padding:0;list-style:none;border-bottom:1px solid var(--study-line-strong);}
+.study-equation__checks li {display:grid;grid-template-columns:minmax(0,4fr) minmax(0,5fr) minmax(0,4fr);gap:.35rem var(--grid-gap);align-items:baseline;padding:1.1rem 0;border-top:1px solid var(--study-line-strong);}
+.detail-page .study-equation__q {font:600 1rem/1.55 var(--f-body);color:var(--study-ink);}
+.detail-page .study-equation__calc {font:500 .9375rem/1.55 var(--f-display);font-variant-numeric:tabular-nums;color:var(--study-muted);}
+.detail-page .study-equation__a {font:600 1rem/1.55 var(--f-body);color:var(--study-body);}
+.detail-page .study-equation__checks [data-state="fail"] .study-equation__a {color:var(--study-accent);}
+.detail-page .study-equation__checks [data-state="depends"] .study-equation__a {color:var(--study-ink);}
+
+/* ---------- Audit: the screen as it was, and what was asked of it ---------- */
+.study-audit {display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(2rem,5vw,4.5rem);align-items:start;}
+.study-audit__media {min-width:0;}
+.study-audit__media .study-frame {width:100%;max-width:22rem;}
+.study-audit__media img {width:100%;}
+.study-audit__body {min-width:0;}
+.study-audit__rows {margin:0;padding:0;list-style:none;border-bottom:1px solid var(--study-line-strong);}
+.study-audit__row {display:grid;grid-template-columns:2.25rem minmax(0,1fr) auto;column-gap:1rem;row-gap:.45rem;align-items:baseline;padding:1.5rem 0;border-top:1px solid var(--study-line-strong);}
+.study-audit__index {font:600 .75rem/1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--study-muted);}
+.detail-page .study-audit__q {font-size:1.125rem;line-height:1.5;}
+/* The answer is a finding, not a verdict: a quiet label, not the accent. */
+.detail-page .study-audit__a {margin:0;padding:.05rem .5rem;border-radius:3px;background:var(--panel);font:600 .75rem/1.7 var(--f-body);color:var(--study-ink);white-space:nowrap;}
+.detail-page .study-audit__note {grid-column:2/-1;margin:0;font-size:1rem;line-height:1.75;}
+.detail-page .study-audit__conclusion {max-width:26em;margin:clamp(1.75rem,3vw,2.5rem) 0 0;font:600 clamp(1.1875rem,1.7vw,1.4375rem)/1.55 var(--f-body);letter-spacing:-.025em;color:var(--study-ink);word-break:keep-all;text-wrap:balance;}
+
+/* ---------- AI note: what AI took on, beside what was decided ---------- */
+/* It belongs to the story above it, so it sits closer than a new block. */
+.study-blocks > .study-block + .study-block[data-type="ai-note"] {margin-top:clamp(2rem,3.5vw,2.75rem);}
+.study-ainote {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem var(--grid-gap);padding-top:1.1rem;border-top:1px solid var(--study-line);}
+.detail-page .study-ainote__cell {margin:0;font-size:.9375rem;line-height:1.75;color:var(--study-body);}
+.study-ainote__owner {display:block;margin-bottom:.3rem;font:600 .75rem/1.4 var(--f-body);color:var(--study-muted);}
+.detail-page .study-ainote__cell[data-owner="designer"] {color:var(--study-ink);}
+.study-ainote__cell[data-owner="designer"] .study-ainote__owner {color:var(--study-accent);}
+
+/* ---------- Design decision: problem → observation → change → result ---------- */
+/* Each decision is one article; decisions in a row are ruled apart. The
+   change step carries the accent rule, the point the entry resolves to. */
+.study-block[data-type="choice"] + .study-block[data-type="choice"] {padding-top:var(--study-block-gap);border-top:1px solid var(--study-line);}
+.study-choice {display:grid;gap:clamp(1.75rem,3vw,2.5rem);min-width:0;}
+.detail-page .study-choice__index {display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .75rem;margin:0 0 .85rem;font:600 .75rem/1.5 var(--f-display);font-variant-numeric:tabular-nums;color:var(--study-muted);}
+.detail-page .study-choice__head h3 {max-width:23em;font-size:clamp(1.375rem,2.2vw,1.875rem);line-height:1.4;letter-spacing:-.035em;}
+.study-choice__track {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1.5rem var(--grid-gap);margin:0;}
+.study-choice__step {position:relative;min-width:0;padding-top:1rem;}
+.study-choice__step::before {content:'';position:absolute;inset:0 0 auto;height:1px;background:var(--study-line-strong);}
+.study-choice__step[data-step="decision"]::before {height:2px;background:var(--c-accent);}
+.detail-page .study-choice__step dt {margin:0 0 .45rem;font:600 .75rem/1.5 var(--f-body);color:var(--study-muted);}
+.detail-page .study-choice__step dd {margin:0;font-size:.9375rem;line-height:1.75;}
+.detail-page .study-choice__step[data-step="decision"] dt {color:var(--c-accent);}
+.detail-page .study-choice__step:is([data-step="decision"],[data-step="result"]) dd {color:var(--study-ink);}
+/* Evidence: two versions side by side, one moment leading to the next, or
+   two paths through the same task. */
+.study-choice__visual {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--grid-gap);align-items:start;}
+.study-choice__visual .study-frame {width:100%;}
+.study-choice__visual img {width:100%;}
+.study-choice__visual[data-layout="even"] .study-frame {max-width:25rem;}
+.study-choice__visual[data-layout="flow"] {grid-template-columns:minmax(0,1fr) minmax(5.5rem,7.5rem) minmax(0,1fr);gap:clamp(.75rem,2vw,1.5rem);align-items:center;}
+.study-choice__action {display:grid;justify-items:center;gap:.65rem;margin:0;padding-top:1.5rem;text-align:center;}
+.detail-page .study-choice__action span {font:500 .8125rem/1.55 var(--f-body);color:var(--study-body);word-break:keep-all;text-wrap:balance;}
+.study-choice__action::after {content:'';width:1.75rem;height:.75rem;background:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 10%27 fill=%27none%27 stroke=%27%23C94324%27 stroke-width=%271.5%27%3E%3Cpath d=%27M0 5h14.5M10.5 1l4 4-4 4%27/%3E%3C/svg%3E") center/contain no-repeat;}
+.study-choice__details {display:grid;grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));gap:1.25rem var(--grid-gap);margin:0;padding:0;list-style:none;}
+.study-choice__details li {display:grid;gap:.35rem;align-content:start;min-width:0;padding-top:.9rem;border-top:1px solid var(--study-line);}
+.detail-page .study-choice__details strong {font:600 .9375rem/1.5 var(--f-body);color:var(--study-ink);}
+.detail-page .study-choice__details span {font-size:.875rem;line-height:1.7;color:var(--study-body);word-break:keep-all;}
+
+/* ---------- Principles: condition → behaviour → the case that shows it ---------- */
+.study-principles {margin:0;padding:0;list-style:none;border-bottom:1px solid var(--study-line-strong);}
+.study-principles li {display:grid;grid-template-columns:minmax(0,3rem) minmax(0,3.5fr) minmax(0,4fr) minmax(0,5fr);gap:.4rem var(--grid-gap);align-items:baseline;padding:1.4rem 0;border-top:1px solid var(--study-line-strong);}
+.study-principles__index {font:600 .75rem/1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--study-muted);}
+.detail-page .study-principles__when {margin:0;font-size:1rem;line-height:1.6;color:var(--study-muted);}
+.detail-page .study-principles__do {margin:0;font:600 clamp(1.0625rem,1.5vw,1.25rem)/1.5 var(--f-body);letter-spacing:-.02em;color:var(--study-ink);text-wrap:balance;}
+.detail-page .study-principles__eg {margin:0;font-size:.9375rem;line-height:1.7;}
+
+/* ---------- Devices: one structure per screen size, with its roles ---------- */
+.study-devices {display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:clamp(2rem,4vw,3.5rem);align-items:start;}
+.study-device {display:grid;gap:1.25rem;min-width:0;}
+.study-device__head {display:grid;gap:.5rem;padding-top:1rem;border-top:1px solid var(--study-line-strong);}
+.detail-page .study-device__label {display:flex;align-items:baseline;gap:.6rem;margin:0;font:600 1.0625rem/1.4 var(--f-body);color:var(--study-ink);}
+.study-device__label > span {font:500 .75rem/1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--study-muted);}
+.study-device__roles {display:flex;flex-wrap:wrap;margin:0;padding:0;list-style:none;}
+.detail-page .study-device__roles li {font-size:.875rem;line-height:1.6;color:var(--study-body);white-space:nowrap;}
+.study-device__roles li:not(:last-child)::after {content:'';display:inline-block;width:1px;height:.75em;margin-inline:.65rem;background:var(--study-line-strong);vertical-align:-.05em;}
+.study-device__screens {display:flex;align-items:center;gap:clamp(.75rem,1.5vw,1.25rem);min-width:0;}
+.study-device__screens .study-frame {min-width:0;}
+.study-device__screens img {width:100%;}
+.study-device[data-kind="desktop"] .study-frame {width:100%;}
+.study-device[data-kind="phone"] .study-frame {flex:1 1 0;max-width:14rem;}
+.study-device__link {flex:none;display:grid;justify-items:center;gap:.45rem;margin:0;}
+.detail-page .study-device__link span {font:600 .75rem/1.4 var(--f-body);color:var(--study-muted);white-space:nowrap;}
+.study-device__link::after {content:'';width:1.5rem;height:.625rem;background:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 10%27 fill=%27none%27 stroke=%27%23686963%27 stroke-width=%271.5%27%3E%3Cpath d=%27M0 5h14.5M10.5 1l4 4-4 4%27/%3E%3C/svg%3E") center/contain no-repeat;}
+/* Reasons: numbered rows, the same grammar as the problem rows. */
+.study-rows {margin:0;padding:0;list-style:none;border-bottom:1px solid var(--study-line-strong);}
+.study-row {display:grid;grid-template-columns:minmax(0,3.5rem) minmax(0,4fr) minmax(0,7fr);gap:.5rem var(--grid-gap);align-items:baseline;padding:1.5rem 0;border-top:1px solid var(--study-line-strong);}
+.study-row__index {font:600 .75rem/1.5 var(--f-display);font-variant-numeric:tabular-nums;color:var(--study-muted);}
+.detail-page .study-row h3 {font-size:1.125rem;}
+.detail-page .study-row p {margin:0;font-size:1rem;line-height:1.75;}
+/* Two phone screens compare at phone width, with the reason beside them. */
+.study-pair[data-layout="phones"] {grid-template-columns:minmax(0,7fr) minmax(0,5fr);column-gap:clamp(2rem,5vw,4.5rem);align-items:center;}
+.study-pair[data-layout="phones"] .study-pair__sides {grid-template-columns:repeat(2,minmax(0,15rem));}
+.study-pair[data-layout="phones"] :is(.study-frame,img) {width:100%;}
+
+/* ---------- QA cases: where, what and why, then the evidence ---------- */
+.study-qa {margin:0;padding:0;list-style:none;border-bottom:1px solid var(--study-line-strong);}
+.study-qa__case {display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:1.25rem var(--grid-gap);align-items:start;padding:clamp(1.75rem,3vw,2.5rem) 0;border-top:1px solid var(--study-line-strong);}
+.study-qa__text {min-width:0;max-width:30rem;}
+.detail-page .study-qa__where {display:flex;gap:.75rem;align-items:baseline;margin:0 0 .6rem;font:600 .75rem/1.5 var(--f-display);font-variant-numeric:tabular-nums;color:var(--study-muted);}
+.study-qa__where > span {color:var(--study-muted);}
+.detail-page .study-qa__text h3 {margin-bottom:.5rem;}
+.detail-page .study-qa__text > p:last-child {margin:0;font-size:.9375rem;line-height:1.75;}
+.study-qa__pair {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;align-items:start;min-width:0;}
+.study-qa__side {display:grid;gap:.6rem;min-width:0;}
+.study-qa__side :is(.study-frame,img) {width:100%;}
+.detail-page .study-qa__side[data-side="after"] .study-pair__label {color:var(--study-accent);}
+
+/* ---------- Workflow: the loop in three phases ---------- */
+/* The phases the designer owns are ruled in accent; AI's phase is narrower
+   because it is one step, however much of the work it carries. */
+.study-workflow {display:grid;grid-template-columns:minmax(0,4fr) minmax(0,3fr) minmax(0,4fr);gap:var(--grid-gap);margin:0;padding:0;list-style:none;}
+.study-workflow__phase {min-width:0;padding-top:1.1rem;border-top:1px solid var(--study-line-strong);}
+.study-workflow__phase[data-owner="designer"] {padding-top:calc(1.1rem - 1px);border-top:2px solid var(--c-accent);}
+.detail-page .study-workflow__label {display:flex;justify-content:space-between;align-items:baseline;gap:1rem;margin:0 0 1.1rem;font:650 1.0625rem/1.4 var(--f-body);color:var(--study-ink);}
+.study-workflow__label > span {font:600 .75rem/1 var(--f-body);color:var(--study-muted);}
+.study-workflow__phase[data-owner="designer"] .study-workflow__label > span {color:var(--c-accent);}
+.study-workflow__steps {display:grid;gap:1rem;margin:0;padding:0;list-style:none;}
+.detail-page .study-workflow__steps li {display:grid;grid-template-columns:1.75rem minmax(0,1fr);column-gap:.5rem;row-gap:.15rem;}
+.study-workflow__n {grid-row:span 2;font:600 .75rem/1.9 var(--f-display);font-variant-numeric:tabular-nums;color:var(--study-muted);}
+.detail-page .study-workflow__steps strong {font:600 .9375rem/1.5 var(--f-body);color:var(--study-ink);}
+.detail-page .study-workflow__body {font-size:.875rem;line-height:1.65;color:var(--study-body);word-break:keep-all;}
+/* Guardrails: what must not change, each with the reason. */
+.study-guardrails {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--grid-gap);margin:0;padding:0;list-style:none;border-bottom:1px solid var(--study-line-strong);}
+.study-guardrails li {display:grid;grid-template-columns:3.5rem minmax(0,1fr);column-gap:1rem;row-gap:.3rem;align-content:start;min-width:0;padding:1.25rem 0;border-top:1px solid var(--study-line-strong);}
+.study-guardrails__tag {grid-row:span 2;font:600 .75rem/1.9 var(--f-body);color:var(--study-muted);}
+.detail-page .study-guardrails strong {font:600 1.0625rem/1.5 var(--f-body);letter-spacing:-.02em;color:var(--study-ink);word-break:keep-all;}
+.detail-page .study-guardrails__why {font-size:.9375rem;line-height:1.7;color:var(--study-body);word-break:keep-all;}
+/* What sped up, and what the time went to instead. */
+.study-split {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--grid-gap);}
+.study-split__col {min-width:0;padding-top:1.1rem;border-top:1px solid var(--study-line-strong);}
+.study-split__col[data-owner="designer"] {padding-top:calc(1.1rem - 1px);border-top:2px solid var(--c-accent);}
+.detail-page .study-split__label {margin:0 0 .5rem;font:600 .8125rem/1.5 var(--f-body);color:var(--study-muted);}
+.detail-page .study-split__col[data-owner="designer"] .study-split__label {color:var(--c-accent);}
+.study-split ul {margin:0;padding:0;list-style:none;}
+.detail-page .study-split li {padding:.7rem 0;border-bottom:1px solid var(--study-line);font-size:1rem;line-height:1.6;}
+.detail-page .study-split li:last-child {border-bottom:0;}
+.detail-page .study-split__col[data-owner="designer"] li {font-weight:600;color:var(--study-ink);}
+
+@media(max-width:72em) {
+ .study-choice__track,.study-choice__details {grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(max-width:56em) {
+ .study-audit,.study-devices,.study-qa__case,.study-pair[data-layout="phones"] {grid-template-columns:minmax(0,1fr);}
+ .study-audit__media .study-frame {max-width:20rem;}
+ .study-principles li {grid-template-columns:minmax(0,2.75rem) minmax(0,1fr);}
+ .study-principles__do,.study-principles__eg {grid-column:2;}
+ .study-row {grid-template-columns:minmax(0,2.75rem) minmax(0,1fr);}
+ .study-row p {grid-column:2;}
+ .study-equation__checks li {grid-template-columns:minmax(0,1fr) auto;}
+ .study-equation__calc {grid-column:1/-1;grid-row:2;}
+ .study-workflow {grid-template-columns:minmax(0,1fr);gap:1.75rem;}
+ .study-pair[data-layout="phones"] .study-pair__sides {grid-template-columns:repeat(2,minmax(0,1fr));max-width:30rem;}
+}
+@media(max-width:48em) {
+ .study-choice__track,.study-choice__details,.study-ainote,.study-guardrails,.study-split {grid-template-columns:minmax(0,1fr);}
+ .study-equation__sets {grid-template-columns:minmax(0,1fr);row-gap:1.5rem;}
+ .study-equation__join {display:none;}
+ .study-choice__visual,.study-choice__visual[data-layout="flow"] {grid-template-columns:minmax(0,1fr);}
+ .study-choice__action {justify-items:start;grid-template-columns:auto auto;align-items:center;padding:0;text-align:left;}
+ .study-choice__action::after {transform:rotate(90deg);}
+ .study-principles li,.study-row {grid-template-columns:minmax(0,1fr);gap:.35rem;}
+ .study-principles__do,.study-principles__eg,.study-row p {grid-column:auto;}
+ .study-audit__row {grid-template-columns:1.75rem minmax(0,1fr);}
+ .study-audit__a {grid-column:2;justify-self:start;}
+ .study-device__screens {gap:.75rem;}
+ .study-qa__pair {gap:.75rem;}
+}
+/* A phone reads each piece of QA evidence at full width, one above the other. */
+@media(max-width:40em) {
+ .study-qa__pair {grid-template-columns:minmax(0,1fr);gap:1.25rem;}
+}
 
 /* ---------- Next project and footer ---------- */
 .detail-page .study-next {padding:clamp(3.5rem,6vw,5rem) 0;}
