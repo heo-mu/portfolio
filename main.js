@@ -453,7 +453,7 @@ let lenis = null;
         intro.fromTo('.site-nav__inner',{opacity:0,y:-4},{opacity:1,y:0,duration:MOTION.fast},0)
           .fromTo('.hero__identity',{opacity:0,x:-8},{opacity:1,x:0,duration:MOTION.fast},.06)
           .fromTo(lines[0],{x:-10,opacity:.65,letterSpacing:'.005em'},
-            {x:0,opacity:1,letterSpacing:'-.045em',duration:.7},.10)
+            {x:0,opacity:1,letterSpacing:'-.056em',duration:.7},.10)
           .fromTo(lines[1],{x:8,clipPath:'inset(-12% 100% -20% -4%)'},
             {x:0,clipPath:'inset(-12% -4% -20% -4%)',duration:.72},.24)
           .fromTo('.hero__aside > p:first-child',{opacity:0,x:10},{opacity:1,x:0,duration:MOTION.standard},.4)

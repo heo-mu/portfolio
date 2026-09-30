@@ -1,11 +1,41 @@
 // Studio scene lifecycle and input; geometry and deterministic motion are separate.
 const host=document.getElementById('hero-object');
+// The key visual's constellation, per width. u/v place a module relative to the
+// projected structure (units of its size), tier sets depth (0 near, 2 far).
+// The upper arc carries most modules — complexity gathers around the back
+// line — while the lower arc stays sparse beneath "made clear.".
+const LAYOUTS={
+  desktop:{name:'desktop',scale:1,slots:[
+    {ui:'donut-dashboard',u:-1,v:-.86,tier:0,scale:1.15},
+    {ui:'line-area-chart',u:.84,v:-.76,tier:1,scale:1.05},
+    {ui:'flow-nodes',u:.06,v:-.9,tier:2,scale:1},
+    {ui:'bar-chart',u:-1.05,v:-.04,tier:1,scale:1},
+    {ui:'table-rows',u:1.02,v:-.02,tier:0,scale:1.08},
+    {ui:'toggle-status',u:-.92,v:.55,tier:2,scale:.95},
+    {ui:'calendar',u:.95,v:.6,tier:1,scale:.95}
+  ]},
+  tablet:{name:'tablet',scale:.9,slots:[
+    {ui:'donut-dashboard',u:-.96,v:-.84,tier:0,scale:1.1},
+    {ui:'line-area-chart',u:.82,v:-.76,tier:1,scale:1.02},
+    {ui:'bar-chart',u:-1,v:-.02,tier:1,scale:1},
+    {ui:'table-rows',u:.98,v:0,tier:0,scale:1.04},
+    {ui:'toggle-status',u:-.86,v:.58,tier:2,scale:.95},
+    {ui:'calendar',u:.9,v:.62,tier:1,scale:.92}
+  ]},
+  mobile:{name:'mobile',scale:.66,slots:[
+    {ui:'donut-dashboard',u:-.86,v:-.34,tier:1,scale:1},
+    {ui:'line-area-chart',u:.9,v:-.42,tier:1,scale:.96},
+    {ui:'bar-chart',u:.94,v:.34,tier:0,scale:1},
+    {ui:'toggle-status',u:-.9,v:.36,tier:2,scale:.92},
+    {ui:'checkbox-radio',u:.42,v:.74,tier:2,scale:.9}
+  ]}
+};
 if(host) startObject(host).catch(()=>host.classList.remove('is-ready'));
 
 async function startObject(host) {
   if(navigator.connection?.saveData)return;
-  const [T,{createStructure,PARTS,retrace},{createContactShadow},{createScatterField}]=await Promise.all([import('./vendor/three.module.js'),import('./hero-structure.js?v=a00c86a7'),import('./hero-shadow.js?v=dc2f0992'),import('./hero-field.js?v=46545e23')]);
-  const hero=host.closest('.hero'),anchor=document.getElementById('hero-object-anchor');
+  const [T,{createStructure,PARTS,retrace},{createContactShadow},{createScatterField}]=await Promise.all([import('./vendor/three.module.js'),import('./hero-structure.js?v=a00c86a7'),import('./hero-shadow.js?v=dc2f0992'),import('./hero-field.js?v=bb054dac')]);
+  const hero=host.closest('.hero'),anchor=document.getElementById('hero-object-anchor'),marks=hero.querySelector('.hero__marks');
   const reduce=matchMedia('(prefers-reduced-motion: reduce)');
   const compact=matchMedia('(max-width: 640px)');
   const renderer=new T.WebGLRenderer({alpha:true,antialias:true,powerPreference:'low-power'});
@@ -81,6 +111,7 @@ async function startObject(host) {
     camera.updateMatrixWorld();sculpture.group.updateMatrixWorld(true);
     const measure=document.createElement('canvas').getContext('2d');
     const safeZones=[...hero.querySelectorAll('.hero__identity,h1 .type-mask,.hero__aside > p,.hero__aside > a')].map(el=>{
+      const kind=el.classList.contains('hero__line--back')?'back':el.classList.contains('hero__line--front')?'front':'meta';
       // Layout coordinates ignore GSAP's transient entrance/scroll transforms.
       let x=0,y=0,node=el;
       while(node&&node!==hero){x+=node.offsetLeft;y+=node.offsetTop;node=node.offsetParent;}
@@ -93,12 +124,20 @@ async function startObject(host) {
         textWidth=Math.min(textWidth,measure.measureText(label).width+tracking*(label.length-1)+12);
       }
       // Protect the resting text only. Transit and scroll travel remain unconstrained.
-      return {x:x+textWidth/2,y:y+el.offsetHeight/2,w:textWidth+12,h:el.offsetHeight+12,headline:heading};
+      return {x:x+textWidth/2,y:y+el.offsetHeight/2,w:textWidth+12,h:el.offsetHeight+12,headline:heading,kind};
     });
     const header=document.getElementById('nav');
+    const layout=r.width<=768?LAYOUTS.mobile:r.width<=1088?LAYOUTS.tablet:LAYOUTS.desktop;
     // Header height is constant in stage coordinates. Subtracting the scrolling
     // stage's viewport top here used to push every target downward on scroll.
-    field.configure(r.width,r.height,{x:anchorX,y:anchorY,top:a.top,bottom:a.top+a.height},safeZones,header.offsetHeight);
+    field.configure(r.width,r.height,{x:anchorX,y:anchorY,top:a.top,bottom:a.top+a.height},safeZones,header.offsetHeight,layout);
+    // The corner marks frame the structure's resting projection, in the
+    // container's own coordinates, with a little air around it.
+    if(marks){
+      const core=field.inspect().core,pad=core.h*.04;
+      marks.style.left=(core.x-core.w/2-pad-container.offsetLeft).toFixed(1)+'px';marks.style.top=(core.y-core.h/2-pad-container.offsetTop).toFixed(1)+'px';
+      marks.style.width=(core.w+pad*2).toFixed(1)+'px';marks.style.height=(core.h+pad*2).toFixed(1)+'px';
+    }
     // Project the field's ground footprints, including penumbra, into the
     // original camera frame. Extend only the render window, never the layout
     // or the camera used by the scatter solver and pointer interaction.

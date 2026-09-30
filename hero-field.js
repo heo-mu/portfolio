@@ -7,7 +7,7 @@ const halton=(i,base)=>{let n=0,f=1;while(i){f/=base;n+=f*(i%base);i=Math.floor(
 export function createScatterField(T,camera,group,parts=[]){
   const local=new T.Vector3(),screen=new T.Vector3(),view=new T.Vector3(),inverse=new T.Matrix4();
   const targets=new Map(),occupied=[],nodes=[],zones=[];
-  let width=1,height=1,top=0,mobile=false,slot,anchorDepth=10,core={x:0,y:0,w:0,h:0},planVersion=0;
+  let width=1,height=1,top=0,mobile=false,slot,anchorDepth=10,core={x:0,y:0,w:0,h:0},planVersion=0,coreReach=1,gap=24;
   const scratch={x:0,y:0,z:0,r:0};
   const routePoint={x:0,y:0};
   let layoutKey='';
@@ -30,18 +30,24 @@ export function createScatterField(T,camera,group,parts=[]){
     const corner=28,qx=Math.abs(x-z.x)-Math.max(0,z.w/2+r-corner),qy=Math.abs(y-z.y)-Math.max(0,z.h/2+r-corner);
     return Math.hypot(Math.max(qx,0),Math.max(qy,0))+Math.min(Math.max(qx,qy),0)-corner;
   }
+  // Copy zones differ in how far a module may enter them. Caption copy ('meta')
+  // is never covered. The front headline line may be grazed, since it paints
+  // over the canvas. The back line may be overlapped at its edges — that is the
+  // interleave — but never across its central letter band.
+  const reach=z=>z.kind==='back'?.24:z.kind==='front'?.5:.78;
   function available(x,y,r){
     if(x<r+10||x>width-r-10||y<top+r+10||y>height-r-10)return false;
     if(mobile&&(y<slot.top+r+8||y>slot.bottom-r-8))return false;
-    if(zones.some(z=>sdf(x,y,r*.78+2,z)<0)||sdf(x,y,r+8,core)<0)return false;
-    return !occupied.some(q=>Math.hypot(x-q.x,y-q.y)<r+q.r+24);
+    if(zones.some(z=>sdf(x,y,r*reach(z)+2,z)<0)||sdf(x,y,r*coreReach+8,core)<0)return false;
+    return !occupied.some(q=>Math.hypot(x-q.x,y-q.y)<r+q.r+gap);
   }
-  function configure(w,h,anchor,safeZones,headerHeight){
-    const key=[w,h,anchor.x,anchor.y,anchor.top,anchor.bottom,headerHeight,...safeZones.flatMap(z=>[z.x,z.y,z.w,z.h])].join(',');
+  function configure(w,h,anchor,safeZones,headerHeight,layout=null){
+    const key=[w,h,anchor.x,anchor.y,anchor.top,anchor.bottom,headerHeight,layout?.name||'',...safeZones.flatMap(z=>[z.x,z.y,z.w,z.h])].join(',');
     if(key===layoutKey)return;
     layoutKey=key;
     width=w;height=h;slot=anchor;mobile=w<=768;top=headerHeight;
-    zones.length=0;safeZones.forEach(z=>zones.push({...z}));
+    // A back line protects only its letter band; the edges stay open to modules.
+    zones.length=0;safeZones.forEach(z=>zones.push(z.kind==='back'?{...z,h:z.h*.5}:{...z}));
     targets.clear();occupied.length=0;nodes.length=0;planVersion++;
     camera.updateMatrixWorld();group.updateMatrixWorld(true);inverse.copy(group.matrixWorld).invert();
     // Rest frame only, never a transient hover rotation or float.
@@ -52,6 +58,8 @@ export function createScatterField(T,camera,group,parts=[]){
       l=Math.min(l,px);r=Math.max(r,px);t=Math.min(t,py);b=Math.max(b,py);
     }
     core={x:(l+r)/2,y:(t+b)/2,w:r-l,h:b-t};
+    coreReach=layout?.slots?.length?.62:1;gap=layout?.slots?.length?12:24;
+    if(layout?.slots?.length){planSlots(layout);return;}
     const candidates=parts.filter(p=>p.kind==='shell'&&(p.nx>0||p.ny>0||p.nz>0)).sort((a,b)=>a.r-b.r);
     const selected=[],limit=mobile?6:w<=1088?9:14;
     // Non-adjacent release sites avoid rubbing neighbouring blocks on departure.
@@ -114,6 +122,44 @@ export function createScatterField(T,camera,group,parts=[]){
       targets.set(p,best);occupied.push(best);
     }
   }
+  // Art-directed constellation. Each slot is a place in the poster, given in
+  // units of the projected structure (u, v from its centre), with a depth tier
+  // and a module. The free part whose release lane points most nearly at the
+  // slot flies there, so every departure still radiates from the cube.
+  function planSlots(layout){
+    const size=Math.max(core.w,core.h),used=[];
+    const release=p=>{const c=p.kind==='shell'?.68:1.02;project({x:p.x+p.nx*c,y:p.y+p.ny*c,z:p.z+p.nz*c});return {p,x:screen.x,y:screen.y};};
+    const lanes=[...parts.filter(p=>p.kind==='shell'&&(p.nx>0||p.ny>0||p.nz>0)),
+      ...parts.filter(p=>p.kind==='core'&&(p.z>.6||p.x>.6||p.y>.6))].map(release);
+    layout.slots.forEach((s,index)=>{
+      const tier=s.tier??1,base=UI_KIT.find(ui=>ui.name===s.ui);if(!base)return;
+      const scale=(s.scale??1)*(layout.scale??1),ui={...base,w:base.w*scale,h:base.h*scale,d:base.d*scale,scale};
+      const angle=Math.atan2(s.v,s.u);
+      ui.rx=camera.rotation.x+Math.sin(angle)*[.16,.25,.34][tier];
+      ui.ry=camera.rotation.y+Math.cos(angle)*[.24,.34,.42][tier];
+      ui.rz=camera.rotation.z+Math.sin(angle*1.7)*[.10,.15,.21][tier];
+      ui.depthFade=mobile?0:[0,.04,.10][tier];
+      const depth=anchorDepth*[.86,1.08,1.36][tier],rad=radius(uiBounds(ui),depth);
+      // The slot itself, or the nearest free point on a widening spiral.
+      const gx=core.x+s.u*size,gy=core.y+s.v*size;let best=null;
+      for(let k=0;k<=160&&!best;k++){
+        const d=k?Math.ceil(k/8)*9:0,a=k*2.39996,x=gx+Math.cos(a)*d,y=gy+Math.sin(a)*d;
+        if(available(x,y,rad))best={x,y,r:rad,depth,foreground:tier===0,region:'slot',band:1,index,ui};
+      }
+      if(!best)return;
+      let lane=null,score=Infinity;
+      for(const l of lanes){
+        // Non-adjacent release sites avoid rubbing neighbouring blocks on departure.
+        if(used.some(q=>Math.hypot(l.p.x-q.x,l.p.y-q.y,l.p.z-q.z)<.49))continue;
+        const ax=l.x-core.x,ay=l.y-core.y,bx=best.x-core.x,by=best.y-core.y;
+        const value=1-(ax*bx+ay*by)/Math.max(1,Math.hypot(ax,ay)*Math.hypot(bx,by))+l.p.r*.02;
+        if(value<score){score=value;lane=l;}
+      }
+      if(!lane)return;
+      used.push(lane.p);best.part=lane.p;best.route=planRoute(lane.x,lane.y,best);
+      targets.set(lane.p,best);occupied.push(best);
+    });
+  }
   function planRoute(sx,sy,target){
     // A shallow outward arc, independent of text rectangles. No detour corners.
     const dx=target.x-sx,dy=target.y-sy,distance=Math.hypot(dx,dy)||1;
@@ -155,7 +201,7 @@ export function createScatterField(T,camera,group,parts=[]){
   }
   function constrain(n,strength){
     for(let pass=0;pass<2;pass++)for(let i=0;i<=zones.length;i++){
-      const z=i===zones.length?core:zones[i],r=i===zones.length?n.r+8:n.r*.78+2,dx=n.x-z.x,dy=n.y-z.y,corner=28;
+      const z=i===zones.length?core:zones[i],r=i===zones.length?n.r*coreReach+8:n.r*reach(z)+2,dx=n.x-z.x,dy=n.y-z.y,corner=28;
       const qx=Math.abs(dx)-Math.max(0,z.w/2+r-corner),qy=Math.abs(dy)-Math.max(0,z.h/2+r-corner);
       const ax=Math.max(qx,0),ay=Math.max(qy,0),len=Math.hypot(ax,ay);
       const distance=len+Math.min(Math.max(qx,qy),0)-corner;

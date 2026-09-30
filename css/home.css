@@ -643,35 +643,83 @@
  .contact__value {font-size:1.125rem;}
 }
 @media(prefers-reduced-motion:reduce) {.contact__label,.contact__arrow,.home-page .contact__action::after {transition:none;}}
-
-/* ---- Hero: poster composition on wide screens ----
-   One scene instead of a text column and an object column. The sculpture
-   holds the optical centre; the two headline lines step around it on a
-   diagonal — the grey line runs behind the scene, the ink line in front of
-   it — identity and the description sit as corner meta, and the CTA anchors
-   the lower left. The scatter field replans itself around this geometry, so
-   the floating UI keeps avoiding the resting copy. On scroll (--hero-leave,
-   main.js) the two lines part along their own axes while the sculpture
-   retraces its cubes home. */
-@media(min-width:68.0625em) {
- .hero {--hero-pad-t:calc(var(--nav-h) + clamp(1.25rem,3.5svh,2.5rem));--hero-pad-b:clamp(1.75rem,4.5svh,3.25rem);
+/* ---- Hero: key visual ----
+   One poster with one centre. The structure holds the optical centre and the
+   headline crosses it as one statement: "Complexity," runs behind the scene,
+   so the loose modules and the cube pass in front of it; "made clear." runs
+   in front, ink and heavier, ending on the brand's accent stop. Four corner
+   marks frame the structure the way a selection frames an object on a canvas
+   — the one line drawing that ties the type plane to the 3D. Everything read
+   next sits on one ruled caption band. The container stays out of the
+   stacking order (z-index:auto), so the two headline layers really sit on
+   either side of the canvas. On scroll (--hero-leave, main.js) the lines part
+   vertically while the modules retrace home into the cube. */
+.hero__stop {color:var(--c-accent);}
+.hero__marks {display:none;}
+@media(min-width:48.0625em) {
+ .hero {--hero-pad-t:calc(var(--nav-h) + clamp(.25rem,1svh,1rem));--hero-pad-b:clamp(1.5rem,3.5svh,2.5rem);
+  --title:min(11.4vw,17.5svh);--cube:calc(var(--title) * 1.95);--cy:50%;--title-shift:.3em;
   padding-top:var(--hero-pad-t);padding-bottom:var(--hero-pad-b);}
- .hero__layout {display:block;position:relative;height:calc(100svh - var(--hero-pad-t) - var(--hero-pad-b));min-height:38rem;}
- .hero__copy,.hero__aside {display:contents;}
- /* The canvas sits between the headline layers; it never takes the pointer. */
+ .hero__layout {display:block;position:relative;z-index:auto;height:calc(100svh - var(--hero-pad-t) - var(--hero-pad-b));min-height:34rem;}
+ .hero__copy {display:contents;}
  .hero__3d-stage {z-index:2;}
- .hero__identity {position:absolute;z-index:3;right:var(--gutter);top:.35rem;margin:0;text-align:right;}
- .hero__identity > span {display:block;margin:.35rem 0 0;}
- .hero h1 {position:static;perspective:none;}
- .hero .type-mask {position:absolute;margin:0;padding:0;}
- .hero .type-mask:first-child {z-index:1;left:var(--gutter);top:clamp(3.25rem,8.5svh,6rem);
-  font-size:clamp(5rem,8.8vw,10.25rem);line-height:1;
-  translate:calc(var(--hero-leave,0) * -7vw) calc(var(--hero-leave,0) * -4svh);}
- .hero .type-mask:last-child {z-index:3;right:var(--gutter);bottom:clamp(5rem,14svh,8.5rem);
-  font-size:clamp(5rem,8.8vw,10.25rem);line-height:1;
-  translate:calc(var(--hero-leave,0) * 7vw) calc(var(--hero-leave,0) * 2.5svh);}
- .hero-object {position:absolute;left:50%;top:45%;width:min(48vw,46rem);height:min(60svh,38rem);transform:translate(-50%,-50%);}
- .hero__aside > p:first-child {position:absolute;z-index:3;left:var(--gutter);bottom:4.9rem;max-width:17.5rem;margin:0;
-  font-size:clamp(1rem,1.15vw,1.1875rem);line-height:1.7;}
- .hero__aside > a {position:absolute;z-index:3;left:var(--gutter);bottom:0;margin:0;}
+ .hero h1 {position:static;perspective:none;margin:0;}
+ .hero .type-mask.hero__line {position:absolute;left:50%;margin:0;padding:0;font-size:var(--title);line-height:.92;white-space:nowrap;}
+ .hero .type-mask.hero__line--back {z-index:1;top:calc(var(--cy) - var(--cube) * .42 - 1.1em);
+  font-weight:400;letter-spacing:-.056em;color:#83857D;
+  translate:calc(-50% - var(--title-shift)) calc(var(--hero-leave,0) * -6svh);}
+ .hero .type-mask.hero__line--front {z-index:3;top:calc(var(--cy) + var(--cube) * .1);
+  font-weight:600;letter-spacing:-.066em;color:var(--c-ink);
+  translate:calc(-50% + var(--title-shift)) calc(var(--hero-leave,0) * 5svh);}
+ .hero-object {position:absolute;left:50%;top:var(--cy);width:calc(var(--cube) * 2.1);height:calc(var(--cube) * 1.92);max-width:none;transform:translate(-50%,-50%);}
+ .hero__caption {position:absolute;z-index:3;left:var(--gutter);right:var(--gutter);bottom:0;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--grid-gap);align-items:stretch;}
+ .hero__aside {display:contents;}
+ .hero__caption :is(.hero__identity,.hero__aside > p,.hero__aside > a) {margin:0;padding-top:1rem;border-top:1px solid var(--c-line);}
+ .hero__identity {grid-column:1/4;display:grid;align-content:start;gap:.35rem;font:600 1rem/1.4 var(--f-body);letter-spacing:-.01em;color:var(--c-ink);}
+ .hero__identity > span {margin:0;font:500 .75rem/1.4 var(--f-display);letter-spacing:.14em;text-transform:uppercase;color:var(--c-ink-2);}
+ .hero__aside > p:first-child {grid-column:5/10;max-width:none;font-size:clamp(1rem,1.1vw,1.1875rem);line-height:1.65;color:var(--c-ink-2);}
+ .hero__aside > p strong {display:inline;font-weight:500;color:var(--c-ink);}
+ .hero__aside > a {grid-column:10/13;display:flex;justify-content:flex-end;align-items:flex-start;}
+ .hero__marks {display:block;position:absolute;z-index:0;left:50%;top:50%;width:0;height:0;pointer-events:none;opacity:0;transition:opacity .8s ease 1s;
+  --mark:rgba(27,28,25,.34);--arm:14px;
+  background:linear-gradient(var(--mark) 0 0) 0 0/var(--arm) 1px,linear-gradient(var(--mark) 0 0) 0 0/1px var(--arm),
+   linear-gradient(var(--mark) 0 0) 100% 0/var(--arm) 1px,linear-gradient(var(--mark) 0 0) 100% 0/1px var(--arm),
+   linear-gradient(var(--mark) 0 0) 0 100%/var(--arm) 1px,linear-gradient(var(--mark) 0 0) 0 100%/1px var(--arm),
+   linear-gradient(var(--mark) 0 0) 100% 100%/var(--arm) 1px,linear-gradient(var(--mark) 0 0) 100% 100%/1px var(--arm);
+  background-repeat:no-repeat;}
+ .hero__3d-stage.is-ready ~ .hero__container .hero__marks {opacity:calc(1 - var(--hero-leave,0) * 1.6);}
 }
+@media(min-width:48.0625em) and (max-width:68em) {
+ .hero {--title:min(13vw,15svh);--cy:48%;}
+ .hero__identity {grid-column:1/5;}
+ .hero__aside > p:first-child {grid-column:5/10;font-size:.9375rem;}
+ .hero__aside > a {grid-column:10/13;}
+}
+/* Portrait tablets have height to spare: the type takes the width instead. */
+@media(min-width:48.0625em) and (max-width:68em) and (orientation:portrait) {
+ .hero {--title:min(16vw,12.5svh);--cy:46%;}
+}
+@media(max-width:48em) {
+ .hero {--title:min(17.5vw,7.5rem);--cube:calc(var(--title) * 1.95);min-height:100svh;padding-top:calc(var(--nav-h) + 1rem);padding-bottom:2rem;}
+ .hero__layout {display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;position:relative;z-index:auto;min-height:calc(100svh - var(--nav-h) - 3rem);}
+ .hero__copy {display:contents;}
+ .hero__3d-stage {z-index:2;}
+ .hero h1 {grid-area:1/1;align-self:center;position:relative;height:calc(var(--cube) * 1.92);margin:0;perspective:none;}
+ .hero .type-mask.hero__line {position:absolute;margin:0;padding:0;font-size:var(--title);line-height:.92;white-space:nowrap;}
+ .hero .type-mask.hero__line--back {z-index:1;top:calc(50% - var(--cube) * .42 - 1.1em);left:0;font-weight:400;letter-spacing:-.056em;color:#83857D;}
+ .hero .type-mask.hero__line--front {z-index:3;top:calc(50% + var(--cube) * .1);right:0;font-weight:600;letter-spacing:-.066em;color:var(--c-ink);}
+ .hero h1 {height:calc(var(--cube) * 1.92 + var(--title) * .36);}
+ .hero-object {grid-area:1/1;align-self:center;justify-self:center;position:relative;width:min(100%,calc(var(--cube) * 2.4));height:calc(var(--cube) * 1.92);margin:0;transform:none;}
+ .hero__caption {grid-area:2/1;position:relative;z-index:3;display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:1rem;row-gap:1.25rem;margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--c-line);}
+ .hero__aside {display:contents;}
+ .hero__identity {grid-column:1;grid-row:1;display:grid;gap:.3rem;margin:0;font:600 1rem/1.4 var(--f-body);color:var(--c-ink);}
+ .hero__identity > span {margin:0;font:500 .6875rem/1.4 var(--f-display);letter-spacing:.14em;text-transform:uppercase;color:var(--c-ink-2);}
+ .hero__aside > p:first-child {grid-column:1/-1;grid-row:2;margin:0;font-size:1.0625rem;line-height:1.65;color:var(--c-ink-2);}
+ .hero__aside > p strong {display:inline;font-weight:500;color:var(--c-ink);}
+ .hero__aside > a {grid-column:2;grid-row:1;align-self:start;margin:0;}
+}
+/* The narrowest phones give the identity its own line width: the CTA moves under the description. */
+@media(max-width:21.25em) {
+ .hero__aside > a {grid-column:1/-1;grid-row:3;}
+}
+@media(prefers-reduced-motion:reduce) {.hero__marks {transition:none;}}
