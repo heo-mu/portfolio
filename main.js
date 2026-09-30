@@ -19,9 +19,13 @@ let lenis = null;
     };
     refreshTimer=setTimeout(flush,140);
   }
+  // Main-page sections reserve the header's height inside themselves, so a link
+  // lands on the section's own top: a full-screen scene arrives settled, never
+  // mid-handoff. Other pages keep the header offset.
+  const anchorOffset=document.body.classList.contains('home-page')?0:-84;
   function moveTo(target,options={}) {
-    if(lenis){lenis.scrollTo(target,{offset:typeof target==='number'?0:-84,...options});return;}
-    const top=typeof target==='number'?target:target.getBoundingClientRect().top+scrollY-84;
+    if(lenis){lenis.scrollTo(target,{offset:typeof target==='number'?0:anchorOffset,...options});return;}
+    const top=typeof target==='number'?target:target.getBoundingClientRect().top+scrollY+anchorOffset;
     scrollTo({top,behavior:reduce.matches||options.immediate?'auto':'smooth'});
   }
   window.portfolioScroll={moveTo,refresh:queueRefresh};
@@ -365,11 +369,10 @@ let lenis = null;
       section.style.setProperty('--scene-count',String(panels.length));
       // Scroll length follows the content: about a third of a screen per step.
       section.style.setProperty('--scene-screens',String(1+panels.length*.32));
+      // The step buttons are the stack's only index: they show the position and jump to a card.
       const controls=document.createElement('div');controls.className='scene-controls';
-      const count=document.createElement('div');count.className='scene-controls__count';count.setAttribute('aria-hidden','true');
-      const current=document.createElement('span');count.append(current,document.createTextNode(' / '+String(panels.length).padStart(2,'0')));
       const nav=document.createElement('div');nav.className='scene-controls__nav';nav.setAttribute('role','group');nav.setAttribute('aria-label','AI 업무 방식 살펴보기');
-      controls.append(count,nav);controlHost.append(controls);
+      controls.append(nav);controlHost.append(controls);
       const buttons=panels.map((panel,i)=>{
         const button=document.createElement('button');button.type='button';button.textContent=String(i+1).padStart(2,'0');
         button.setAttribute('aria-label',button.textContent+' '+$('h3',panel).textContent);nav.append(button);return button;
@@ -377,15 +380,13 @@ let lenis = null;
       let active=-1,stride=260,entry=1;
       const rise=t=>t*t*(3-2*t);
       const state={position:0};
-      const rollCount=direction=>{gsap.killTweensOf(current);gsap.fromTo(current,{yPercent:direction*55,opacity:0},{yPercent:0,opacity:1,duration:.42,ease:'power3.out'});};
       const measure=()=>{
         section.style.setProperty('--services-top',($('#nav')?.offsetHeight||68)+'px');
         stride=Math.max(...panels.map(p=>p.offsetHeight))+12;
       };
       const render=()=>{
         const index=Math.round(state.position);
-        if(active>=0&&index!==active)rollCount(index>active?1:-1);
-        current.textContent=String(index+1).padStart(2,'0');section.dataset.phase=String(index);
+        section.dataset.phase=String(index);
         section.style.setProperty('--scene-index',String(index));section.style.setProperty('--scene-progress',String(state.position/Math.max(1,panels.length-1)));
         // Arriving, the queue is fanned out and gathers as the section lands.
         // On the last step the whole stack settles onto the column's centre,
@@ -423,7 +424,7 @@ let lenis = null;
       const go=index=>moveTo(trigger.start+(.10+index/(panels.length-1))/1.20*(trigger.end-trigger.start));
       const clicks=buttons.map((button,i)=>{const click=()=>go(i);button.addEventListener('click',click);return click;});
       return()=>{
-        trigger.kill();timeline.kill();gsap.killTweensOf(current);delete section.__stackEntry;
+        trigger.kill();timeline.kill();delete section.__stackEntry;
         buttons.forEach((button,i)=>button.removeEventListener('click',clicks[i]));controls.remove();
         section.classList.remove('is-scene');section.dataset.phase='0';
         ['--scene-screens','--scene-count','--scene-index','--scene-progress','--services-top'].forEach(p=>section.style.removeProperty(p));

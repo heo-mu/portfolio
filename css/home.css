@@ -29,7 +29,7 @@
 @media(prefers-reduced-motion:reduce) { .service { position:relative; } }
 @media(min-width:40.0625em) and (max-width:50em) { .hero__layout { grid-template-columns:1fr; }.hero h1 { font-size:clamp(4rem,10vw,6rem); }.hero__aside { max-width:30rem; } }
 .about__profile { padding-block:3rem 2rem; }
-.portrait { position:relative; width:100%; max-width:27rem; justify-self:center; isolation:isolate; }.portrait__stage { position:relative; width:100%; aspect-ratio:1; z-index:1; }.portrait__stage img { width:100%; height:100%; object-fit:contain; filter:saturate(.4) contrast(1.1); }.portrait__stage canvas { position:absolute; inset:0; width:100%; height:100%; }.portrait__stage.is-ready img { opacity:0; }.portrait__slice { position:absolute; width:68%; height:70%; top:10%; left:16%; background:linear-gradient(135deg,#3A3B38,#232421); clip-path:polygon(0 8%,88% 0,100% 90%,12% 100%); pointer-events:none; z-index:0; }.portrait__slice--back { transform:translate(-8%,5%) rotate(-8deg); opacity:.55; }.portrait__slice--front { width:24%; height:1px; left:65%; top:76%; background:var(--c-neon); transform:rotate(-12deg); opacity:.7; }.portrait figcaption { display:flex; justify-content:space-between; gap:1rem; margin-top:.5rem; font-size:.75rem; color:var(--c-on-void-2); }
+.portrait { position:relative; width:100%; max-width:27rem; justify-self:center; isolation:isolate; }.portrait__stage { position:relative; width:100%; aspect-ratio:1; z-index:1; }.portrait__stage img { width:100%; height:100%; object-fit:contain; filter:saturate(.4) contrast(1.1); }.portrait__stage canvas { position:absolute; inset:0; width:100%; height:100%; }.portrait__stage.is-ready img { opacity:0; }.portrait__slice { position:absolute; width:68%; height:70%; top:10%; left:16%; background:linear-gradient(135deg,#3A3B38,#232421); clip-path:polygon(0 8%,88% 0,100% 90%,12% 100%); pointer-events:none; z-index:0; }.portrait__slice--back { transform:translate(-8%,5%) rotate(-8deg); opacity:.55; }.portrait__slice--front { width:24%; height:1px; left:65%; top:76%; background:var(--c-neon); transform:rotate(-12deg); opacity:.7; }
 .work-row { perspective:1100px; }.work-row__thumb { transform:rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg)) translate3d(0,0,var(--lift,0px)); transform-style:preserve-3d; box-shadow:0 2px 7px #1B1C1908; transition:box-shadow .3s; overflow:visible; }.work-row__thumb img { border-radius:.4rem; aspect-ratio:16/9; object-fit:contain; background:var(--c-surface); }.work-row:hover .work-row__thumb { box-shadow:0 8px 18px #1B1C1914; }
 .hero { position:relative; }.intro-pending .hero__identity,.intro-pending .hero h1,.intro-pending .hero__aside,.intro-pending .site-nav { visibility:hidden; }
 @media(max-width:60em) {.portrait { max-width:23rem; }.services { gap:2rem; } }
@@ -62,9 +62,7 @@
 .services.is-scene .service__mark { transition:rotate .6s var(--ease),color .4s; }
 .services.is-scene .service.is-active .service__mark { rotate:45deg; color:var(--c-accent); }
 .scene-controls { margin-top:3rem; max-width:22rem; }
-.scene-controls__count { color:var(--c-ink-2); font:400 .875rem/1 var(--f-display); overflow:hidden; }
-.scene-controls__count > span { display:inline-block; color:var(--c-ink); font-size:2rem; min-width:1.3em; margin-right:.5rem; }
-.scene-controls__nav { position:relative; display:flex; margin-top:1.2rem; border-bottom:1px solid var(--c-line); }
+.scene-controls__nav { position:relative; display:flex; border-bottom:1px solid var(--c-line); }
 .scene-controls__nav::after { content:''; position:absolute; bottom:-1px; left:0; height:2px; width:calc(100% / var(--scene-count)); background:var(--c-accent); transform:translateX(calc(var(--scene-index,0)*100%)); transition:transform .6s var(--ease); }
 .scene-controls__nav button { flex:1; min-width:0; min-height:44px; font:400 .75rem var(--f-display); color:var(--c-ink-2); text-align:center; transition:color .3s; }
 .scene-controls__nav button[aria-current],.scene-controls__nav button:hover { color:var(--c-ink); }
@@ -80,11 +78,9 @@
 .tools__stage { padding-block:5rem; }
 .tools .section-head { margin-bottom:2.5rem; align-items:flex-end; }
 
-.tools .section-head p { flex-shrink:0; font-size:.9375rem; }
 @media(max-width:40em) {
   .tools__stage { padding-block:3rem; }
   .tools .section-head { margin-bottom:1.5rem; }
-  .tools .section-head p { margin-top:1rem; }
 }
 
 /* Shared rhythm: scene changes lead; pointer details remain secondary. */
@@ -100,8 +96,6 @@
 .work-row h3 {line-height:1.35;letter-spacing:-.025em;}
 .work-row__copy p,.about__copy p,.section-head p {line-height:1.85;}
 .section-head {flex-wrap:wrap;}
-.tools .section-head p {flex-shrink:1;}
-.scene-controls__count {overflow:visible;line-height:1.3;padding-block:.15em;}
 /* Tools: consistent identity, editorial type, and local pointer response. */
 
 
@@ -111,12 +105,10 @@
 .portrait__stage.is-assembling img {opacity:0;}
 .portrait:has(.is-assembling) .portrait__slice--back {opacity:calc(.55 * var(--portrait-rest,0));}
 .portrait:has(.is-assembling) .portrait__slice--front {opacity:calc(.7 * var(--portrait-rest,0));}
-.portrait:has(.is-assembling) figcaption {opacity:var(--portrait-rest,0);}
 @media(prefers-reduced-motion:reduce) {
  .portrait__stage.is-assembling:not(.is-ready) img {opacity:1;}
  .portrait:has(.is-assembling) .portrait__slice--back {opacity:.55;}
  .portrait:has(.is-assembling) .portrait__slice--front {opacity:.7;}
- .portrait:has(.is-assembling) figcaption {opacity:1;}
 }
 
 /* One quiet card system: identity above the title, copy on a shared baseline. */
@@ -201,8 +193,7 @@
 
 /* Left-aligned identity images; floating preview shares this visual column. */
 .work .section-head {align-items:flex-start;gap:clamp(2rem,6vw,6rem);margin-bottom:3rem;}
-.work .section-head p {max-width:none;padding-top:.65rem;text-wrap:pretty;}
-@media(min-width:60.0625em) {.work .section-head {gap:1.5rem;align-items:baseline;}.work .section-head p {white-space:nowrap;font-size:clamp(.8125rem,.95vw,1rem);}}
+@media(min-width:60.0625em) {.work .section-head {gap:1.5rem;align-items:baseline;}}
 .work-row {grid-template-columns:clamp(14rem,24vw,20rem) minmax(0,1fr) 2.65rem;column-gap:clamp(1.75rem,3vw,3rem);padding-block:2.25rem;border-color:var(--c-line-soft);}
 .work-row:last-child {border-color:var(--c-line-soft);}
 .work-row__reveal,.work-row:nth-child(even) .work-row__reveal {grid-column:1;grid-row:1;width:100%;max-width:100%;align-self:center;justify-self:start;}
@@ -218,7 +209,6 @@
 .work-row__category {transition:color .25s;}
 .work-row:is(:hover,:focus-visible) .work-row__category {color:var(--c-ink);}
 .work-row__copy {grid-column:2;grid-row:1;min-width:0;max-width:none;}
-.work-row__index {display:block;margin-bottom:.6rem;font:400 .75rem/1.5 var(--f-num);letter-spacing:.06em;color:var(--c-ink-3);}
 .work-row h3 {font-size:clamp(1.875rem,2.8vw,3rem);line-height:1.3;letter-spacing:-.04em;margin:0 0 .65rem;}
 .work-row__copy p {max-width:34em;font-size:1rem;line-height:1.85;word-break:keep-all;overflow-wrap:break-word;text-wrap:pretty;}
 .work-row__category {display:flex;flex-wrap:wrap;gap:.375rem;margin-top:.85rem;font-size:.75rem;line-height:1.7;color:var(--c-ink-3);}
@@ -244,7 +234,6 @@
  #about-title br {display:none;}
  #about-title {max-width:15em;text-wrap:balance;}
  .work .section-head {margin-bottom:2.5rem;}
- .work .section-head p {padding:0;}
  .work-row {grid-template-columns:minmax(0,1fr) 2.65rem;gap:1.125rem 1rem;padding-block:1.75rem 2rem;}
  .work-row__reveal,.work-row:nth-child(even) .work-row__reveal {width:min(15rem,80%);grid-column:1/-1;grid-row:1;justify-self:start;}
  .work-row__copy {grid-column:1;grid-row:2;}
@@ -329,7 +318,6 @@
 .about__story {max-width:34em;display:grid;gap:1.15rem;}
 .about__story p {margin:0;color:var(--c-on-void-2);font-size:1rem;line-height:1.8;word-break:keep-all;overflow-wrap:break-word;text-wrap:pretty;}
 .about__story strong {font-weight:500;color:var(--c-on-void);}
-.about__story .about__practice {padding-top:.25rem;}
 
 .services.is-scene .services__list {display:block;overflow:clip;mask-image:linear-gradient(transparent,#000 4%,#000 96%,transparent);transform-style:flat;}
 .services.is-scene .service {position:absolute;top:22%;left:0;min-height:13.5rem;translate:none;transform-origin:50% 0;padding:1.75rem;will-change:transform;}
@@ -377,7 +365,6 @@
 .home-page .about__story {max-width:var(--text-width-lg);margin-top:var(--section-copy-gap);gap:var(--section-copy-gap);}
 .home-page .about__story p {margin:0;}
 .home-page .about__story strong {font-weight:500;color:var(--section-ink);}
-.home-page .about__story .about__practice {padding:0;}
 /* Career reads as one path: stage labels scan first, the sentences stay whole. */
 .career {
  --career-line:var(--about-line,rgba(247,247,245,.18));--career-bg:var(--about-bg,var(--c-void));
@@ -399,10 +386,7 @@
 @media(max-width:40em) {.career {--rail-inset:1.5rem;--stage-gap:1.25rem;}}
 .home-page .section-header__heading {min-width:0;}
 .home-page :is(.tools,.work) .section-header {align-items:flex-end;flex-wrap:nowrap;gap:2rem;}
-.home-page :is(.tools,.work) .section-description {margin:0;padding:0;flex:0 1 var(--text-width-lg);}
-.home-page .work .section-description {max-width:none;flex:0 0 auto;white-space:nowrap;}
 .home-page .tools .section-header__heading {flex:1 1 55%;}
-.home-page .tools .section-description {flex:1 1 38%;}
 .home-page :is(.service h3) {
  font:500 var(--section-item-size)/1.45 var(--f-body);letter-spacing:-.025em;
 }
@@ -416,14 +400,13 @@
 .services.is-scene .service > * {opacity:calc(1 - var(--stack-dim,0));}
 .services.is-scene .service__number {transition:color .4s;}
 .services.is-scene .service:not(.is-active) {border-color:color-mix(in srgb,var(--c-line) calc(100% - var(--stack-dim,0) * 100%),transparent);}
-.home-page :is(.about__metrics dt,.portrait figcaption,.portrait figcaption>span,.work__count,.work-row__index,.work-row__category,.service__number,.scene-controls__nav button) {
+.home-page :is(.about__metrics dt,.work__count,.work-row__category,.service__number,.scene-controls__nav button) {
  font:400 var(--section-meta-size)/1.5 var(--f-body);letter-spacing:.015em;color:var(--section-muted);
 }
 .home-page .service.is-active .service__number {color:var(--c-accent);}
 .home-page .work__count {display:inline-block;vertical-align:top;margin:.3em 0 0 .75rem;}
 @media(max-width:60em) {
  .home-page :is(.tools,.work) .section-header {flex-wrap:wrap;gap:var(--section-copy-gap);}
- .home-page :is(.tools,.work) .section-description {flex-basis:100%;white-space:normal;max-width:var(--text-width-lg);}
 }
 @media(max-width:40em) {
  .home-page {--section-label-gap:.875rem;--section-copy-gap:1rem;}
@@ -469,10 +452,10 @@
 .tools__content {width:100%;padding-block:calc(var(--nav-h) + clamp(2rem,6svh,4rem)) clamp(3rem,8svh,5rem);}
 @media(max-width:48em) {.tools__scene {min-height:0;}}
 @media(max-width:40em) {.tools__content {padding-block:3.5rem;}}
-/* Three workflow columns share one row system. Number, title and description
-   form one track and every tool its own, so all three columns start their
-   tools on the same line however their descriptions wrap. They use the page
-   grid's gap, so each column is exactly four of its twelve columns. */
+/* Three workflow columns share one row system. The group title forms one
+   track and every tool its own, so all three columns start their tools on
+   the same line. They use the page grid's gap, so each column is exactly
+   four of its twelve columns. */
 .tool-groups {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:auto repeat(3,auto);column-gap:var(--grid-gap);row-gap:.5rem;margin-top:clamp(2.5rem,5vw,3.5rem);}
 .tool-group {
  position:relative;display:grid;grid-row:span 4;grid-template-rows:subgrid;min-width:0;padding-top:1.5rem;
@@ -481,9 +464,7 @@
 }
 .tool-group::before {content:'';position:absolute;inset:0 0 auto;height:1px;background:var(--c-line);}
 .tool-group__head {margin-bottom:1rem;}
-.tool-group__index {display:block;margin-bottom:.9rem;font:600 .75rem/1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--c-accent);}
 .home-page .tool-group h3 {margin:0;font:600 var(--section-item-size)/1.4 var(--f-body);letter-spacing:-.025em;color:var(--section-ink);word-break:keep-all;}
-.home-page .tool-group__head p {max-width:24em;margin:.6rem 0 0;font:400 var(--section-body-size)/var(--section-body-leading) var(--f-body);color:var(--section-secondary);word-break:keep-all;text-wrap:pretty;}
 .tool-group__list {display:grid;grid-row:span 3;grid-template-rows:subgrid;margin:0;padding:0;list-style:none;}
 .tool-row {
  position:relative;display:flex;align-items:center;gap:1rem;min-height:4.5rem;padding:.875rem 1rem;background:#292A27;border-radius:.75rem;isolation:isolate;transition:background .35s var(--ease);
@@ -507,7 +488,6 @@
 @supports not (grid-template-rows:subgrid) {
  .tool-group {display:block;}
  .tool-group__list {display:grid;gap:.5rem;}
- .home-page .tool-group__head p {min-height:3.6em;}
 }
 @media(max-width:48em) {
  .tool-groups {grid-template-columns:minmax(0,1fr);grid-template-rows:none;row-gap:2.5rem;}
@@ -590,16 +570,14 @@
 .services.is-scene .services__stage {scale:calc(1 - var(--ai-recede,0) * .06);transform-origin:50% 35%;}
 .services.is-scene + .tools::before {content:'';position:absolute;inset:-100svh 0 0;background:var(--c-void);opacity:calc(var(--tools-veil,0) * .3);pointer-events:none;}
 
-/* Split headings (Work, Tools) sit on the page grid: the title spans columns
-   1–8, the description the last third, 9–12, which is exactly the third Tools
-   column, so its first letter shares a line with that column. A desktop break
-   sets two phrase-true lines; should the longer line need more room the box
-   grows leftward, never past the grid's right edge. Both align on the last
-   baseline, so the description ends on the title's line. */
+/* Links land on a section's own top (main.js), so every section keeps the
+   header's height inside itself; Work, which opens on its title, gets it here. */
+.home-page section[id] {scroll-margin-top:0;}
+.home-page .work {padding-top:calc(var(--nav-h) + clamp(1.5rem,4svh,3rem));}
+/* Work and Tools open on their title alone, on the page grid (columns 1–8). */
 @media(min-width:60.0625em) {
  .home-page :is(.tools,.work) .section-header {display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--grid-gap);align-items:last baseline;}
  .home-page :is(.tools,.work) .section-header__heading {grid-column:1/9;min-width:0;}
- .home-page :is(.tools,.work) .section-description {grid-column:9/-1;justify-self:end;width:max-content;min-width:100%;max-width:none;margin:0;padding:0;white-space:normal;}
 }
 
 /* Contact is the final scene: light, open and quiet after the dark surface.
