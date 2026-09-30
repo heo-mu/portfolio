@@ -1,41 +1,50 @@
 // Studio scene lifecycle and input; geometry and deterministic motion are separate.
 const host=document.getElementById('hero-object');
-// The key visual's constellation, per width. u/v place a module relative to the
-// projected structure (units of its size), tier sets depth (0 near, 2 far).
-// The upper arc carries most modules — complexity gathers around the back
-// line — while the lower arc stays sparse beneath "made clear.".
+// The central collage, per width: the system core and the interface modules it
+// releases, composed as one object. u/v place a module relative to the
+// projected structure (units of its size). tier is its depth: front modules sit
+// before the core, back modules behind it, mid modules beside it (never over
+// its silhouette, which would put them inside it). scale sets the hierarchy —
+// strong, medium, accent — and theme the material. from names the face cell a
+// module leaves through, so the openings in the cube are composed as well: a
+// window on the front face, two cells on the top, one on the right.
+const COLLAGE={collage:true,coreReach:0,gap:-1e4,depths:[.8,1,1.28],tilt:.55,reach:{back:0,front:0,meta:.9},
+  // A three-by-three window on the front face and a pair of cells on the top:
+  // four modules leave the front, two the top; the rest of each window folds in.
+  opening:[['z',-1,1],['z',-1,0],['z',-1,-1],['z',0,-1],['z',1,-1],['y',0,-2],['y',1,-2]]};
 const LAYOUTS={
-  desktop:{name:'desktop',scale:1,slots:[
-    {ui:'donut-dashboard',u:-1,v:-.86,tier:0,scale:1.15},
-    {ui:'line-area-chart',u:.84,v:-.76,tier:1,scale:1.05},
-    {ui:'flow-nodes',u:.06,v:-.9,tier:2,scale:1},
-    {ui:'bar-chart',u:-1.05,v:-.04,tier:1,scale:1},
-    {ui:'table-rows',u:1.02,v:-.02,tier:0,scale:1.08},
-    {ui:'toggle-status',u:-.92,v:.55,tier:2,scale:.95},
-    {ui:'calendar',u:.95,v:.6,tier:1,scale:.95}
+  desktop:{name:'desktop',scale:1,...COLLAGE,slots:[
+    {ui:'donut-dashboard',u:-.46,v:-.56,tier:'front',scale:1.6,from:['z',0,1]},
+    {ui:'line-area-chart',u:.46,v:-.6,tier:'back',scale:1.75,from:['y',1,-1]},
+    {ui:'search-field',u:-.02,v:-.88,tier:'back',scale:.95,from:['y',0,-1]},
+    {ui:'bar-chart',u:-.54,v:.08,tier:'back',scale:1.4,theme:'warm',from:['z',0,0]},
+    {ui:'table-rows',u:.5,v:.06,tier:'front',scale:1.45,theme:'dark',from:['z',1,0]},
+    {ui:'calendar',u:-.74,v:.26,tier:'front',depth:.74,scale:1.05,theme:'cool',from:['x',0,-1]},
+    {ui:'toggle-status',u:.52,v:.3,tier:'front',depth:.7,scale:1.05,theme:'warm',from:['z',1,1]}
   ]},
-  tablet:{name:'tablet',scale:.9,slots:[
-    {ui:'donut-dashboard',u:-.96,v:-.84,tier:0,scale:1.1},
-    {ui:'line-area-chart',u:.82,v:-.76,tier:1,scale:1.02},
-    {ui:'bar-chart',u:-1,v:-.02,tier:1,scale:1},
-    {ui:'table-rows',u:.98,v:0,tier:0,scale:1.04},
-    {ui:'toggle-status',u:-.86,v:.58,tier:2,scale:.95},
-    {ui:'calendar',u:.9,v:.62,tier:1,scale:.92}
+  tablet:{name:'tablet',scale:.9,...COLLAGE,slots:[
+    {ui:'donut-dashboard',u:-.6,v:-.76,tier:'front',scale:1.35,from:['z',0,1]},
+    {ui:'line-area-chart',u:.58,v:-.78,tier:'back',scale:1.4,from:['y',1,-1]},
+    {ui:'bar-chart',u:-.72,v:.12,tier:'mid',scale:1.1,theme:'warm',from:['z',0,0]},
+    {ui:'table-rows',u:.64,v:.1,tier:'front',scale:1.25,theme:'dark',from:['z',1,0]},
+    {ui:'calendar',u:-.74,v:.4,tier:'back',scale:.95,theme:'cool',from:['x',0,-1]},
+    {ui:'toggle-status',u:.72,v:.36,tier:'front',scale:.95,theme:'warm',from:['z',1,1]}
   ]},
-  mobile:{name:'mobile',scale:.66,slots:[
-    {ui:'donut-dashboard',u:-.86,v:-.34,tier:1,scale:1},
-    {ui:'line-area-chart',u:.9,v:-.42,tier:1,scale:.96},
-    {ui:'bar-chart',u:.94,v:.34,tier:0,scale:1},
-    {ui:'toggle-status',u:-.9,v:.36,tier:2,scale:.92},
-    {ui:'checkbox-radio',u:.42,v:.74,tier:2,scale:.9}
+  // A phone has no room above the word, so its modules flank the core and sit
+  // under it, clear of the letter band.
+  mobile:{name:'mobile',scale:1,...COLLAGE,slots:[
+    {ui:'donut-dashboard',u:-.6,v:-.06,tier:'front',scale:1.4,from:['z',0,1]},
+    {ui:'line-area-chart',u:.64,v:-.1,tier:'back',scale:1.45,from:['y',1,-1]},
+    {ui:'bar-chart',u:-.52,v:.3,tier:'back',scale:1.25,theme:'warm',from:['z',0,0]},
+    {ui:'table-rows',u:.5,v:.22,tier:'front',scale:1.3,theme:'dark',from:['z',1,0]}
   ]}
 };
 if(host) startObject(host).catch(()=>host.classList.remove('is-ready'));
 
 async function startObject(host) {
   if(navigator.connection?.saveData)return;
-  const [T,{createStructure,PARTS,retrace},{createContactShadow},{createScatterField}]=await Promise.all([import('./vendor/three.module.js'),import('./hero-structure.js?v=a00c86a7'),import('./hero-shadow.js?v=dc2f0992'),import('./hero-field.js?v=bb054dac')]);
-  const hero=host.closest('.hero'),anchor=document.getElementById('hero-object-anchor'),marks=hero.querySelector('.hero__marks');
+  const [T,{createStructure,PARTS,retrace},{createContactShadow},{createScatterField}]=await Promise.all([import('./vendor/three.module.js'),import('./hero-structure.js?v=43e809d9'),import('./hero-shadow.js?v=dc2f0992'),import('./hero-field.js?v=8f9ff865')]);
+  const hero=host.closest('.hero'),anchor=document.getElementById('hero-object-anchor');
   const reduce=matchMedia('(prefers-reduced-motion: reduce)');
   const compact=matchMedia('(max-width: 640px)');
   const renderer=new T.WebGLRenderer({alpha:true,antialias:true,powerPreference:'low-power'});
@@ -68,8 +77,13 @@ async function startObject(host) {
   const palette=getComputedStyle(host);
   const sculpture=createStructure(T,{accent:palette.getPropertyValue('--c-neon').trim()||'#C94324',ink:palette.getPropertyValue('--c-ink').trim()||'#1B1C19',environment:environment.texture,transmission:compact.matches?0:.18});scene.add(sculpture.group);
   const field=createScatterField(T,camera,sculpture.group,PARTS);
+  // One hairline orbit around the core, inside the scene: it passes behind the
+  // cube and before it with real occlusion, and appears only while the system is open.
+  const orbitPoints=new T.EllipseCurve(0,0,2.75,2.75,0,Math.PI*2,false,0).getPoints(160).map(p=>new T.Vector3(p.x,0,p.y));
+  const orbit=new T.LineLoop(new T.BufferGeometry().setFromPoints(orbitPoints),new T.LineBasicMaterial({color:palette.getPropertyValue('--c-ink').trim()||'#1B1C19',transparent:true,opacity:0,depthWrite:false}));
+  orbit.rotation.set(.16,0,-.2);orbit.position.y=-.1;orbit.renderOrder=1;sculpture.group.add(orbit);
   // One ground receiver. The directional light still supplies object self-shadow.
-  const shadowExclusions=[];
+  const shadowExclusions=[orbit];
   const contact=createContactShadow(T,renderer,scene,{resolution:compact.matches?256:512,floorY:-2.72});
   renderer.shadowMap.autoUpdate=false;
   let visible=false,dead=false,lost=false,raf=0,last=0,elapsed=0,intro=0;
@@ -131,13 +145,6 @@ async function startObject(host) {
     // Header height is constant in stage coordinates. Subtracting the scrolling
     // stage's viewport top here used to push every target downward on scroll.
     field.configure(r.width,r.height,{x:anchorX,y:anchorY,top:a.top,bottom:a.top+a.height},safeZones,header.offsetHeight,layout);
-    // The corner marks frame the structure's resting projection, in the
-    // container's own coordinates, with a little air around it.
-    if(marks){
-      const core=field.inspect().core,pad=core.h*.04;
-      marks.style.left=(core.x-core.w/2-pad-container.offsetLeft).toFixed(1)+'px';marks.style.top=(core.y-core.h/2-pad-container.offsetTop).toFixed(1)+'px';
-      marks.style.width=(core.w+pad*2).toFixed(1)+'px';marks.style.height=(core.h+pad*2).toFixed(1)+'px';
-    }
     // Project the field's ground footprints, including penumbra, into the
     // original camera frame. Extend only the render window, never the layout
     // or the camera used by the scatter solver and pointer interaction.
@@ -199,6 +206,7 @@ async function startObject(host) {
     structure+=(goal-structure)*(1-Math.exp(-delta*12));
     sculpture.update(reduce.matches?0:structure,influence,reduce.matches?undefined:field,elapsed);
     const scatter=sculpture.spread;
+    orbit.material.opacity=.34*Math.min(1,scatter*1.4);orbit.visible=scatter>.01;
     const shadowExtent=3.5+scatter*12;
     Object.assign(key.shadow.camera,{left:-shadowExtent,right:shadowExtent,top:shadowExtent,bottom:-shadowExtent});
     key.shadow.camera.updateProjectionMatrix();
@@ -246,7 +254,7 @@ async function startObject(host) {
     reduce.removeEventListener('change',mode);compact.removeEventListener('change',mode);
     document.removeEventListener('visibilitychange',visibility);hero.removeEventListener('heroscenechange',sceneChange);removeEventListener('pageshow',pageShow);removeEventListener('pagehide',cleanup);
     renderer.domElement.removeEventListener('webglcontextlost',contextLost);renderer.domElement.removeEventListener('webglcontextrestored',contextRestored);
-    sculpture.dispose();environment.dispose();contact.dispose();key.shadow.dispose();renderer.dispose();renderer.domElement.remove();
+    orbit.geometry.dispose();orbit.material.dispose();sculpture.dispose();environment.dispose();contact.dispose();key.shadow.dispose();renderer.dispose();renderer.domElement.remove();
   }
   addEventListener('pagehide',cleanup);addEventListener('pageshow',pageShow);resize();
 }

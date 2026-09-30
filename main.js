@@ -445,7 +445,10 @@ let lenis = null;
       addEventListener('pageshow',restored);
       if(hero&&!location.hash&&scrollY<80&&performance.getEntriesByType?.('navigation')[0]?.type!=='back_forward'){
         const lines=$$('.type-mask > span',hero);
-        const targets=[...lines,...$$('.site-nav__inner,.hero__identity,.hero__aside > p,.hero__aside > a')];
+        // The echo repeats the back line's lower band in front of the scene; it
+        // moves with that line exactly, to the tracking the stylesheet sets.
+        const back=[lines[0],$('.hero__echo > span',hero)].filter(Boolean),tracking=getComputedStyle(lines[0]).letterSpacing;
+        const targets=[...lines,...back,...$$('.site-nav__inner,.hero__identity,.hero__aside > p,.hero__aside > a')];
         let disposed=false,started=false,fontTimer;
         const release=()=>{clearTimeout(window.introSafety);document.documentElement.classList.remove('intro-pending');};
         // Construct inside matchMedia's context; delayed playback never creates orphan tweens.
@@ -453,8 +456,8 @@ let lenis = null;
           onComplete:()=>{gsap.set(targets,{clearProps:'transform,opacity,clipPath,letterSpacing'});release();}});
         intro.fromTo('.site-nav__inner',{opacity:0,y:-4},{opacity:1,y:0,duration:MOTION.fast},0)
           .fromTo('.hero__identity',{opacity:0,x:-8},{opacity:1,x:0,duration:MOTION.fast},.06)
-          .fromTo(lines[0],{x:-10,opacity:.65,letterSpacing:'.005em'},
-            {x:0,opacity:1,letterSpacing:'-.056em',duration:.7},.10)
+          .fromTo(back,{x:-10,opacity:.65,letterSpacing:'.005em'},
+            {x:0,opacity:1,letterSpacing:tracking,duration:.7},.10)
           .fromTo(lines[1],{x:8,clipPath:'inset(-12% 100% -20% -4%)'},
             {x:0,clipPath:'inset(-12% -4% -20% -4%)',duration:.72},.24)
           .fromTo('.hero__aside > p:first-child',{opacity:0,x:10},{opacity:1,x:0,duration:MOTION.standard},.4)

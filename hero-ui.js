@@ -88,6 +88,14 @@ function gaugeGeometry(T,end=Math.PI*2){
   else{s.lineTo(Math.cos(end)*.34,Math.sin(end)*.34);s.absarc(0,0,.34,end,0,true);s.closePath();}
   const g=new T.ExtrudeGeometry(s,{depth:.98,steps:1,bevelEnabled:true,bevelThickness:.01,bevelSize:.003,bevelSegments:2,curveSegments:48});g.translate(0,0,-.49);return g;
 }
+// Material hierarchy inside the collage: a module may be finished warm, cool,
+// light grey or dark (a dark panel with light content). The accent stays the accent.
+const THEMES={
+  dark:{glass:0x232522,white:0x31332f,surface:0x494b46,soft:0x8b8f88,ink:0xe8e7e2},
+  warm:{glass:0xccc5b9,white:0xf4efe6,surface:0xe2dbcf},
+  cool:{glass:0xbec4c8,white:0xedf0f2,surface:0xd5dbde},
+  gray:{glass:0xabaea9,white:0xdcded9,surface:0xc8cbc6}
+};
 export function createUIRelief(T,group,boxGeometry,materials){
   const disc=new T.CylinderGeometry(.5,.5,1,48);disc.rotateX(Math.PI/2);
   const ring=gaugeGeometry(T);
@@ -105,12 +113,12 @@ export function createUIRelief(T,group,boxGeometry,materials){
       clear();version=field.version;const records=new Map();
       for(const target of field.objects())for(const detail of target.ui.parts){
         const key=detail.shape+':'+detail.tone;
-        if(!records.has(key))records.set(key,[]);records.get(key).push({id:target.part.id,detail,scale:target.ui.scale||1,fade:target.ui.depthFade||0});
+        if(!records.has(key))records.set(key,[]);records.get(key).push({id:target.part.id,detail,scale:target.ui.scale||1,fade:target.ui.depthFade||0,theme:target.ui.theme});
       }
       for(const [key,items] of records){
         const [shape,tone]=key.split(':'),mesh=new T.InstancedMesh(geometries[shape],materials[tone],items.length);
         const tint=new T.Color(),base=materials[tone].color;
-        items.forEach((item,i)=>{tint.copy(base).lerp(materials.white.color,item.fade);tint.setRGB(tint.r/Math.max(.001,base.r),tint.g/Math.max(.001,base.g),tint.b/Math.max(.001,base.b));mesh.setColorAt(i,tint);});
+        items.forEach((item,i)=>{const own=THEMES[item.theme]?.[tone];if(own!=null)tint.setHex(own);else tint.copy(base);if(item.theme!=='dark')tint.lerp(materials.white.color,item.fade);tint.setRGB(tint.r/Math.max(.001,base.r),tint.g/Math.max(.001,base.g),tint.b/Math.max(.001,base.b));mesh.setColorAt(i,tint);});
         mesh.name='ui-'+key;mesh.instanceMatrix.setUsage(T.DynamicDrawUsage);mesh.frustumCulled=false;mesh.castShadow=true;mesh.receiveShadow=true;root.add(mesh);batches.push({mesh,items});
       }
     }

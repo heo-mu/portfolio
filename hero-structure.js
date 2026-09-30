@@ -1,4 +1,4 @@
-import {applyUIVolume,createUIRelief} from './hero-ui.js?v=7fcdf7e2';
+import {applyUIVolume,createUIRelief} from './hero-ui.js?v=e8283723';
 // Rest, assembly and pointer displacement are independent motion layers.
 export const CYCLE=4.2;
 // Opening starts here; by HOLD every lane has departed and none has begun to
@@ -72,8 +72,8 @@ for(let y=-2;y<=2;y+=2)for(let z=-2;z<=2;z++)for(let x=-1;x<=1;x++)
   part(x*.54,y*PITCH+.09,z*PITCH,.44,.025,.035,'rail',y);
 // Sparse internal signals, never a luminous outer skin.
 for(let y=-2;y<=2;y+=2)for(let x=-1;x<=1;x++){
-  part(x*.54,y*PITCH+.095,.745,.20,.026,.024,'signal',y);
-  part(.745,y*PITCH+.095,x*.54,.024,.026,.20,'signal',y);
+  part(x*.54,y*PITCH+.095,.745,.26,.04,.03,'signal',y);
+  part(.745,y*PITCH+.095,x*.54,.03,.04,.26,'signal',y);
 }
 export function modulePose(time,p,pointer=STILL,state=assemblyState(time),out={},field){
   // Structure (phase) sets where each module is; the ambient clock only moves
@@ -130,7 +130,11 @@ export function modulePose(time,p,pointer=STILL,state=assemblyState(time),out={}
     x+=pointer.nx/length*amount;y+=pointer.ny/length*amount;z+=pointer.nz/length*amount;
   }
   const turn=field&&!detached?0:p.spin*clearance*(travel+floatWindow*.10*Math.sin(clock*2+p.phase));
-  const shrink=p.kind==='shell'?1-(field&&!detached?.105+p.r*.04:.07)*open:1;
+  // A composed opening: its remaining cells fold into the core as it opens and
+  // unfold as it closes, so the interior reads as depth, not as missing blocks.
+  const fold=field?.folds?.(p)?open:0;
+  const shrink=(p.kind==='shell'?1-(field&&!detached?.105+p.r*.04:.07)*open:1)*(1-fold);
+  x-=p.nx*.12*fold;y-=p.ny*.12*fold;z-=p.nz*.12*fold;
   out.x=x;out.y=y;out.z=z;out.sx=p.sx*shrink;out.sy=p.sy*shrink;out.sz=p.sz*shrink;
   out.rx=turn*(.5+p.r);out.ry=turn;out.rz=turn*.35;out.activation=activation;out.travel=travel;
   if(breathing){
@@ -169,8 +173,10 @@ function bevelBox(T){
 export function createStructure(T,{accent='#C94324',ink='#1B1C19',environment=null,transmission=.18}={}){
   const group=new T.Group(),shellGeometry=bevelBox(T),innerGeometry=bevelBox(T);
   const basePositions=shellGeometry.attributes.position.array.slice();
-  const materials={shell:stone(T,0xe9e9e7,.72),core:stone(T,0x898989,.81),rail:stone(T,ink,.67,.16),
-    signal:new T.MeshStandardMaterial({color:accent,roughness:.64,metalness:.06})};
+  // The interior is darker than the skin, so an opening reads as depth; the
+  // signals inside carry the accent the collage concentrates at its centre.
+  const materials={shell:stone(T,0xe9e9e7,.72),core:stone(T,0x676964,.8),rail:stone(T,ink,.67,.16),
+    signal:new T.MeshStandardMaterial({color:accent,emissive:accent,emissiveIntensity:.18,roughness:.6,metalness:.04})};
   const batches=Object.entries(materials).map(([kind,material])=>{
     const parts=PARTS.filter(p=>p.kind===kind);
     const mesh=new T.InstancedMesh(kind==='shell'?shellGeometry:innerGeometry,material,parts.length);
@@ -196,7 +202,9 @@ export function createStructure(T,{accent='#C94324',ink='#1B1C19',environment=nu
   const solidBox=new T.Box3(new T.Vector3(-HALF,-HALF,-HALF),new T.Vector3(HALF,HALF,HALF));
   const pickRay=new T.Ray(),candidate=new T.Vector3(),worldHit=new T.Vector3(),faceNormal=new T.Vector3();
   let previousOpen=-1,wasResting=null,spreadAmount=0;
-  for(const b of batches)b.parts.forEach((p,i)=>b.mesh.setColorAt(i,color.setScalar(b.kind==='shell'?1:.93+p.r*.07)));
+  // The skin is not one plastic: most cells warm white, some cool, a few light grey.
+  const skin=p=>{const s=seed(p.x,p.y,p.z,5);return s<.1?[.9,.905,.895]:s<.3?[.955,.968,.985]:[1,.992,.975];};
+  for(const b of batches)b.parts.forEach((p,i)=>b.mesh.setColorAt(i,b.kind==='shell'?color.setRGB(...skin(p)):color.setScalar(.93+p.r*.07)));
   function update(time,pointer=STILL,field,clock=time){
     const state=assemblyState(time,motionState),open=state.open;state.clock=clock;
     const resting=state.assembled&&pointer.strength<.00001;

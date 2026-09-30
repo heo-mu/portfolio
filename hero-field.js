@@ -1,4 +1,4 @@
-import {UI_KIT,uiBounds} from './hero-ui.js?v=7fcdf7e2';
+import {UI_KIT,uiBounds} from './hero-ui.js?v=e8283723';
 // Deterministic occupancy in Hero-local coordinates. Scroll never replans it.
 const smooth=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t);};
 // Ease only the ends: stacking full eases made long routes whip past the copy.
@@ -6,8 +6,8 @@ const flightProgress=t=>{t=Math.max(0,Math.min(1,t));return 1-Math.pow(1-t,1.65)
 const halton=(i,base)=>{let n=0,f=1;while(i){f/=base;n+=f*(i%base);i=Math.floor(i/base);}return n;};
 export function createScatterField(T,camera,group,parts=[]){
   const local=new T.Vector3(),screen=new T.Vector3(),view=new T.Vector3(),inverse=new T.Matrix4();
-  const targets=new Map(),occupied=[],nodes=[],zones=[];
-  let width=1,height=1,top=0,mobile=false,slot,anchorDepth=10,core={x:0,y:0,w:0,h:0},planVersion=0,coreReach=1,gap=24;
+  const targets=new Map(),occupied=[],nodes=[],zones=[],opening=new Set();
+  let width=1,height=1,top=0,mobile=false,slot,anchorDepth=10,core={x:0,y:0,w:0,h:0},planVersion=0,coreReach=1,gap=24,free=false,zoneReach=null;
   const scratch={x:0,y:0,z:0,r:0};
   const routePoint={x:0,y:0};
   let layoutKey='';
@@ -34,7 +34,8 @@ export function createScatterField(T,camera,group,parts=[]){
   // is never covered. The front headline line may be grazed, since it paints
   // over the canvas. The back line may be overlapped at its edges — that is the
   // interleave — but never across its central letter band.
-  const reach=z=>z.kind==='back'?.24:z.kind==='front'?.5:.78;
+  // A collage layout may relax this per kind (LAYOUTS in hero-object.js).
+  const reach=z=>zoneReach?.[z.kind]??(z.kind==='back'?.24:z.kind==='front'?.5:.78);
   function available(x,y,r){
     if(x<r+10||x>width-r-10||y<top+r+10||y>height-r-10)return false;
     if(mobile&&(y<slot.top+r+8||y>slot.bottom-r-8))return false;
@@ -48,7 +49,7 @@ export function createScatterField(T,camera,group,parts=[]){
     width=w;height=h;slot=anchor;mobile=w<=768;top=headerHeight;
     // A back line protects only its letter band; the edges stay open to modules.
     zones.length=0;safeZones.forEach(z=>zones.push(z.kind==='back'?{...z,h:z.h*.5}:{...z}));
-    targets.clear();occupied.length=0;nodes.length=0;planVersion++;
+    targets.clear();occupied.length=0;nodes.length=0;opening.clear();planVersion++;
     camera.updateMatrixWorld();group.updateMatrixWorld(true);inverse.copy(group.matrixWorld).invert();
     // Rest frame only, never a transient hover rotation or float.
     view.set(0,0,0).applyMatrix4(camera.matrixWorldInverse);anchorDepth=-view.z;
@@ -58,7 +59,10 @@ export function createScatterField(T,camera,group,parts=[]){
       l=Math.min(l,px);r=Math.max(r,px);t=Math.min(t,py);b=Math.max(b,py);
     }
     core={x:(l+r)/2,y:(t+b)/2,w:r-l,h:b-t};
-    coreReach=layout?.slots?.length?.62:1;gap=layout?.slots?.length?12:24;
+    // A collage is composed, not solved: modules may overlap the core and each
+    // other (depth keeps them apart) and keep their designed places while floating.
+    coreReach=layout?.coreReach??(layout?.slots?.length?.62:1);gap=layout?.gap??(layout?.slots?.length?12:24);
+    free=!!layout?.collage;zoneReach=layout?.reach||null;
     if(layout?.slots?.length){planSlots(layout);return;}
     const candidates=parts.filter(p=>p.kind==='shell'&&(p.nx>0||p.ny>0||p.nz>0)).sort((a,b)=>a.r-b.r);
     const selected=[],limit=mobile?6:w<=1088?9:14;
@@ -131,15 +135,24 @@ export function createScatterField(T,camera,group,parts=[]){
     const release=p=>{const c=p.kind==='shell'?.68:1.02;project({x:p.x+p.nx*c,y:p.y+p.ny*c,z:p.z+p.nz*c});return {p,x:screen.x,y:screen.y};};
     const lanes=[...parts.filter(p=>p.kind==='shell'&&(p.nx>0||p.ny>0||p.nz>0)),
       ...parts.filter(p=>p.kind==='core'&&(p.z>.6||p.x>.6||p.y>.6))].map(release);
+    const depths=layout.depths||[.86,1.08,1.36],GRID=.36;
+    // A slot may name the face cell its module leaves through ([face, u, v]),
+    // so the openings in the cube are composed too: front (+z), right (+x), top (+y).
+    const cell=([face,u,v])=>parts.find(p=>p.kind==='shell'&&(face==='z'?Math.round(p.x/GRID)===u&&Math.round(p.y/GRID)===v&&Math.round(p.z/GRID)===3
+      :face==='x'?Math.round(p.x/GRID)===3&&Math.round(p.z/GRID)===u&&Math.round(p.y/GRID)===v:Math.round(p.y/GRID)===3&&Math.round(p.x/GRID)===u&&Math.round(p.z/GRID)===v));
+    // Cells of an opening that no module leaves through fold into the core as it
+    // opens, so the interior — planes, rails and the accent signals — shows.
+    for(const c of layout.opening||[]){const p=cell(c);if(p)opening.add(p);}
+    const tilt=layout.tilt??1;
     layout.slots.forEach((s,index)=>{
-      const tier=s.tier??1,base=UI_KIT.find(ui=>ui.name===s.ui);if(!base)return;
-      const scale=(s.scale??1)*(layout.scale??1),ui={...base,w:base.w*scale,h:base.h*scale,d:base.d*scale,scale};
+      const tier={front:0,mid:1,back:2}[s.tier]??s.tier??1,base=UI_KIT.find(ui=>ui.name===s.ui);if(!base)return;
+      const scale=(s.scale??1)*(layout.scale??1),ui={...base,w:base.w*scale,h:base.h*scale,d:base.d*scale,scale,theme:s.theme};
       const angle=Math.atan2(s.v,s.u);
-      ui.rx=camera.rotation.x+Math.sin(angle)*[.16,.25,.34][tier];
-      ui.ry=camera.rotation.y+Math.cos(angle)*[.24,.34,.42][tier];
-      ui.rz=camera.rotation.z+Math.sin(angle*1.7)*[.10,.15,.21][tier];
+      ui.rx=camera.rotation.x+Math.sin(angle)*[.16,.25,.34][tier]*tilt+(s.rx||0);
+      ui.ry=camera.rotation.y+Math.cos(angle)*[.24,.34,.42][tier]*tilt+(s.ry||0);
+      ui.rz=camera.rotation.z+Math.sin(angle*1.7)*[.10,.15,.21][tier]*tilt+(s.rz||0);
       ui.depthFade=mobile?0:[0,.04,.10][tier];
-      const depth=anchorDepth*[.86,1.08,1.36][tier],rad=radius(uiBounds(ui),depth);
+      const depth=anchorDepth*(s.depth??depths[tier]),rad=radius(uiBounds(ui),depth);
       // The slot itself, or the nearest free point on a widening spiral.
       const gx=core.x+s.u*size,gy=core.y+s.v*size;let best=null;
       for(let k=0;k<=160&&!best;k++){
@@ -148,14 +161,16 @@ export function createScatterField(T,camera,group,parts=[]){
       }
       if(!best)return;
       let lane=null,score=Infinity;
-      for(const l of lanes){
+      const named=s.from&&cell(s.from);
+      if(named&&!used.includes(named))lane=release(named);
+      else for(const l of lanes){
         // Non-adjacent release sites avoid rubbing neighbouring blocks on departure.
         if(used.some(q=>Math.hypot(l.p.x-q.x,l.p.y-q.y,l.p.z-q.z)<.49))continue;
         const ax=l.x-core.x,ay=l.y-core.y,bx=best.x-core.x,by=best.y-core.y;
         const value=1-(ax*bx+ay*by)/Math.max(1,Math.hypot(ax,ay)*Math.hypot(bx,by))+l.p.r*.02;
         if(value<score){score=value;lane=l;}
       }
-      if(!lane)return;
+      if(!lane||used.includes(lane.p))return;
       used.push(lane.p);best.part=lane.p;best.route=planRoute(lane.x,lane.y,best);
       targets.set(lane.p,best);occupied.push(best);
     });
@@ -217,6 +232,7 @@ export function createScatterField(T,camera,group,parts=[]){
   }
   function solve(poses){
     nodes.length=0;
+    if(free)return;
     for(const target of occupied){
       const p=poses[target.part.id];if(!p||p.travel<.001)continue;
       project(p);
@@ -241,7 +257,7 @@ export function createScatterField(T,camera,group,parts=[]){
     for(const n of nodes)resolve(n.p,n.px,n.py,n.d);
   }
   function inspect(){return {version:planVersion,targets:occupied.map(t=>({id:t.part.id,x:t.x,y:t.y,r:t.r,depth:t.depth,foreground:t.foreground,region:t.region,kind:t.part.kind,band:t.band,ui:t.ui.name})),core:{...core}};}
-  return {configure,begin,scatter,solve,has:p=>targets.has(p),profile:p=>targets.get(p)?.ui,
+  return {configure,begin,scatter,solve,has:p=>targets.has(p),profile:p=>targets.get(p)?.ui,folds:p=>opening.has(p)&&!targets.has(p),
     duration:p=>targets.has(p)?Math.min(1.22,.88+targets.get(p).route.length/4000):p.departDuration,
     objects:()=>occupied,get version(){return planVersion;},inspect};
 }
