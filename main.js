@@ -569,6 +569,13 @@ let lenis = null;
         };
       };
       const hooks={
+        // The poster leaves on its own axes: the grey line drifts up-left
+        // behind the sculpture, the ink line down-right in front, while the
+        // sculpture itself is already retracing its cubes home.
+        hero:section=>{
+          cleanups.push(()=>section.style.removeProperty('--hero-leave'));
+          return (enter,leave)=>section.style.setProperty('--hero-leave',smooth(leave).toFixed(4));
+        },
         // About lifts off the page: its lower corners round as it leaves.
         about:section=>(enter,leave)=>section.style.setProperty('--about-radius',(44*amount*smooth(leave)).toFixed(2)+'px'),
         // Tools is one surface. It rises over the pinned AI stage as an inset,

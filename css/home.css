@@ -643,3 +643,35 @@
  .contact__value {font-size:1.125rem;}
 }
 @media(prefers-reduced-motion:reduce) {.contact__label,.contact__arrow,.home-page .contact__action::after {transition:none;}}
+
+/* ---- Hero: poster composition on wide screens ----
+   One scene instead of a text column and an object column. The sculpture
+   holds the optical centre; the two headline lines step around it on a
+   diagonal — the grey line runs behind the scene, the ink line in front of
+   it — identity and the description sit as corner meta, and the CTA anchors
+   the lower left. The scatter field replans itself around this geometry, so
+   the floating UI keeps avoiding the resting copy. On scroll (--hero-leave,
+   main.js) the two lines part along their own axes while the sculpture
+   retraces its cubes home. */
+@media(min-width:68.0625em) {
+ .hero {--hero-pad-t:calc(var(--nav-h) + clamp(1.25rem,3.5svh,2.5rem));--hero-pad-b:clamp(1.75rem,4.5svh,3.25rem);
+  padding-top:var(--hero-pad-t);padding-bottom:var(--hero-pad-b);}
+ .hero__layout {display:block;position:relative;height:calc(100svh - var(--hero-pad-t) - var(--hero-pad-b));min-height:38rem;}
+ .hero__copy,.hero__aside {display:contents;}
+ /* The canvas sits between the headline layers; it never takes the pointer. */
+ .hero__3d-stage {z-index:2;}
+ .hero__identity {position:absolute;z-index:3;right:var(--gutter);top:.35rem;margin:0;text-align:right;}
+ .hero__identity > span {display:block;margin:.35rem 0 0;}
+ .hero h1 {position:static;perspective:none;}
+ .hero .type-mask {position:absolute;margin:0;padding:0;}
+ .hero .type-mask:first-child {z-index:1;left:var(--gutter);top:clamp(3.25rem,8.5svh,6rem);
+  font-size:clamp(5rem,8.8vw,10.25rem);line-height:1;
+  translate:calc(var(--hero-leave,0) * -7vw) calc(var(--hero-leave,0) * -4svh);}
+ .hero .type-mask:last-child {z-index:3;right:var(--gutter);bottom:clamp(5rem,14svh,8.5rem);
+  font-size:clamp(5rem,8.8vw,10.25rem);line-height:1;
+  translate:calc(var(--hero-leave,0) * 7vw) calc(var(--hero-leave,0) * 2.5svh);}
+ .hero-object {position:absolute;left:50%;top:45%;width:min(48vw,46rem);height:min(60svh,38rem);transform:translate(-50%,-50%);}
+ .hero__aside > p:first-child {position:absolute;z-index:3;left:var(--gutter);bottom:4.9rem;max-width:17.5rem;margin:0;
+  font-size:clamp(1rem,1.15vw,1.1875rem);line-height:1.7;}
+ .hero__aside > a {position:absolute;z-index:3;left:var(--gutter);bottom:0;margin:0;}
+}
