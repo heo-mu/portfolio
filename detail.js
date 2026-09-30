@@ -19,6 +19,13 @@
  const progress=document.getElementById('read-progress'),topButton=document.getElementById('scrollToTop');
  const next=document.querySelector('.next-projects');
  const offset=()=> (nav?.offsetHeight||0)+(toc?.offsetHeight||0)+24;
+ const walkthroughs=[...document.querySelectorAll('.screen-walkthrough')].map(root=>{
+  const steps=[...root.querySelectorAll('.screen-step')],stage=root.querySelector('.screen-walkthrough__visual');
+  const controls=[...root.querySelectorAll('.screen-walkthrough__nav a')];
+  const media=steps.map(step=>{const copy=step.querySelector('.screen-step__media').cloneNode(true);stage.append(copy);return copy;});
+  root.classList.add('is-enhanced');
+  return {root,steps,controls,media,active:-1};
+ });
  let frame=0,lastActive=-1;
  const measureChrome=()=>{document.body.style.setProperty('--detail-header',(nav?.offsetHeight||0)+'px');document.body.style.setProperty('--detail-tabs',(toc?.offsetHeight||0)+'px');schedule();};
  const chromeObserver=new ResizeObserver(measureChrome);if(nav)chromeObserver.observe(nav);if(toc)chromeObserver.observe(toc);
@@ -34,6 +41,18 @@
    lastActive=active;
   }
   topButton?.classList.toggle('visible',y>600);
+  for(const walk of walkthroughs){
+   const readingLine=offset()+(innerHeight-offset())*.4;
+   let selected=0;
+   walk.steps.forEach((step,i)=>{if(step.getBoundingClientRect().top<=readingLine)selected=i;});
+   if(selected===walk.active)continue;
+   walk.active=selected;
+   walk.steps.forEach((step,i)=>step.classList.toggle('is-active',i===selected));
+   walk.media.forEach((media,i)=>media.classList.toggle('is-active',i===selected));
+   walk.controls.forEach((link,i)=>{if(i===selected)link.setAttribute('aria-current','step');else link.removeAttribute('aria-current');});
+   // Decode the current and next screen ahead of the next scroll threshold.
+   walk.media.slice(selected,selected+2).forEach(media=>{const img=media.querySelector('img');if(img){img.loading='eager';img.decode?.().catch(()=>{});}});
+  }
  }
  function schedule(){if(!frame)frame=requestAnimationFrame(update);}
  addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule,{passive:true});
@@ -41,6 +60,7 @@
  document.querySelectorAll('.study-more').forEach(details=>details.addEventListener('toggle',()=>{
   window.portfolioScroll?.refresh();schedule();
  }));
+ document.querySelectorAll('.study-supporting').forEach(details=>details.addEventListener('toggle',()=>{window.portfolioScroll?.refresh();schedule();}));
  document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',e=>{
   const target=document.getElementById(decodeURIComponent(a.hash.slice(1)));if(!target)return;
   e.preventDefault();

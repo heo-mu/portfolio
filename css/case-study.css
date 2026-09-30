@@ -1,7 +1,10 @@
 /* Project case studies: one reading system for all five detail pages.
    Brand tokens (accent, ink, surfaces) come from motion.css :root, so the
    detail pages and the main portfolio share one palette. Components map to
-   semantic content types; counts change columns, never the component. */
+   semantic content types; counts change columns, never the component.
+   Colour carries one meaning: neutral tones hold the problem and its
+   context, the accent marks the answer (after, design, the designer's own
+   judgment, what changed) and the reader's position (eyebrows, index). */
 body.detail-page {
  --study-paper:#FFFFFF;
  --study-soft:var(--c-bg);
@@ -13,8 +16,7 @@ body.detail-page {
  --study-accent-on-dark:color-mix(in srgb,var(--c-accent),#FFF 38%);
  --study-measure:40rem;
  --study-section-y:clamp(4.5rem,8vw,7.5rem);
- --study-block-gap:clamp(2.75rem,5vw,4rem);
- --study-card-pad:clamp(1.5rem,2.4vw,2rem);
+ --study-block-gap:clamp(3rem,5vw,4.25rem);
  --study-radius:12px;
  --detail-header:4.25rem;
  --detail-tabs:3rem;
@@ -45,28 +47,37 @@ body.detail-page {
 .case-index a[aria-current]::after {transform:scaleX(1);}
 @media(hover:hover) {.case-nav__links a:hover,.case-index a:hover {color:var(--c-accent);}}
 
-/* ---------- Type roles: eyebrow, titles, lead and body ---------- */
-.detail-page .study-eyebrow {display:flex;align-items:baseline;gap:.75rem;margin:0 0 1rem;font:500 .75rem/1.5 var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--c-accent);}
-.detail-page .study-eyebrow > span {color:var(--study-muted);letter-spacing:.06em;font-variant-numeric:tabular-nums;}
+/* ---------- Type roles ----------
+   eyebrow (where am I) → section title (the message) → lead (its context) →
+   block title → item title → body → label (small, the role of a value). */
+.detail-page .study-eyebrow {display:flex;flex-wrap:wrap;align-items:baseline;gap:.35rem .75rem;margin:0 0 1rem;font:500 .75rem/1.5 var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--c-accent);}
+.detail-page .study-eyebrow > span:first-child {color:var(--study-muted);letter-spacing:.06em;font-variant-numeric:tabular-nums;}
 .detail-page .study-title {margin:0;}
 .study-title__name {display:block;font:650 clamp(2.5rem,4.4vw,3.75rem)/1.12 var(--f-body);letter-spacing:-.045em;color:var(--study-ink);word-break:keep-all;}
 .study-title__desc {display:block;max-width:18em;margin-top:.75rem;font:500 clamp(1.25rem,1.9vw,1.625rem)/1.45 var(--f-body);letter-spacing:-.03em;color:var(--study-body);word-break:keep-all;text-wrap:balance;}
-.detail-page .study-lead {max-width:34em;margin:1.5rem 0 0;font:400 1.0625rem/1.85 var(--f-body);color:var(--study-body);}
-.study-heading {max-width:48rem;margin:0 0 var(--study-block-gap);}
-.detail-page .study-heading h2 {max-width:20em;margin:0;font:650 clamp(1.75rem,2.6vw,2.375rem)/1.32 var(--f-body);letter-spacing:-.04em;color:var(--study-ink);text-wrap:balance;}
-.detail-page .study-heading__lead {max-width:var(--study-measure);margin:1.1rem 0 0;font:400 1.0625rem/1.85 var(--f-body);color:var(--study-body);}
+.detail-page .study-lead {max-width:34em;margin:1.5rem 0 0;font:400 1.0625rem/1.85 var(--f-body);color:var(--study-body);word-break:keep-all;text-wrap:pretty;}
+.study-heading {max-width:50rem;margin:0 0 var(--study-block-gap);}
+/* Section titles state what was solved; they are sentences, so they balance. */
+.detail-page .study-heading h2 {max-width:21em;margin:0;font:650 clamp(1.75rem,2.6vw,2.375rem)/1.34 var(--f-body);letter-spacing:-.04em;color:var(--study-ink);word-break:keep-all;text-wrap:balance;}
+.detail-page .study-heading__lead {max-width:var(--study-measure);margin:1.1rem 0 0;font:400 1.0625rem/1.85 var(--f-body);color:var(--study-body);word-break:keep-all;text-wrap:pretty;}
 /* Zero-specificity defaults; every component below may refine them. */
 .detail-page :where(.study-blocks) :where(p,dd,li) {font-size:.9375rem;line-height:1.75;color:var(--study-body);word-break:keep-all;text-wrap:pretty;}
-/* Item titles share one size (1.125rem); entry titles (decisions) and block
-   titles (subheads) sit one step up, section titles above them. */
+/* Item titles share one size (1.125rem); entry titles (decisions, pairs) and
+   block titles (subheads) sit one step up, section titles above them. */
 .detail-page :where(.study-section) h3 {margin:0;font:650 1.125rem/1.45 var(--f-body);letter-spacing:-.025em;color:var(--study-ink);word-break:keep-all;text-wrap:balance;}
-/* A block title sits between the section title and its items. */
 .detail-page .study-subhead {margin:0 0 1.5rem;font-size:1.25rem;letter-spacing:-.03em;}
-.detail-page .study-block__intro {max-width:var(--study-measure);margin:-.5rem 0 1.25rem;font-size:1rem;line-height:1.8;}
+.detail-page .study-block__intro {max-width:var(--study-measure);margin:-.75rem 0 1.5rem;font-size:1rem;line-height:1.8;}
+/* A compact label: the role of the value that follows it. */
+.study-tag {padding:.1rem .5rem;border-radius:3px;background:var(--c-accent-soft);font:600 .6875rem/1.7 var(--f-body);letter-spacing:0;text-transform:none;color:var(--c-accent-ink);}
+/* Draft content (no record yet) is marked, never passed off as a record. */
+.study-draft {display:inline-block;margin-right:.5rem;padding:.05rem .4rem;border-radius:3px;background:#E9E9E5;font:600 .6875rem/1.6 var(--f-body);letter-spacing:.02em;text-transform:none;color:#55564F;vertical-align:.12em;}
+.study-eyebrow .study-draft {margin:0;vertical-align:0;}
 
 /* ---------- Layout rhythm ---------- */
 .detail-page .study-section {padding-block:var(--study-section-y);scroll-margin-top:calc(var(--detail-header) + var(--detail-tabs) + 1rem);}
-.study-section[data-tone="soft"],.study-next[data-tone="soft"] {background:var(--study-soft);}
+/* Panels (flows, specimens, image slots) sit one step off their section. */
+.study-section[data-tone="paper"] {--panel:#F4F4F1;}
+.study-section[data-tone="soft"],.study-next[data-tone="soft"] {--panel:#FFFFFF;background:var(--study-soft);}
 .study-blocks > .study-block + .study-block {margin-top:var(--study-block-gap);}
 /* Images are the content, not cards: no mat, no padding. The frame hugs the
    image (up to its column) and carries the one image radius. Light-edged
@@ -77,7 +88,7 @@ body.detail-page {
    box is reserved before the image loads and lazy images never shift layout. */
 .study-frame img {display:block;max-width:100%;height:auto;}
 
-/* ---------- Hero and project facts ---------- */
+/* ---------- Hero, project facts and the brief ---------- */
 .detail-page .study-hero {padding:calc(var(--detail-header) + clamp(2.25rem,5vw,4.5rem)) 0 clamp(3rem,5vw,4.5rem);}
 .study-hero__grid {display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(2.5rem,5vw,5rem);align-items:center;}
 .study-hero__intro {min-width:0;}
@@ -92,23 +103,77 @@ body.detail-page {
 /* A separator travels with the token before it: no line starts with a dot. */
 .study-token {white-space:nowrap;}
 .study-token:not(:last-child)::after {content:'·';margin-inline:.5em;font-weight:400;color:var(--study-muted);}
+/* The brief answers the case study's three questions before any detail:
+   what was hard, what came first, what changed. */
+.study-brief {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.5rem var(--grid-gap);margin:clamp(2.5rem,4vw,3.5rem) 0 0;}
+.study-brief__item {min-width:0;padding:1.25rem 0 0;border-top:2px solid var(--study-ink);}
+.detail-page .study-brief dt {margin:0 0 .65rem;font:600 .75rem/1.5 var(--f-body);color:var(--study-muted);}
+.detail-page .study-brief__item[data-key="change"] dt {color:var(--c-accent);}
+.detail-page .study-brief dd {margin:0;font:500 1.0625rem/1.7 var(--f-body);letter-spacing:-.015em;color:var(--study-ink);word-break:keep-all;text-wrap:pretty;}
 @media(hover:hover) {.study-back:hover,.study-live:hover {color:var(--c-accent);text-decoration-color:currentColor;}}
 @media(prefers-reduced-motion:no-preference) {
  .study-hero__visual {animation:study-visual-in .7s var(--ease) both;}
  @keyframes study-visual-in {from{opacity:.4;transform:translateY(12px)}to{opacity:1;transform:none}}
 }
 
-/* ---------- Problems and design perspective ---------- */
-/* Problems read as statements: numbered, ruled and muted in tone, with no
-   container. The result's points answer them in the same system, in accent. */
+/* ---------- Problems ---------- */
+/* Problems read as statements: numbered, ruled and neutral, with no
+   container. The outcome's points answer them in the same system. */
 .study-issues {display:grid;grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));gap:2rem var(--grid-gap);margin:0;padding:0;list-style:none;}
 .study-issues[data-count="3"] {--cols:3;}
 .study-issue {min-width:0;padding-top:1.25rem;border-top:1px solid var(--study-line-strong);}
 .detail-page .study-issue__index {display:block;margin-bottom:.9rem;font:600 .75rem/1 var(--f-body);letter-spacing:.02em;font-variant-numeric:tabular-nums;color:var(--study-muted);}
 .detail-page .study-issue h3 {margin-bottom:.5rem;}
-.study-insight {display:grid;grid-template-columns:minmax(0,11rem) minmax(0,1fr);gap:.75rem 2rem;padding-top:1.75rem;border-top:1px solid var(--study-line-strong);}
-.detail-page .study-insight__label {margin:0;font:600 .8125rem/1.7 var(--f-body);color:var(--c-accent);}
-.detail-page .study-insight__text {max-width:34em;margin:0;font:500 clamp(1.1875rem,1.6vw,1.375rem)/1.7 var(--f-body);letter-spacing:-.02em;color:var(--study-ink);}
+
+/* ---------- Criteria: what was put aside, what came first ---------- */
+.study-criteria {margin:0;padding:0;list-style:none;border-bottom:1px solid var(--study-line);}
+.study-criteria li {display:grid;grid-template-columns:minmax(0,3.5rem) minmax(0,5fr) minmax(0,7fr);gap:.4rem var(--grid-gap);align-items:baseline;padding:1.6rem 0;border-top:1px solid var(--study-line-strong);}
+.study-criteria__index {font:600 .75rem/1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--study-muted);}
+.detail-page .study-criteria__instead {margin:0;font-size:1rem;line-height:1.7;color:var(--study-muted);}
+.detail-page .study-criteria__first {margin:0;font:600 clamp(1.1875rem,1.7vw,1.4375rem)/1.5 var(--f-body);letter-spacing:-.025em;color:var(--study-ink);text-wrap:balance;}
+
+/* ---------- Before / after ---------- */
+/* One pair: two sides, then one statement of what changed and why. Sides
+   share a row height, so a panel and a screenshot compare at one scale. */
+.study-compare {display:grid;gap:clamp(3.75rem,7vw,5.5rem);margin:0;padding:0;list-style:none;}
+.study-pair {display:grid;gap:clamp(1.25rem,2vw,1.75rem);min-width:0;}
+.study-pair__sides {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--grid-gap);align-items:stretch;}
+.study-pair[data-layout="lead"] .study-pair__sides {grid-template-columns:minmax(0,4fr) minmax(0,8fr);align-items:start;}
+.study-pair[data-layout="single"] .study-pair__sides {grid-template-columns:minmax(0,1fr);}
+.study-pair__side {display:flex;flex-direction:column;gap:.75rem;min-width:0;}
+.detail-page .study-pair__label {margin:0;font:600 .6875rem/1.4 var(--f-display);letter-spacing:.12em;text-transform:uppercase;color:var(--study-muted);}
+.detail-page .study-pair__side[data-side="after"] .study-pair__label {color:var(--c-accent);}
+.study-pair__side:is([data-kind="flow"],[data-kind="specimen"]) > :last-child {flex:1;align-content:center;box-sizing:border-box;min-height:12rem;margin:0;padding:clamp(1.5rem,3vw,2.5rem);border-radius:var(--image-radius);background:var(--panel);}
+.study-pair__text {display:grid;gap:.45rem;max-width:46rem;}
+.detail-page .study-pair__index {display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .75rem;margin:0 0 .15rem;font:600 .75rem/1.5 var(--f-display);font-variant-numeric:tabular-nums;color:var(--study-muted);}
+.detail-page .study-pair__text h3 {font-size:clamp(1.1875rem,1.6vw,1.375rem);line-height:1.45;}
+.detail-page .study-pair__why {margin:0;font-size:1rem;line-height:1.8;}
+/* A flow is a short path; a removed step stays visible, struck through. */
+.study-flow {--flow-gap:1.1rem;display:grid;gap:var(--flow-gap);list-style:none;}
+.detail-page .study-flow li {position:relative;padding-left:1.5rem;font:500 1rem/1.5 var(--f-body);color:var(--study-body);}
+.study-flow li::before {content:'';position:absolute;left:0;top:.5em;width:9px;height:9px;border-radius:50%;background:var(--panel);box-shadow:inset 0 0 0 1.5px var(--study-muted);}
+.study-flow li:not(:last-child)::after {content:'';position:absolute;left:4px;top:calc(.5em + 9px);width:1px;height:calc(100% + var(--flow-gap) - 9px);background:var(--study-line-strong);}
+.detail-page [data-side="after"] .study-flow li {font-weight:600;color:var(--study-ink);}
+[data-side="after"] .study-flow li::before {background:var(--study-ink);box-shadow:none;}
+[data-side="after"] .study-flow li:last-child::before {background:var(--c-accent);}
+.study-flow .is-removed s {color:var(--study-muted);text-decoration:line-through 1.5px var(--c-accent);}
+.study-flow .is-removed::before {box-shadow:inset 0 0 0 1.5px var(--c-accent);}
+/* A specimen shows the words or values the screen actually shows. */
+.study-specimen {display:grid;gap:1.25rem;}
+.study-specimen > div {display:grid;gap:.35rem;min-width:0;}
+.detail-page .study-specimen dt {font:600 clamp(1.5rem,2.4vw,2rem)/1.25 var(--f-body);letter-spacing:-.035em;color:var(--study-muted);word-break:keep-all;}
+.detail-page [data-side="after"] .study-specimen dt {color:var(--study-ink);}
+.detail-page .study-specimen dd {margin:0;font-size:.875rem;line-height:1.6;color:var(--study-muted);}
+.study-specimen:not([data-count="1"]) > div {grid-template-columns:minmax(0,7.5rem) minmax(0,1fr);gap:1rem;align-items:baseline;}
+.detail-page .study-specimen:not([data-count="1"]) dt {font-size:1.25rem;}
+/* An image slot stands in for a screenshot that is not recorded yet. It
+   takes the ratio of the screenshot it will be compared with; facing a
+   panel instead, it fills the row the panel sets. */
+.study-slot {box-sizing:border-box;display:grid;place-content:center;justify-items:center;gap:.4rem;width:100%;aspect-ratio:var(--ratio,16 / 10);padding:1.25rem;border-radius:var(--image-radius);text-align:center;
+ background:repeating-linear-gradient(135deg,var(--panel,#F4F4F1) 0 12px,color-mix(in srgb,var(--panel,#F4F4F1),#1B1C19 4%) 12px 24px);}
+.study-slot[data-fill] {flex:1;aspect-ratio:auto;min-height:12rem;}
+.study-slot__tag {font:600 .75rem/1.4 var(--f-body);color:var(--study-muted);}
+.study-slot__text {max-width:18em;font:500 .875rem/1.6 var(--f-body);color:var(--study-body);word-break:keep-all;text-wrap:balance;}
 
 /* ---------- Flow steps and node chains ---------- */
 .study-steps {display:grid;grid-template-columns:repeat(var(--cols,3),minmax(0,1fr));gap:2rem var(--grid-gap);margin:0;padding:0;list-style:none;}
@@ -118,15 +183,13 @@ body.detail-page {
  --step-arrow:linear-gradient(#000 0 0) 0 50%/calc(100% - 1px) 2px no-repeat,url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 7 10%27 fill=%27none%27 stroke=%27%23000%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M2 1l4 4-4 4%27/%3E%3C/svg%3E") 100% 50%/7px 10px no-repeat;}
 .study-step {position:relative;min-width:0;padding:1.25rem 1.5rem 0 0;}
 .study-step::before {content:'';position:absolute;top:-4px;left:0;right:0;height:10px;background:var(--study-line-strong);-webkit-mask:var(--step-line);mask:var(--step-line);}
-.study-step__index {display:block;margin-bottom:1rem;font:600 .75rem/1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--c-accent);}
+.study-step__index {display:block;margin-bottom:1rem;font:600 .75rem/1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--study-muted);}
 .study-step h3 {margin-bottom:.5rem;}
 .study-steps[data-variant="sequence"] .study-step:not(:last-child)::before {-webkit-mask:var(--step-arrow);mask:var(--step-arrow);}
-/* Before and after read as a diff: the unchanged path stays muted with the
-   removed step struck through, the new path is set in ink. No boxes. */
+/* A chain is a path read left to right; the emphasised path is set in ink. */
 .study-chains {display:grid;gap:.5rem;}
 .study-chain {display:grid;grid-template-columns:minmax(0,6.5rem) minmax(0,1fr);gap:.5rem 1.5rem;align-items:center;min-width:0;}
 .detail-page .study-chain__label {margin:0;font:600 .8125rem/1.5 var(--f-body);color:var(--study-muted);}
-.detail-page .study-chain[data-emphasis] .study-chain__label {color:var(--c-accent);}
 .study-chain__nodes {display:flex;flex-wrap:wrap;align-items:center;row-gap:.35rem;min-width:0;margin:0;padding:.625rem 0;list-style:none;}
 .detail-page .study-chain__nodes li {display:inline-flex;align-items:center;font:500 .9375rem/1.5 var(--f-body);color:var(--study-body);white-space:nowrap;}
 .detail-page .study-chain[data-emphasis] .study-chain__nodes li {font-weight:600;color:var(--study-ink);}
@@ -148,15 +211,14 @@ body.detail-page {
 .study-decisions {display:grid;gap:clamp(2.75rem,5vw,4rem);}
 .study-decision {min-width:0;}
 .study-decision__head {margin-bottom:1.25rem;}
-.detail-page .study-decision__index {display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .75rem;margin:0 0 .75rem;font:600 .75rem/1.5 var(--f-display);font-variant-numeric:tabular-nums;color:var(--c-accent);}
-.study-decision__tag {padding:.1rem .5rem;border-radius:3px;background:var(--c-accent-soft);font:600 .6875rem/1.7 var(--f-body);color:var(--c-accent-ink);}
-.detail-page .study-decision h3 {margin:0;font-size:clamp(1.25rem,1.7vw,1.4375rem);line-height:1.4;}
+.detail-page .study-decision__index {display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .75rem;margin:0 0 .75rem;font:600 .75rem/1.5 var(--f-display);font-variant-numeric:tabular-nums;color:var(--study-muted);}
+.detail-page .study-decision h3 {margin:0;font-size:clamp(1.1875rem,1.6vw,1.375rem);line-height:1.45;}
 .study-decision__track {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.25rem var(--grid-gap);margin:0;}
 .study-decision__row {position:relative;min-width:0;padding-top:1rem;}
 .study-decision__row::before {content:'';position:absolute;inset:0 0 auto;height:1px;background:var(--study-line-strong);}
 .study-decision__row[data-row="design"]::before {height:2px;background:var(--c-accent);}
 .detail-page .study-decision__row dt {margin:0 0 .4rem;font:600 .75rem/1.5 var(--f-body);color:var(--study-muted);}
-.detail-page .study-decision__row dd {margin:0;text-wrap:balance;}
+.detail-page .study-decision__row dd {margin:0;text-wrap:pretty;}
 .detail-page .study-decision__row[data-row="design"] dt {color:var(--c-accent);}
 .detail-page .study-decision__row[data-row="design"] dd {color:var(--study-ink);}
 /* Evidence joins its entry: a wide artifact below the track, a standard one
@@ -170,7 +232,7 @@ body.detail-page {
 .study-features {display:grid;gap:var(--study-block-gap);}
 .study-feature {display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(1.5rem,4vw,4rem);align-items:center;min-width:0;}
 .study-features[data-layout="rows"] .study-feature:nth-child(even) .study-feature__text {order:2;}
-.study-feature[data-shape="wide"] {grid-template-columns:minmax(0,1fr);gap:1.5rem;}
+.study-feature[data-shape="wide"] {grid-template-columns:minmax(0,1fr);gap:1.25rem;}
 .study-features[data-layout="rows"] .study-feature[data-shape="wide"] .study-feature__text {order:0;}
 .study-feature__text {min-width:0;max-width:var(--study-measure);}
 .study-feature__text h3 {margin-bottom:.6rem;}
@@ -181,21 +243,22 @@ body.detail-page {
 .study-figure {width:fit-content;max-width:100%;margin:0;}
 .study-figure[data-shape="wide"] {width:auto;}
 
-/* ---------- AI workflow: what AI handled, what the designer decided ---------- */
-/* Only the designer's judgment is a surface; what AI handled sits on the page
-   at the same baseline, so the weight of the comparison is visible. */
-.study-ai {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem var(--grid-gap);}
-.study-ai__col {min-width:0;padding:var(--study-card-pad);border-radius:var(--study-radius);}
-.detail-page .study-ai__col[data-owner="ai"] {padding-inline:0;border-top:1px solid var(--study-line-strong);border-radius:0;}
-.detail-page .study-ai__col[data-owner="designer"] {background:var(--study-ink);}
-.detail-page .study-ai__owner {margin:0 0 .5rem;font:600 .6875rem/1.4 var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--study-muted);}
-.detail-page [data-owner="designer"] .study-ai__owner {color:var(--study-accent-on-dark);}
-.study-ai__col h3 {margin-bottom:1rem;}
-.detail-page [data-owner="designer"] h3 {color:#F7F7F5;}
-.study-ai__col ul {display:grid;gap:.7rem;margin:0;padding:0;list-style:none;}
-.detail-page .study-ai__col li {position:relative;padding-left:1rem;font-size:1rem;line-height:1.7;}
-.study-ai__col li::before {content:'';position:absolute;left:0;top:.82em;width:5px;height:1.5px;background:currentColor;opacity:.55;}
-.detail-page [data-owner="designer"] li {color:#E2E2DE;}
+/* ---------- AI workflow: lanes of help and judgment ---------- */
+/* Each stage shows what AI helped with and what was decided directly, on
+   one row. The designer's lane is set in ink and headed in accent, so the
+   final judgment stays the visible line through the work. */
+.study-lanes__head,.study-lane {display:grid;grid-template-columns:minmax(0,10rem) minmax(0,1fr) minmax(0,1fr);column-gap:var(--grid-gap);}
+.study-lanes__head {padding-bottom:.9rem;font:600 .75rem/1.4 var(--f-body);color:var(--study-muted);}
+.study-lanes__head [data-owner="designer"] {color:var(--c-accent);}
+.study-lanes__rows {margin:0;padding:0;list-style:none;border-bottom:1px solid var(--study-line-strong);}
+.study-lane {padding:1.35rem 0;border-top:1px solid var(--study-line-strong);}
+.detail-page .study-lane__stage {display:flex;gap:.75rem;align-items:baseline;margin:0;font:600 1rem/1.6 var(--f-body);color:var(--study-ink);}
+.study-lane__stage > span {font:600 .75rem/1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--study-muted);}
+.detail-page .study-lane__cell {margin:0;font-size:1rem;line-height:1.75;}
+.detail-page .study-lane__cell[data-owner="designer"] {font-weight:500;color:var(--study-ink);}
+.detail-page .study-lane__cell[data-empty] {color:var(--study-line-strong);}
+.detail-page .study-lane__cell[data-draft] {color:var(--study-muted);}
+.study-lane__owner {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
 
 /* ---------- Key screens ---------- */
 .study-gallery-group + .study-gallery-group {margin-top:var(--study-block-gap);}
@@ -203,11 +266,11 @@ body.detail-page {
 .study-gallery {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--grid-gap);align-items:start;}
 .study-gallery > .is-featured {grid-column:1/-1;}
 
-/* ---------- Result: outcomes, capabilities, learning ---------- */
+/* ---------- Outcome: what changed, capabilities, learning ---------- */
 .study-points {display:grid;grid-template-columns:repeat(var(--cols,3),minmax(0,1fr));gap:2rem var(--grid-gap);margin:0;padding:0;list-style:none;}
 .study-points[data-count="2"],.study-points[data-count="4"] {--cols:2;}
-.study-points li {min-width:0;padding-top:1.25rem;border-top:1px solid var(--study-line-strong);}
-.study-points__index {display:block;margin-bottom:.9rem;font:600 .75rem/1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--c-accent);}
+.study-points li {min-width:0;padding-top:1.25rem;border-top:2px solid var(--study-ink);}
+.study-points__index {display:block;margin-bottom:.9rem;font:600 .75rem/1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--study-muted);}
 .study-points h3 {margin-bottom:.5rem;}
 /* ---------- Takeaway: the case study's last scene ---------- */
 /* One principle set large, then the capabilities it rests on, on a dark band.
@@ -215,6 +278,7 @@ body.detail-page {
    (box-shadow spread, clipped to the band's height), and the section drops
    its bottom padding so the band meets the next section flush. */
 .study-section[data-ends="takeaway"] {padding-bottom:0;}
+.study-section[data-ends="takeaway"] .study-block[data-type="closing"] {margin-top:clamp(4rem,7vw,5.5rem);}
 .study-takeaway {
  --on-dark:#F2F2EF;--on-dark-2:#B9B9B4;
  position:relative;display:grid;gap:clamp(2.5rem,5vw,4rem);padding-block:clamp(3.5rem,7vw,6rem);
@@ -227,9 +291,8 @@ body.detail-page {
 .study-skills {display:grid;grid-template-columns:repeat(var(--cols,3),minmax(0,1fr));gap:1.75rem var(--grid-gap);margin:0;padding:0;list-style:none;}
 .study-skills[data-count="2"],.study-skills[data-count="4"] {--cols:2;}
 .detail-page .study-skills li {min-width:0;color:var(--on-dark);}
-.detail-page .study-skills strong {margin-bottom:.35rem;}
-.detail-page .study-skills__index {margin-bottom:.4rem;font:600 .75rem/1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--study-accent-on-dark);}
-.detail-page .study-skills strong {font:600 1.0625rem/1.5 var(--f-body);letter-spacing:-.02em;color:var(--on-dark);word-break:keep-all;}
+.detail-page .study-skills__index {margin-bottom:.4rem;font:600 .75rem/1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--on-dark-2);}
+.detail-page .study-skills strong {margin-bottom:.35rem;font:600 1.0625rem/1.5 var(--f-body);letter-spacing:-.02em;color:var(--on-dark);word-break:keep-all;}
 .detail-page .study-skills li > span:last-child {font-size:.9375rem;line-height:1.7;color:var(--on-dark-2);word-break:keep-all;text-wrap:pretty;}
 
 /* ---------- Next project and footer ---------- */
@@ -238,7 +301,6 @@ body.detail-page {
 .study-next__link {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,20rem) auto;gap:clamp(1.5rem,4vw,3rem);align-items:center;padding-top:1.5rem;border-top:1px solid var(--study-line-strong);color:inherit;}
 .detail-page .study-next__text h2 {margin:0 0 .5rem;font:650 clamp(1.5rem,2.4vw,2rem)/1.3 var(--f-body);letter-spacing:-.035em;color:var(--study-ink);transition:color .25s;}
 .detail-page .study-next__text p {margin:0;font-size:1rem;line-height:1.7;color:var(--study-body);}
-
 .study-next__arrow {display:block;width:1.75rem;height:1.25rem;color:transparent;overflow:hidden;background:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 10%27 fill=%27none%27 stroke=%27%23C94324%27 stroke-width=%271.5%27%3E%3Cpath d=%27M0 5h14.5M10.5 1l4 4-4 4%27/%3E%3C/svg%3E") center/contain no-repeat;transition:transform .25s var(--ease);}
 @media(hover:hover) {
  .study-next__link:hover .study-next__arrow {transform:translateX(4px);}
@@ -257,6 +319,9 @@ body.detail-page {
 @media(max-width:64em) {
  .study-steps[data-count="4"] {--cols:2;}
  .study-steps[data-variant="sequence"][data-count="4"] .study-step:nth-child(2)::before {-webkit-mask:var(--step-line);mask:var(--step-line);}
+ .study-criteria li {grid-template-columns:minmax(0,2.75rem) minmax(0,1fr);}
+ .study-criteria__first {grid-column:2;}
+ .study-lanes__head,.study-lane {grid-template-columns:minmax(0,8rem) minmax(0,1fr) minmax(0,1fr);}
 }
 @media(max-width:56em) {
  .study-hero__grid {grid-template-columns:minmax(0,1fr);}
@@ -267,26 +332,36 @@ body.detail-page {
  .study-feature {grid-template-columns:minmax(0,1fr);gap:1.25rem;}
  .study-features[data-layout="rows"] .study-feature:nth-child(even) .study-feature__text {order:0;}
  .study-points {--cols:1;grid-template-columns:minmax(0,1fr);}
+ .study-pair[data-layout="lead"] .study-pair__sides {grid-template-columns:minmax(0,1fr);}
  .study-next__link {grid-template-columns:minmax(0,1fr) auto;}
  .study-next__visual {grid-column:1/-1;grid-row:2;max-width:24rem;}
 }
 @media(max-width:48em) {
- .study-issues,.study-ai,.study-skills {--cols:1;grid-template-columns:minmax(0,1fr);}
+ .study-issues,.study-skills,.study-brief {--cols:1;grid-template-columns:minmax(0,1fr);}
+ .study-brief {gap:1.25rem;}
  .study-decision__track {grid-template-columns:minmax(0,1fr);gap:1rem;}
- .study-insight {grid-template-columns:minmax(0,1fr);}
  .study-chain {grid-template-columns:minmax(0,1fr);gap:.25rem;}
  .study-chain + .study-chain {margin-top:.5rem;}
  .study-steps,.study-steps[data-count="4"] {--cols:1;gap:1.5rem;}
  .study-step {padding:0 0 0 1.25rem;}
  .study-step::before,.study-steps[data-variant="sequence"] .study-step:not(:last-child)::before,.study-steps[data-variant="sequence"][data-count="4"] .study-step:nth-child(2)::before {inset:0 auto 0 0;width:2px;height:auto;-webkit-mask:none;mask:none;}
  .study-step__index {margin-bottom:.6rem;}
+ .study-pair__sides {grid-template-columns:minmax(0,1fr);}
+ .study-pair__side:is([data-kind="flow"],[data-kind="specimen"]) > :last-child {min-height:0;}
+ /* Lanes read one stage at a time; each cell names its owner. */
+ .study-lanes__head {display:none;}
+ .study-lane {grid-template-columns:minmax(0,1fr);row-gap:.85rem;}
+ .study-lane__owner {position:static;display:block;width:auto;height:auto;margin:0 0 .2rem;overflow:visible;clip-path:none;font:600 .75rem/1.4 var(--f-body);color:var(--study-muted);}
+ .study-lane__cell[data-owner="designer"] .study-lane__owner {color:var(--c-accent);}
+ .study-lane__cell[data-empty] {display:none;}
 }
 @media(max-width:40em) {
  body.detail-page {--study-section-y:3.75rem;--study-block-gap:2.5rem;}
  .detail-page .study-hero {padding-bottom:3rem;}
  .study-features[data-layout="grid"],.study-gallery {grid-template-columns:minmax(0,1fr);}
  .study-meta {gap:1.25rem 2rem;}
- .detail-page .study-lead,.detail-page .study-heading__lead {font-size:1rem;}
+ .detail-page .study-lead,.detail-page .study-heading__lead,.detail-page .study-brief dd {font-size:1rem;}
+ .study-specimen:not([data-count="1"]) > div {grid-template-columns:minmax(0,1fr);gap:.15rem;}
  .case-footer .container > div {margin-left:0;}
 }
 @media(max-width:30em) {
@@ -294,4 +369,67 @@ body.detail-page {
 }
 
 /* Print keeps the takeaway band inside its own box. */
+/* Hero introduces the project; context carries the longer record. */
+.study-hero__grid {grid-template-columns:minmax(0,4fr) minmax(0,8fr);gap:clamp(2rem,5vw,5rem);}
+.detail-page .study-hero {padding-bottom:clamp(3rem,6vw,6rem);}
+.study-hero .study-back {margin-bottom:clamp(1.5rem,3vw,3rem);}
+.study-hero .study-title__desc {margin-top:1.25rem;max-width:19em;}
+.study-hero__role {margin:1.5rem 0 0;font-size:.875rem;color:var(--study-muted);}
+.study-hero__visual {min-width:0;animation:none;}
+.study-hero__visual .study-frame {width:100%;border-radius:4px;}
+.study-hero__visual img {width:100%;max-height:58svh;object-fit:contain;}
+.study-context {padding:0 0 clamp(3rem,5vw,5rem);}
+.study-context__summary {max-width:48rem;margin:0;font-size:1rem;line-height:1.85;color:var(--study-body);word-break:keep-all;}
+.study-context .study-meta {margin-top:2rem;gap:1.5rem 3rem;}
+.study-context .study-meta dd {font-size:.875rem;font-weight:500;}
+
+/* Natural document scroll selects a screen; there is no pinned scroll track. */
+.screen-walkthrough {--screen-top:calc(var(--detail-header) + var(--detail-tabs) + 1.5rem);}
+.screen-walkthrough__stage {display:none;}
+.screen-step {scroll-margin-top:calc(var(--detail-header) + var(--detail-tabs) + 2rem);padding-bottom:3rem;}
+.screen-step__number {display:block;margin-bottom:1rem;font:500 .75rem/1.5 var(--f-display);font-variant-numeric:tabular-nums;color:var(--study-muted);}
+.detail-page .screen-step h3 {font-size:clamp(1.375rem,2vw,1.875rem);letter-spacing:-.035em;}
+.detail-page .screen-step__purpose {margin:.75rem 0 1.5rem;font-size:1rem;line-height:1.7;color:var(--study-ink);}
+.detail-page .screen-step__decision {margin:1.5rem 0 0;font-size:.9375rem;line-height:1.85;color:var(--study-body);}
+.screen-step__media .study-frame {width:100%;}
+.screen-step__media img {width:100%;}
+.screen-slot {aspect-ratio:16/9;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:.75rem;text-align:center;background:var(--study-soft);border:1px solid var(--study-line);padding:1.5rem;box-sizing:border-box;}
+.screen-slot>span {font-size:.75rem;color:var(--study-muted);}
+.screen-slot>strong {font-size:1.25rem;font-weight:500;}
+.detail-page .screen-slot p {margin:0;max-width:25em;font-size:.875rem;color:var(--study-muted);}
+.study-supporting {border-top:1px solid var(--study-line);padding-top:1.5rem;}
+.study-supporting summary {cursor:pointer;min-height:44px;font-size:.9375rem;}
+.study-supporting summary>span {margin-left:.75rem;color:var(--study-muted);font-variant-numeric:tabular-nums;}
+.study-supporting__grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.5rem;margin-top:1.5rem;align-items:start;}
+.study-supporting__grid img {max-height:22rem;object-fit:contain;}
+@media(min-width:56.0625em) and (min-height:36em) {
+ .screen-walkthrough.is-enhanced {display:grid;grid-template-columns:minmax(15rem,3fr) minmax(0,8fr);gap:clamp(2rem,5vw,5rem);align-items:start;}
+ .screen-walkthrough.is-enhanced .screen-step {min-height:65svh;display:flex;flex-direction:column;justify-content:center;padding-block:2rem;box-sizing:border-box;}
+ .screen-walkthrough.is-enhanced .screen-step:last-child {min-height:calc(100svh - var(--screen-top));}
+ .screen-walkthrough.is-enhanced .screen-step__media {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);}
+ .screen-walkthrough.is-enhanced .screen-step__decision {margin-top:.5rem;}
+ .screen-step.is-active .screen-step__number {color:var(--c-accent);}
+ .screen-walkthrough.is-enhanced .screen-walkthrough__stage {display:block;position:sticky;top:var(--screen-top);min-width:0;}
+ .screen-walkthrough__nav {display:flex;gap:.5rem;margin-bottom:1rem;}
+ .screen-walkthrough__nav a {display:grid;place-items:center;min-width:44px;min-height:44px;color:var(--study-muted);border-bottom:1px solid var(--study-line);font-size:.8125rem;font-variant-numeric:tabular-nums;}
+ .screen-walkthrough__nav a[aria-current] {color:var(--c-accent);border-color:currentColor;}
+ .screen-walkthrough__visual {display:grid;align-items:center;height:min(39rem,calc(100svh - var(--screen-top) - 5.5rem));}
+ .screen-walkthrough__visual>.screen-step__media {grid-area:1/1;opacity:0;visibility:hidden;transition:opacity .22s ease;min-width:0;}
+ .screen-walkthrough__visual>.is-active {opacity:1;visibility:visible;}
+ .screen-walkthrough__visual .study-frame {width:100%;max-height:min(39rem,calc(100svh - var(--screen-top) - 5.5rem));border-radius:4px;box-shadow:none;}
+ .screen-walkthrough__visual img {width:100%;height:auto;max-height:min(39rem,calc(100svh - var(--screen-top) - 5.5rem));object-fit:contain;}
+ .screen-walkthrough__visual .screen-slot {max-height:min(39rem,calc(100svh - var(--screen-top) - 5.5rem));}
+}
+@media(max-width:56em) {
+ .study-hero__grid {grid-template-columns:minmax(0,1fr);}
+ .study-hero__visual img {max-height:none;}
+ .study-supporting__grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(prefers-reduced-motion:reduce) {.screen-walkthrough__visual>.screen-step__media {transition:none;}}
+@media print {
+ .screen-walkthrough.is-enhanced {display:block;}
+ .screen-walkthrough.is-enhanced .screen-walkthrough__stage {display:none;}
+ .screen-walkthrough.is-enhanced .screen-step {min-height:0;}
+ .screen-walkthrough.is-enhanced .screen-step__media {position:static;width:auto;height:auto;clip-path:none;overflow:visible;}
+}
 @media print {.detail-page .study-takeaway {clip-path:none;box-shadow:none;}}

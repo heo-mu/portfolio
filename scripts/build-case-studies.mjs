@@ -1,15 +1,21 @@
 // Detail pages are generated from case-study-content.json. This renderer owns
 // each page's header, table of contents, <main>, stylesheet links and
 // description metadata; everything else in the HTML stays as written.
-// Every semantic content type maps to one component, whatever the project.
-// node scripts/build-case-studies.mjs          reports pages out of sync
-// node scripts/build-case-studies.mjs --write  regenerates them
-// node scripts/build-case-studies.mjs --patch  prints a patch for review
+// Every case study follows one grammar — problem → criteria → before/after →
+// solution → screens → AI → outcome — and every content type maps to one
+// component, whatever the project; only counts and emphasis change.
+// node scripts/build-case-studies.mjs            reports pages out of sync
+// node scripts/build-case-studies.mjs --write    regenerates them (drafts shown, marked)
+// node scripts/build-case-studies.mjs --write --publish  regenerates without drafts
+// node scripts/build-case-studies.mjs --patch    prints a patch for review
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const {projects}=JSON.parse(fs.readFileSync(path.join(root,'case-study-content.json'),'utf8'));
+// Draft content (placeholders, example text) is shown and marked by default;
+// --publish leaves it out, so a page never presents an example as a record.
+const publish=process.argv.includes('--publish');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pad=n=>String(n).padStart(2,'0');
 
@@ -42,35 +48,76 @@ const img=(image,{priority=false,decorative=false}={})=>{
  const {width,height}=size(image.src);
  return `<img src="${esc(served(image.src))}" alt="${decorative?'':esc(image.alt)}" width="${width}" height="${height}" ${priority?'fetchpriority="high"':'loading="lazy"'} decoding="async">`;
 };
-// Images carry no captions: the heading and text before them give the context.
+// Images carry no captions: the heading and text around them give the context.
 // A screenshot whose border is near-white is flagged edge:'light' in the JSON,
 // so only it gets the faint shadow that keeps its boundary against the page.
 const frame=(image,{cls='',...options}={})=>`<div class="study-frame${cls?' '+cls:''}"${image.edge==='light'?' data-edge="light"':''}>${img(image,options)}</div>`;
 const tokens=values=>values.map(value=>`<span class="study-token">${esc(value)}</span>`).join('');
+// Example text is a draft cell: {text, draft:true}. Plain strings are records.
+const isDraft=value=>!!(value&&typeof value==='object'&&value.draft);
+const textOf=value=>typeof value==='string'?value:value?.text;
+const DRAFT_TAG='<span class="study-draft">예시</span>';
 
-const LABELS={problem:'문제',judgment:'판단',design:'설계',insight:'설계 관점',
- ai:'AI에 맡긴 일',designer:'직접 판단한 일',capabilities:'이 프로젝트에서 보여준 역량',learning:'다음 작업에 가져갈 기준'};
+const LABELS={problem:'문제',judgment:'판단',design:'설계',ai:'AI가 도운 일',designer:'직접 판단한 일',
+ capabilities:'이 프로젝트에서 보여준 역량',learning:'다음 작업에 가져갈 기준',brief:{problem:'문제',criteria:'판단 기준',change:'달라진 점'}};
 
 const titled=item=>`<h3>${esc(item.title)}</h3>${item.body?`<p>${esc(item.body)}</p>`:''}`;
+const tag=text=>text?`<span class="study-tag">${esc(text)}</span>`:'';
 // A decision is one log entry: its head, then a track read left to right,
 // problem → judgment → design. Evidence, when there is any, joins the entry.
 const decision=(item,index,media)=>{
- const head=`<header class="study-decision__head"><p class="study-decision__index"><span>${pad(index)}</span>${item.tag?`<span class="study-decision__tag">${esc(item.tag)}</span>`:''}</p><h3>${esc(item.title)}</h3></header>`;
+ const head=`<header class="study-decision__head"><p class="study-decision__index"><span>${pad(index)}</span>${tag(item.tag)}</p><h3>${esc(item.title)}</h3></header>`;
  const body=`<div class="study-decision__body">${head}<dl class="study-decision__track">`+
   [['problem',item.problem],['judgment',item.judgment],['design',item.design]].map(([key,text])=>`<div class="study-decision__row" data-row="${key}"><dt>${LABELS[key]}</dt><dd>${esc(text)}</dd></div>`).join('')+`</dl></div>`;
  return media?`<article class="study-decision study-decision--media" data-shape="${shape(item.image)}">${body}${frame(item.image)}</article>`:`<article class="study-decision">${body}</article>`;
 };
+
+// Before / after: one pair is two sides and one statement. A side is a
+// screenshot, a flow, a text specimen or — while no record exists — an image
+// slot sized like the side it will be compared with. A wide screenshot, or a
+// screenshot facing an empty slot, gives the after side the larger share;
+// everything else compares at equal width.
+const ratio=image=>{const {width,height}=size(image.src);return `${width} / ${height}`;};
+const visual=(data,other)=>{
+ if(data.image)return ['image',frame(data.image)];
+ if(data.placeholder)return ['placeholder',`<div class="study-slot"${other?.image?` style="--ratio:${ratio(other.image)}"`:' data-fill'}><span class="study-slot__tag">교체할 이미지</span><span class="study-slot__text">${esc(data.placeholder)}</span></div>`];
+ if(data.flow)return ['flow',`<ol class="study-flow">${data.flow.map(node=>typeof node==='string'?`<li>${esc(node)}</li>`:`<li class="is-removed"><s>${esc(node.text)}</s><span class="sr-only"> (없앤 단계)</span></li>`).join('')}</ol>`];
+ if(data.specimen)return ['specimen',`<dl class="study-specimen" data-count="${data.specimen.length}">${data.specimen.map(row=>`<div><dt>${esc(row.value)}</dt><dd>${esc(row.note)}</dd></div>`).join('')}</dl>`];
+ throw Error('Unknown compare side');
+};
+const pair=(item,index)=>{
+ const sides=[['before',item.before,item.after],['after',item.after,item.before]].filter(([,data])=>!(publish&&data.placeholder));
+ const wide=[item.before,item.after].some(data=>data.image&&shape(data.image)==='wide');
+ const slotted=[item.before,item.after].some(data=>data.placeholder)&&[item.before,item.after].some(data=>data.image);
+ const layout=sides.length<2?'single':wide||slotted?'lead':'even';
+ const html=sides.map(([side,data,other])=>{const [kind,body]=visual(data,other);
+  return `<div class="study-pair__side" data-side="${side}" data-kind="${kind}"><p class="study-pair__label">${side==='before'?'Before':'After'}</p>${body}</div>`;}).join('');
+ return `<li class="study-pair" data-layout="${layout}"><div class="study-pair__sides">${html}</div><div class="study-pair__text"><p class="study-pair__index"><span>${pad(index)}</span>${tag(item.tag)}</p><h3>${esc(item.title)}</h3><p class="study-pair__why">${esc(item.why)}</p></div></li>`;
+};
+
+// AI and designer lanes: each stage of the work shows what AI helped with and
+// what was decided directly, side by side, so the final judgment stays visible.
+const cell=(owner,value)=>{
+ if(publish&&isDraft(value))value=null;
+ const label=`<span class="study-lane__owner">${LABELS[owner]}</span>`;
+ if(!value)return `<p class="study-lane__cell" data-owner="${owner}" data-empty>${label}<span aria-hidden="true">—</span><span class="sr-only">해당 없음</span></p>`;
+ return `<p class="study-lane__cell" data-owner="${owner}"${isDraft(value)?' data-draft':''}>${label}${isDraft(value)?DRAFT_TAG:''}${esc(textOf(value))}</p>`;
+};
+
 const components={
- // Problems are statements, not cards: numbered, ruled, and left unresolved
- // in tone. The result's points answer them in the same system, in accent.
- cards:b=>`<ol class="study-issues" data-count="${b.items.length}">${b.items.map((item,i)=>`<li class="study-issue"><span class="study-issue__index">문제 ${pad(i+1)}</span>${titled(item)}</li>`).join('')}</ol>`,
- insight:b=>`<div class="study-insight"><p class="study-insight__label">${esc(b.label||LABELS.insight)}</p><p class="study-insight__text">${esc(b.text)}</p></div>`,
+ walkthrough:b=>`<div class="screen-walkthrough"><div class="screen-walkthrough__steps">${b.items.map((item,i)=>`<article class="screen-step" id="screen-${pad(i+1)}" aria-labelledby="screen-${pad(i+1)}-title"><div class="screen-step__copy"><span class="screen-step__number">${pad(i+1)} / ${pad(b.items.length)}</span><h3 id="screen-${pad(i+1)}-title">${esc(item.title)}</h3><p class="screen-step__purpose">${esc(item.purpose)}</p></div><div class="screen-step__media">${item.image?frame(item.image):`<div class="screen-slot"><span>화면 준비 중</span><strong>${esc(item.title)}</strong><p>${esc(item.placeholder)}</p></div>`}</div><p class="screen-step__decision">${esc(item.decision)}</p></article>`).join('')}</div><div class="screen-walkthrough__stage"><nav class="screen-walkthrough__nav" aria-label="주요 화면 탐색">${b.items.map((item,i)=>`<a href="#screen-${pad(i+1)}" aria-label="${pad(i+1)} ${esc(item.title)}">${pad(i+1)}</a>`).join('')}</nav><div class="screen-walkthrough__visual" aria-hidden="true"></div></div></div>`,
+ supporting:b=>`<details class="study-supporting"><summary>추가 화면 살펴보기 <span>${pad(b.images.length)}</span></summary><div class="study-supporting__grid">${b.images.map(image=>frame(image)).join('')}</div></details>`,
+ // Problems are statements, not cards: numbered, ruled and unresolved in tone.
+ issues:b=>`<ol class="study-issues" data-count="${b.items.length}">${b.items.map((item,i)=>`<li class="study-issue"><span class="study-issue__index">문제 ${pad(i+1)}</span>${titled(item)}</li>`).join('')}</ol>`,
+ // Criteria read as priorities: what was put aside, then what came first.
+ criteria:b=>`<ol class="study-criteria" data-count="${b.items.length}">${b.items.map((item,i)=>`<li><span class="study-criteria__index">${pad(i+1)}</span><p class="study-criteria__instead">${esc(item.instead)}</p><p class="study-criteria__first">${esc(item.first)}</p></li>`).join('')}</ol>`,
+ compare:b=>`<ol class="study-compare" data-count="${b.pairs.length}">${b.pairs.map((item,i)=>pair(item,i+1)).join('')}</ol>`,
  steps:b=>`<ol class="study-steps" data-count="${b.items.length}" data-variant="${esc(b.variant||'sequence')}">${b.items.map((item,i)=>`<li class="study-step"><span class="study-step__index">${pad(i+1)}</span>${titled(item)}</li>`).join('')}</ol>`,
  chains:b=>`<div class="study-chains">${b.rows.map(row=>`<div class="study-chain"${row.emphasis?' data-emphasis':''}><p class="study-chain__label">${esc(row.label)}</p><ol class="study-chain__nodes">${row.nodes.map(node=>typeof node==='string'?`<li>${esc(node)}</li>`:`<li class="is-removed"><s>${esc(node.text)}</s></li>`).join('')}</ol></div>`).join('')}${b.note?`<p class="study-chains__note">${esc(b.note)}</p>`:''}</div>`,
  decisions:b=>`<div class="study-decisions" data-count="${b.items.length}">${b.items.map((item,i)=>decision(item,i+1,!!item.image)).join('')}</div>`,
  features:b=>`<div class="study-features" data-layout="${esc(b.layout||'rows')}" data-count="${b.items.length}">${b.items.map(item=>`<article class="study-feature" data-shape="${shape(item.image)}"><div class="study-feature__text">${titled(item)}</div>${frame(item.image)}</article>`).join('')}</div>`,
  figure:b=>`<figure class="study-figure" data-shape="${shape(b.image)}">${frame(b.image)}</figure>`,
- ai:b=>`<div class="study-ai">${[['ai','AI',b.ai],['designer','Designer',b.designer]].map(([owner,tag,items])=>`<div class="study-ai__col" data-owner="${owner}"><p class="study-ai__owner">${tag}</p><h3>${LABELS[owner]}</h3><ul>${items.map(text=>`<li>${esc(text)}</li>`).join('')}</ul></div>`).join('')}</div>`,
+ lanes:b=>`<div class="study-lanes" data-count="${b.stages.length}"><div class="study-lanes__head" aria-hidden="true"><span>단계</span><span data-owner="ai">${LABELS.ai}</span><span data-owner="designer">${LABELS.designer}</span></div><ol class="study-lanes__rows">${b.stages.map((stage,i)=>`<li class="study-lane"><p class="study-lane__stage"><span>${pad(i+1)}</span>${esc(stage.stage)}</p>${cell('ai',stage.ai)}${cell('designer',stage.designer)}</li>`).join('')}</ol></div>`,
  gallery:b=>b.groups.map(group=>{
   // An odd count leads with one full-width screen; an even count stays paired.
   const featured=group.images.length%2===1;
@@ -86,22 +133,38 @@ function block(b){
  const head=(b.heading?`<h3 class="study-subhead">${esc(b.heading)}</h3>`:'')+(b.intro?`<p class="study-block__intro">${esc(b.intro)}</p>`:'');
  return `<div class="study-block" data-type="${b.type}">${head}${components[b.type](b)}</div>`;
 }
-const tone=(section,i)=>section.tone||(i%2?'soft':'paper');
-const sectionHtml=(s,i)=>`<section class="study-section" id="${esc(s.id)}" data-tone="${tone(s,i)}"${s.blocks.at(-1)?.type==='closing'?' data-ends="takeaway"':''} aria-labelledby="${esc(s.id)}-title"><div class="container"><header class="study-heading"><p class="study-eyebrow"><span>${pad(i+1)}</span>${esc(s.eyebrow)}</p><h2 id="${esc(s.id)}-title">${esc(s.title)}</h2>${s.lead?`<p class="study-heading__lead">${esc(s.lead)}</p>`:''}</header><div class="study-blocks">${s.blocks.map(block).join('')}</div></div></section>`;
+const tone=i=>i%2?'soft':'paper';
+const sectionHtml=(s,i)=>`<section class="study-section" id="${esc(s.id)}" data-tone="${tone(i)}"${s.draft?' data-draft':''}${s.blocks.at(-1)?.type==='closing'?' data-ends="takeaway"':''} aria-labelledby="${esc(s.id)}-title"><div class="container"><header class="study-heading"><p class="study-eyebrow"><span>${pad(i+1)}</span>${esc(s.eyebrow)}${s.draft?DRAFT_TAG:''}</p><h2 id="${esc(s.id)}-title">${esc(s.title)}</h2>${s.lead?`<p class="study-heading__lead">${esc(s.lead)}</p>`:''}</header><div class="study-blocks">${s.blocks.map(block).join('')}</div></div></section>`;
 
 function render(d,index){
  const next=projects[(index+1)%projects.length];
+ const sections=d.sections.filter(s=>!(publish&&s.draft));
  const live=d.liveUrl?`<a class="study-live" href="${esc(d.liveUrl)}" target="_blank" rel="noopener noreferrer">${esc(d.liveLabel||'서비스 보기')} <span aria-hidden="true">↗</span><span class="sr-only"> (새 창)</span></a>`:'';
- const hero=`<section class="study-hero" aria-labelledby="project-title"><div class="container"><div class="study-hero__grid"><div class="study-hero__intro"><a class="study-back" href="index.html#projects"><span aria-hidden="true">←</span>모든 프로젝트</a><p class="study-eyebrow">${esc(d.category)}</p><h1 id="project-title" class="study-title"><span class="study-title__name">${esc(d.name)}</span><span class="study-title__desc">${esc(d.descriptor)}</span></h1><p class="study-lead">${esc(d.summary)}</p>${live}</div><div class="study-hero__visual">${frame(d.hero,{cls:'study-frame--hero',priority:true})}</div></div><dl class="study-meta">${d.meta.map(m=>`<div class="study-meta__item"><dt>${esc(m.label)}</dt><dd>${tokens(m.values)}</dd></div>`).join('')}</dl></div></section>`;
- const toc=`<nav class="case-index" aria-label="프로젝트 목차"><div class="container">${d.sections.map((s,i)=>`<a href="#${esc(s.id)}"><span>${pad(i+1)}</span>${esc(s.nav)}</a>`).join('')}</div></nav>`;
- const nextTone=tone(d.sections.at(-1),d.sections.length-1)==='soft'?'paper':'soft';
+ // Identity and role stay in the hero; detailed facts follow in context.
+ const role=d.meta.find(m=>m.label==='Role')?.values[0]||'';
+ const meta=d.meta.flatMap(m=>m.label==='Role'?(m.values.length>1?[{label:'Contribution',values:m.values.slice(1)}]:[]):[m]);
+ const hero=`<section class="study-hero" aria-labelledby="project-title"><div class="container"><a class="study-back" href="index.html#projects"><span aria-hidden="true">←</span>모든 프로젝트</a><div class="study-hero__grid"><div class="study-hero__intro"><p class="study-eyebrow">${esc(d.category)}</p><h1 id="project-title" class="study-title"><span class="study-title__name">${esc(d.name)}</span></h1><p class="study-title__desc">${esc(d.descriptor)}</p><p class="study-hero__role">${esc(role)}</p>${live}</div><div class="study-hero__visual">${frame(d.hero,{cls:'study-frame--hero',priority:true})}</div></div></div></section><section class="study-context" aria-labelledby="context-title"><div class="container"><h2 id="context-title" class="study-eyebrow">Project Context</h2><p class="study-context__summary">${esc(d.summary)}</p><dl class="study-meta">${meta.map(m=>`<div class="study-meta__item"><dt>${esc(m.label)}</dt><dd>${tokens(m.values)}</dd></div>`).join('')}</dl></div></section>`;
+ const toc=`<nav class="case-index" aria-label="프로젝트 목차"><div class="container">${sections.map((s,i)=>`<a href="#${esc(s.id)}"><span>${pad(i+1)}</span>${esc(s.nav)}</a>`).join('')}</div></nav>`;
+ const nextTone=tone(sections.length-1)==='soft'?'paper':'soft';
  const nextHtml=`<section class="next-projects study-next" data-tone="${nextTone}" aria-labelledby="next-title"><div class="container"><p class="study-eyebrow">Next Project</p><a class="study-next__link" href="${esc(next.file)}"><div class="study-next__text"><h2 id="next-title">${esc(next.name)}</h2><p>${esc(next.descriptor)}</p></div>${frame(next.hero,{cls:'study-next__visual',decorative:true})}<span class="study-next__arrow" aria-hidden="true">→</span></a></div></section>`;
- return `<main id="main-content">\n${typeset([hero,toc,...d.sections.map(sectionHtml),nextHtml].join('\n'))}\n</main>`;
+ return `<main id="main-content">\n${typeset([hero,toc,...sections.map(sectionHtml),nextHtml].join('\n'))}\n</main>`;
 }
-// Separators stay attached to their words, so no line starts with a middle dot
-// or an arrow. Only text between tags changes; attributes keep plain text.
-// Korean bound phrases (…할 수 있다/없다) also stay whole on one line.
-const typeset=html=>html.replace(/>([^<]+)</g,(all,text)=>'>'+text.replace(/·/g,'&#8288;·&#8288;').replace(/ → /g,'&nbsp;<span class="study-arrow">→</span> ').replace(/(\S) 수 (있|없)/g,'$1&nbsp;수&nbsp;$2')+'<');
+// Line breaks follow meaning. Only text between tags changes; attributes keep
+// plain text. Separators stay attached to their words, so no line starts with
+// a middle dot or an arrow; Korean bound phrases (…할 수 있다/없다) and ranges
+// stay whole; a short Latin or numeric token (AI, 3D, PC, UI) keeps the word
+// after it, so no line ends on it alone. So do determiners (한, 같은, 다음…)
+// and the word before a dependent noun (볼 때, 하는 것), and a closing quote
+// keeps its particle, so no line starts with ‘라는’.
+const typeset=html=>html.replace(/>([^<]+)</g,(all,text)=>'>'+text
+ .replace(/·/g,'&#8288;·&#8288;')
+ .replace(/ → /g,'&nbsp;<span class="study-arrow">→</span> ')
+ .replace(/(\S) 수 (있|없)/g,'$1&nbsp;수&nbsp;$2')
+ .replace(/ – /g,'&nbsp;– ')
+ .replace(/(^|[\s(‘])([A-Za-z0-9]{1,3}) (?=\S)/g,'$1$2&nbsp;')
+ .replace(/(^|[\s(])(두|세|네|한|각|이|그|새|첫|모든|여러|다른|같은|다음|실제|현재) (?=[가-힣A-Za-z0-9‘])/g,'$1$2&nbsp;')
+ .replace(/(\S) (때|수|것|줄|뿐|듯)(?=[가-힣\s,.])/g,'$1&nbsp;$2')
+ .replace(/([’”)])(?=[가-힣])/g,'$1&#8288;')+'<');
 const header=i=>`<header class="case-nav"><div class="container case-nav__inner"><a href="index.html" class="case-nav__logo" aria-label="허창무 포트폴리오 홈">heo_mu<span aria-hidden="true">.</span></a><nav class="case-nav__links" aria-label="사이트 메뉴"><a href="index.html#projects">Projects</a><a href="index.html#contact">Contact<span aria-hidden="true">↗</span></a></nav><span class="case-nav__index"><span class="sr-only">프로젝트 </span>${pad(i+1)} / ${pad(projects.length)}</span></div><div class="read-progress" id="read-progress" aria-hidden="true"></div></header>`;
 
 let changed=0;const patches=[],writes=[];
@@ -127,5 +190,5 @@ projects.forEach((d,i)=>{
  }
 });
 if(process.argv.includes('--patch'))console.log('*** Begin Patch\n'+patches.join('\n')+'\n*** End Patch');
-else if(process.argv.includes('--write')){for(const [file,text] of writes)fs.writeFileSync(file,text);console.log(`${projects.length} case studies; ${changed} regenerated.`);}
+else if(process.argv.includes('--write')){for(const [file,text] of writes)fs.writeFileSync(file,text);console.log(`${projects.length} case studies; ${changed} regenerated${publish?' (publish: drafts left out)':''}.`);}
 else {console.log(`${projects.length} case studies; ${changed} out of sync.`);if(changed)process.exitCode=1;}

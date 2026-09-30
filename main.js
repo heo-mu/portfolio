@@ -31,8 +31,10 @@ let lenis = null;
     gsap.registerPlugin(ST);
     let tick=null;
     const stop=()=>{if(tick)gsap.ticker.remove(tick);tick=null;if(lenis){lenis.destroy();lenis=null;}};
+    // Case studies are read, not staged: they keep the browser's own scrolling.
+    const reading=document.body.classList.contains('detail-page');
     const setup=()=>{
-      stop();if(reduce.matches||!fine.matches||!window.Lenis)return;
+      stop();if(reading||reduce.matches||!fine.matches||!window.Lenis)return;
       lenis=new window.Lenis({autoRaf:false,lerp:.16,smoothWheel:true,wheelMultiplier:1,syncTouch:false,anchors:false});
       lenis.on('scroll',ST.update);
       tick=time=>lenis?.raf(time*1000);
