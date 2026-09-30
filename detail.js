@@ -57,7 +57,7 @@
  function schedule(){if(!frame)frame=requestAnimationFrame(update);}
  addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule,{passive:true});
  addEventListener('load',schedule);addEventListener('pageshow',schedule);document.fonts?.ready.then(schedule);
- document.querySelectorAll('.study-more').forEach(details=>details.addEventListener('toggle',()=>{
+ document.querySelectorAll('.study-more,.study-supporting').forEach(details=>details.addEventListener('toggle',()=>{
   window.portfolioScroll?.refresh();schedule();
  }));
  document.querySelectorAll('.study-supporting').forEach(details=>details.addEventListener('toggle',()=>{window.portfolioScroll?.refresh();schedule();}));

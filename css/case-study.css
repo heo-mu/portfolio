@@ -1,10 +1,15 @@
-/* Project case studies: one reading system for all five detail pages.
+/* Project case studies: one editorial reading system for all five pages.
    Brand tokens (accent, ink, surfaces) come from motion.css :root, so the
-   detail pages and the main portfolio share one palette. Components map to
-   semantic content types; counts change columns, never the component.
+   detail pages and the main portfolio share one palette.
+   The layout language: every chapter is one grid — a small label rail that
+   keeps its column (and its place on screen) while the chapter's main column
+   carries title, body, data, comparisons and screens at whatever width each
+   needs. Rhythm comes from the content — a dark band for the core problem,
+   fact rows, comparisons, a sticky screen walkthrough — never from
+   alternating section backgrounds or repeated card boxes.
    Colour carries one meaning: neutral tones hold the problem and its
    context, the accent marks the answer (after, design, the designer's own
-   judgment, what changed) and the reader's position (eyebrows, index). */
+   judgment, what changed) and the reader's position (rail, index). */
 body.detail-page {
  --study-paper:#FFFFFF;
  --study-soft:var(--c-bg);
@@ -13,13 +18,15 @@ body.detail-page {
  --study-muted:#686963;
  --study-line:rgba(27,28,25,.12);
  --study-line-strong:rgba(27,28,25,.22);
+ --study-accent:var(--c-accent);
  --study-accent-on-dark:color-mix(in srgb,var(--c-accent),#FFF 38%);
  --study-measure:40rem;
- --study-section-y:clamp(4.5rem,8vw,7.5rem);
- --study-block-gap:clamp(3rem,5vw,4.25rem);
+ --study-section-y:clamp(5rem,9vw,8.5rem);
+ --study-block-gap:clamp(3rem,5vw,4.5rem);
  --study-radius:12px;
  --detail-header:4.25rem;
  --detail-tabs:3rem;
+ --chrome:calc(var(--detail-header) + var(--detail-tabs));
  margin:0;background:var(--study-paper);color:var(--study-ink);font-family:var(--f-body);
 }
 .detail-page ::selection {background:color-mix(in srgb,var(--c-accent) 24%,#FFF);color:var(--study-ink);}
@@ -48,24 +55,25 @@ body.detail-page {
 @media(hover:hover) {.case-nav__links a:hover,.case-index a:hover {color:var(--c-accent);}}
 
 /* ---------- Type roles ----------
-   eyebrow (where am I) → section title (the message) → lead (its context) →
-   block title → item title → body → label (small, the role of a value). */
-.detail-page .study-eyebrow {display:flex;flex-wrap:wrap;align-items:baseline;gap:.35rem .75rem;margin:0 0 1rem;font:500 .75rem/1.5 var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--c-accent);}
+   rail (where am I) → section title (the message) → lead (its context) →
+   statement (the one reading, large) → block title → item title → body →
+   label (small, the role of a value). */
+.detail-page .study-eyebrow {display:flex;flex-wrap:wrap;align-items:baseline;gap:.35rem .75rem;margin:0 0 1rem;font:500 .75rem/1.5 var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--study-accent);}
 .detail-page .study-eyebrow > span:first-child {color:var(--study-muted);letter-spacing:.06em;font-variant-numeric:tabular-nums;}
 .detail-page .study-title {margin:0;}
 .study-title__name {display:block;font:650 clamp(2.5rem,4.4vw,3.75rem)/1.12 var(--f-body);letter-spacing:-.045em;color:var(--study-ink);word-break:keep-all;}
-.study-title__desc {display:block;max-width:18em;margin-top:.75rem;font:500 clamp(1.25rem,1.9vw,1.625rem)/1.45 var(--f-body);letter-spacing:-.03em;color:var(--study-body);word-break:keep-all;text-wrap:balance;}
+.study-title__desc {display:block;max-width:19em;margin:1.25rem 0 0;font:500 clamp(1.25rem,1.9vw,1.625rem)/1.45 var(--f-body);letter-spacing:-.03em;color:var(--study-body);word-break:keep-all;text-wrap:balance;}
 .detail-page .study-lead {max-width:34em;margin:1.5rem 0 0;font:400 1.0625rem/1.85 var(--f-body);color:var(--study-body);word-break:keep-all;text-wrap:pretty;}
-.study-heading {max-width:50rem;margin:0 0 var(--study-block-gap);}
+.study-heading {max-width:52rem;margin:0 0 var(--study-block-gap);}
 /* Section titles state what was solved; they are sentences, so they balance. */
-.detail-page .study-heading h2 {max-width:21em;margin:0;font:650 clamp(1.75rem,2.6vw,2.375rem)/1.34 var(--f-body);letter-spacing:-.04em;color:var(--study-ink);word-break:keep-all;text-wrap:balance;}
-.detail-page .study-heading__lead {max-width:var(--study-measure);margin:1.1rem 0 0;font:400 1.0625rem/1.85 var(--f-body);color:var(--study-body);word-break:keep-all;text-wrap:pretty;}
+.detail-page .study-heading h2 {max-width:20em;margin:0;font:650 clamp(1.875rem,2.9vw,2.625rem)/1.3 var(--f-body);letter-spacing:-.042em;color:var(--study-ink);word-break:keep-all;text-wrap:balance;}
+.detail-page .study-heading__lead {max-width:var(--study-measure);margin:1.25rem 0 0;font:400 1.0625rem/1.85 var(--f-body);color:var(--study-body);word-break:keep-all;text-wrap:pretty;}
 /* Zero-specificity defaults; every component below may refine them. */
 .detail-page :where(.study-blocks) :where(p,dd,li) {font-size:.9375rem;line-height:1.75;color:var(--study-body);word-break:keep-all;text-wrap:pretty;}
-/* Item titles share one size (1.125rem); entry titles (decisions, pairs) and
+/* Item titles share one size; entry titles (decisions, pairs, screens) and
    block titles (subheads) sit one step up, section titles above them. */
 .detail-page :where(.study-section) h3 {margin:0;font:650 1.125rem/1.45 var(--f-body);letter-spacing:-.025em;color:var(--study-ink);word-break:keep-all;text-wrap:balance;}
-.detail-page .study-subhead {margin:0 0 1.5rem;font-size:1.25rem;letter-spacing:-.03em;}
+.detail-page .study-subhead {margin:0 0 1.75rem;font-size:1.25rem;letter-spacing:-.03em;}
 .detail-page .study-block__intro {max-width:var(--study-measure);margin:-.75rem 0 1.5rem;font-size:1rem;line-height:1.8;}
 /* A compact label: the role of the value that follows it. */
 .study-tag {padding:.1rem .5rem;border-radius:3px;background:var(--c-accent-soft);font:600 .6875rem/1.7 var(--f-body);letter-spacing:0;text-transform:none;color:var(--c-accent-ink);}
@@ -73,11 +81,31 @@ body.detail-page {
 .study-draft {display:inline-block;margin-right:.5rem;padding:.05rem .4rem;border-radius:3px;background:#E9E9E5;font:600 .6875rem/1.6 var(--f-body);letter-spacing:.02em;text-transform:none;color:#55564F;vertical-align:.12em;}
 .study-eyebrow .study-draft {margin:0;vertical-align:0;}
 
-/* ---------- Layout rhythm ---------- */
-.detail-page .study-section {padding-block:var(--study-section-y);scroll-margin-top:calc(var(--detail-header) + var(--detail-tabs) + 1rem);}
-/* Panels (flows, specimens, image slots) sit one step off their section. */
-.study-section[data-tone="paper"] {--panel:#F4F4F1;}
-.study-section[data-tone="soft"],.study-next[data-tone="soft"] {--panel:#FFFFFF;background:var(--study-soft);}
+/* ---------- Chapter shell: label rail + main column ---------- */
+.detail-page .study-section {padding-block:var(--study-section-y);scroll-margin-top:calc(var(--chrome) + 1rem);}
+/* Chapters on paper share one surface; a hairline on the grid marks each new
+   chapter, and whitespace does the rest. Panels (flows, specimens, image
+   slots) sit one step off the paper. */
+.study-section {--panel:#F4F4F1;}
+.study-section[data-tone="paper"] + .study-section[data-tone="paper"] {padding-top:0;}
+.study-section[data-tone="paper"] + .study-section[data-tone="paper"] > .container {border-top:1px solid var(--study-line);padding-top:var(--study-section-y);}
+/* The core problem is a full-bleed dark band: the same components read on it
+   through the shared tokens, and the accent shifts one step lighter to hold
+   its contrast. */
+.study-section[data-tone="dark"] {
+ --study-ink:#F2F2EF;--study-body:#C9C9C4;--study-muted:#9A9B94;
+ --study-line:rgba(242,242,239,.14);--study-line-strong:rgba(242,242,239,.26);
+ --study-accent:var(--study-accent-on-dark);--panel:#26271F;
+ background:var(--c-void);color:var(--study-ink);
+}
+.study-main {min-width:0;}
+.study-rail {margin:0 0 1.5rem;}
+@media(min-width:64.0625em) {
+ .study-grid {display:grid;grid-template-columns:clamp(10rem,19%,13rem) minmax(0,1fr);column-gap:clamp(2.5rem,5vw,5rem);align-items:start;}
+ /* The label keeps the reader's place while its chapter scrolls. */
+ .study-rail {position:sticky;top:calc(var(--chrome) + 1.75rem);display:block;margin:.35rem 0 0;}
+ .study-rail > span:first-child {display:block;margin-bottom:.5rem;}
+}
 .study-blocks > .study-block + .study-block {margin-top:var(--study-block-gap);}
 /* Images are the content, not cards: no mat, no padding. The frame hugs the
    image (up to its column) and carries the one image radius. Light-edged
@@ -88,46 +116,49 @@ body.detail-page {
    box is reserved before the image loads and lazy images never shift layout. */
 .study-frame img {display:block;max-width:100%;height:auto;}
 
-/* ---------- Hero, project facts and the brief ---------- */
-.detail-page .study-hero {padding:calc(var(--detail-header) + clamp(2.25rem,5vw,4.5rem)) 0 clamp(3rem,5vw,4.5rem);}
-.study-hero__grid {display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(2.5rem,5vw,5rem);align-items:center;}
+/* ---------- Hero (the introduction; the record starts at CONTEXT) ---------- */
+.detail-page .study-hero {padding:calc(var(--detail-header) + clamp(2.25rem,5vw,4.5rem)) 0 clamp(3rem,6vw,6rem);}
+.study-hero__grid {display:grid;grid-template-columns:minmax(0,4fr) minmax(0,8fr);gap:clamp(2rem,5vw,5rem);align-items:center;}
 .study-hero__intro {min-width:0;}
-.study-back {display:inline-flex;align-items:center;gap:.5rem;min-height:44px;margin:0 0 1rem;font:500 .8125rem/1.5 var(--f-body);color:var(--study-muted);}
+.study-back {display:inline-flex;align-items:center;gap:.5rem;min-height:44px;margin:0 0 clamp(1.5rem,3vw,3rem);font:500 .8125rem/1.5 var(--f-body);color:var(--study-muted);}
 .study-back > span[aria-hidden] {width:1rem;height:.625rem;overflow:hidden;color:transparent;background:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 10%27 fill=%27none%27 stroke=%27%23686963%27 stroke-width=%271.5%27%3E%3Cpath d=%27M16 5H1.5M5.5 1l-4 4 4 4%27/%3E%3C/svg%3E") center/contain no-repeat;}
-.study-live {display:inline-block;margin-top:1rem;padding-block:.65rem;font:600 .9375rem/1.5 var(--f-body);color:var(--study-ink);text-decoration:underline;text-decoration-color:var(--study-line-strong);text-underline-offset:6px;}
+.study-live {display:inline-block;margin-top:1.5rem;padding-block:.65rem;font:600 .9375rem/1.5 var(--f-body);color:var(--study-ink);text-decoration:underline;text-decoration-color:var(--study-line-strong);text-underline-offset:6px;}
 .study-live > span[aria-hidden] {font-family:var(--f-display);}
-.study-meta {display:flex;flex-wrap:wrap;gap:1.5rem clamp(2rem,5vw,4rem);margin:clamp(2.5rem,4vw,3.5rem) 0 0;padding:1.5rem 0 0;border-top:1px solid var(--study-line);}
-.study-meta__item {min-width:0;}
-.detail-page .study-meta dt {margin:0 0 .5rem;font:600 .6875rem/1.4 var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--study-muted);}
-.detail-page .study-meta dd {display:flex;flex-wrap:wrap;row-gap:.15rem;margin:0;font:600 1rem/1.5 var(--f-body);letter-spacing:-.01em;color:var(--study-ink);}
+.study-hero__role {margin:1.5rem 0 0;font-size:.875rem;color:var(--study-muted);}
+.study-hero__visual {min-width:0;}
+.study-hero__visual .study-frame {width:100%;border-radius:4px;}
+.study-hero__visual img {width:100%;max-height:58svh;object-fit:contain;}
+@media(hover:hover) {.study-back:hover,.study-live:hover {color:var(--c-accent);text-decoration-color:currentColor;}}
+
+/* ---------- Context facts: the recorded frame of the project ---------- */
+.study-facts {display:grid;grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));gap:2rem var(--grid-gap);margin:0;}
+.study-facts[data-count="3"] {--cols:3;}
+.study-facts__item {min-width:0;padding-top:1.1rem;border-top:1px solid var(--study-line-strong);}
+.detail-page .study-facts dt {margin:0 0 .6rem;font:600 .75rem/1.5 var(--f-body);color:var(--study-muted);}
+.detail-page .study-facts dd {margin:0;font:600 1.0625rem/1.6 var(--f-body);letter-spacing:-.02em;color:var(--study-ink);word-break:keep-all;text-wrap:balance;}
+.detail-page .study-facts__tokens {display:flex;flex-wrap:wrap;row-gap:.1rem;text-wrap:initial;}
 /* A separator travels with the token before it: no line starts with a dot. */
 .study-token {white-space:nowrap;}
-.study-token:not(:last-child)::after {content:'·';margin-inline:.5em;font-weight:400;color:var(--study-muted);}
-/* The brief answers the case study's three questions before any detail:
-   what was hard, what came first, what changed. */
-.study-brief {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.5rem var(--grid-gap);margin:clamp(2.5rem,4vw,3.5rem) 0 0;}
-.study-brief__item {min-width:0;padding:1.25rem 0 0;border-top:2px solid var(--study-ink);}
-.detail-page .study-brief dt {margin:0 0 .65rem;font:600 .75rem/1.5 var(--f-body);color:var(--study-muted);}
-.detail-page .study-brief__item[data-key="change"] dt {color:var(--c-accent);}
-.detail-page .study-brief dd {margin:0;font:500 1.0625rem/1.7 var(--f-body);letter-spacing:-.015em;color:var(--study-ink);word-break:keep-all;text-wrap:pretty;}
-@media(hover:hover) {.study-back:hover,.study-live:hover {color:var(--c-accent);text-decoration-color:currentColor;}}
-@media(prefers-reduced-motion:no-preference) {
- .study-hero__visual {animation:study-visual-in .7s var(--ease) both;}
- @keyframes study-visual-in {from{opacity:.4;transform:translateY(12px)}to{opacity:1;transform:none}}
-}
+.study-token:not(:last-child)::after {content:'·';margin-inline:.45em;font-weight:400;color:var(--study-muted);}
+.detail-page .study-facts .study-facts__note {margin-top:.35rem;font:400 .875rem/1.6 var(--f-body);color:var(--study-muted);}
 
-/* ---------- Problems ---------- */
-/* Problems read as statements: numbered, ruled and neutral, with no
-   container. The outcome's points answer them in the same system. */
-.study-issues {display:grid;grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));gap:2rem var(--grid-gap);margin:0;padding:0;list-style:none;}
-.study-issues[data-count="3"] {--cols:3;}
-.study-issue {min-width:0;padding-top:1.25rem;border-top:1px solid var(--study-line-strong);}
-.detail-page .study-issue__index {display:block;margin-bottom:.9rem;font:600 .75rem/1 var(--f-body);letter-spacing:.02em;font-variant-numeric:tabular-nums;color:var(--study-muted);}
-.detail-page .study-issue h3 {margin-bottom:.5rem;}
+/* ---------- Problems: numbered rows, read down the band ---------- */
+.study-issues {display:grid;margin:0;padding:0;list-style:none;border-bottom:1px solid var(--study-line-strong);}
+.study-issue {display:grid;grid-template-columns:minmax(0,3.5rem) minmax(0,4fr) minmax(0,7fr);gap:.5rem var(--grid-gap);align-items:baseline;min-width:0;padding:1.75rem 0;border-top:1px solid var(--study-line-strong);}
+.detail-page .study-issue__index {font:600 .75rem/1.5 var(--f-display);letter-spacing:.02em;font-variant-numeric:tabular-nums;color:var(--study-muted);}
+.detail-page .study-issue h3 {font-size:1.1875rem;}
+.detail-page .study-issue p {margin:0;font-size:1rem;line-height:1.75;}
 
-/* ---------- Criteria: what was put aside, what came first ---------- */
+/* ---------- Statement: the one reading the study follows ---------- */
+.study-statement {max-width:46rem;}
+.detail-page .study-statement__label {margin:0 0 1.25rem;font:600 .8125rem/1.5 var(--f-body);color:var(--study-accent);}
+.detail-page .study-statement__text {margin:0;font:500 clamp(1.4375rem,2.4vw,2rem)/1.6 var(--f-body);letter-spacing:-.03em;color:var(--study-ink);word-break:keep-all;text-wrap:pretty;}
+.study-statement mark {padding:.04em .18em;border-radius:3px;background:var(--c-accent);color:#FFF7F4;box-decoration-break:clone;-webkit-box-decoration-break:clone;}
+.study-section[data-tone="paper"] .study-statement mark {background:var(--c-accent-soft);color:var(--c-accent-ink);}
+
+/* ---------- Direction: what was put aside, what came first ---------- */
 .study-criteria {margin:0;padding:0;list-style:none;border-bottom:1px solid var(--study-line);}
-.study-criteria li {display:grid;grid-template-columns:minmax(0,3.5rem) minmax(0,5fr) minmax(0,7fr);gap:.4rem var(--grid-gap);align-items:baseline;padding:1.6rem 0;border-top:1px solid var(--study-line-strong);}
+.study-criteria li {display:grid;grid-template-columns:minmax(0,3.5rem) minmax(0,5fr) minmax(0,7fr);gap:.4rem var(--grid-gap);align-items:baseline;padding:1.75rem 0;border-top:1px solid var(--study-line-strong);}
 .study-criteria__index {font:600 .75rem/1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--study-muted);}
 .detail-page .study-criteria__instead {margin:0;font-size:1rem;line-height:1.7;color:var(--study-muted);}
 .detail-page .study-criteria__first {margin:0;font:600 clamp(1.1875rem,1.7vw,1.4375rem)/1.5 var(--f-body);letter-spacing:-.025em;color:var(--study-ink);text-wrap:balance;}
@@ -201,8 +232,8 @@ body.detail-page {
 .study-chain__nodes s {color:var(--study-muted);text-decoration:line-through 1.5px var(--c-accent);}
 /* Repeated items share row tracks: index, title and body start on the same
    lines across a row, however any single title or body wraps. */
-:is(.study-issues,.study-steps,.study-points,.study-skills) > li {display:grid;grid-row:span 3;grid-template-rows:subgrid;row-gap:0;align-content:start;}
-@supports not (grid-template-rows:subgrid) {:is(.study-issues,.study-steps,.study-points,.study-skills) > li {display:block;grid-row:auto;}}
+:is(.study-steps,.study-points,.study-skills) > li {display:grid;grid-row:span 3;grid-template-rows:subgrid;row-gap:0;align-content:start;}
+@supports not (grid-template-rows:subgrid) {:is(.study-steps,.study-points,.study-skills) > li {display:block;grid-row:auto;}}
 .detail-page .study-chains__note {max-width:var(--study-measure);margin:.75rem 0 0;font-size:1rem;line-height:1.8;}
 
 /* ---------- Decision log: problem → judgment → design ---------- */
@@ -260,11 +291,48 @@ body.detail-page {
 .detail-page .study-lane__cell[data-draft] {color:var(--study-muted);}
 .study-lane__owner {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
 
-/* ---------- Key screens ---------- */
-.study-gallery-group + .study-gallery-group {margin-top:var(--study-block-gap);}
-.detail-page .study-gallery__label {margin-bottom:1rem;font:600 .75rem/1.5 var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--study-muted);}
-.study-gallery {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--grid-gap);align-items:start;}
-.study-gallery > .is-featured {grid-column:1/-1;}
+/* ---------- Key screens: a walkthrough, not a gallery ---------- */
+/* Reading order (and print, small screens, no-JS) is the steps themselves:
+   number, name, purpose, screen, decision. Enhanced on wide screens, the
+   screens move to a sticky stage and natural document scroll selects one;
+   there is no pinned scroll track. */
+.screen-walkthrough {--screen-top:calc(var(--chrome) + 1.5rem);}
+.screen-walkthrough__stage {display:none;}
+.screen-step {scroll-margin-top:calc(var(--chrome) + 2rem);padding-bottom:3rem;}
+.screen-step__number {display:block;margin-bottom:1rem;font:500 .75rem/1.5 var(--f-display);font-variant-numeric:tabular-nums;color:var(--study-muted);}
+.detail-page .screen-step h3 {font-size:clamp(1.375rem,2vw,1.875rem);letter-spacing:-.035em;}
+.detail-page .screen-step__purpose {margin:.75rem 0 1.5rem;font-size:1rem;line-height:1.7;color:var(--study-ink);}
+.detail-page .screen-step__decision {margin:1.5rem 0 0;font-size:.9375rem;line-height:1.85;color:var(--study-body);}
+.screen-step__media .study-frame {width:100%;}
+.screen-step__media img {width:100%;}
+.screen-slot {aspect-ratio:16/9;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:.75rem;text-align:center;background:var(--study-soft);border:1px solid var(--study-line);padding:1.5rem;box-sizing:border-box;}
+.screen-slot>span {font-size:.75rem;color:var(--study-muted);}
+.screen-slot>strong {font-size:1.25rem;font-weight:500;}
+.detail-page .screen-slot p {margin:0;max-width:25em;font-size:.875rem;color:var(--study-muted);}
+.study-supporting {border-top:1px solid var(--study-line);padding-top:1.5rem;}
+.study-supporting summary {cursor:pointer;min-height:44px;font-size:.9375rem;}
+.study-supporting summary>span {margin-left:.75rem;color:var(--study-muted);font-variant-numeric:tabular-nums;}
+.study-supporting__grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.5rem;margin-top:1.5rem;align-items:start;}
+.study-supporting__grid img {max-height:22rem;object-fit:contain;}
+@media(min-width:72.0625em) and (min-height:36em) {
+ .screen-walkthrough.is-enhanced {display:grid;grid-template-columns:minmax(14rem,3fr) minmax(0,8fr);gap:clamp(2rem,4vw,4.5rem);align-items:start;}
+ .screen-walkthrough.is-enhanced .screen-step {min-height:62svh;display:flex;flex-direction:column;justify-content:center;padding-block:2rem;box-sizing:border-box;}
+ .screen-walkthrough.is-enhanced .screen-step:last-child {min-height:calc(100svh - var(--screen-top));}
+ /* In-flow media hides only inside the step list; the stage clones show. */
+ .screen-walkthrough.is-enhanced .screen-walkthrough__steps .screen-step__media {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);}
+ .screen-walkthrough.is-enhanced .screen-step__decision {margin-top:.5rem;}
+ .screen-step.is-active .screen-step__number {color:var(--c-accent);}
+ .screen-walkthrough.is-enhanced .screen-walkthrough__stage {display:block;position:sticky;top:var(--screen-top);min-width:0;}
+ .screen-walkthrough__nav {display:flex;gap:.5rem;margin-bottom:1rem;}
+ .screen-walkthrough__nav a {display:grid;place-items:center;min-width:44px;min-height:44px;color:var(--study-muted);border-bottom:1px solid var(--study-line);font-size:.8125rem;font-variant-numeric:tabular-nums;}
+ .screen-walkthrough__nav a[aria-current] {color:var(--c-accent);border-color:currentColor;}
+ .screen-walkthrough__visual {display:grid;align-items:center;height:min(39rem,calc(100svh - var(--screen-top) - 5.5rem));}
+ .screen-walkthrough__visual>.screen-step__media {grid-area:1/1;position:static;width:100%;height:auto;overflow:visible;clip-path:none;opacity:0;visibility:hidden;transition:opacity .22s ease;min-width:0;}
+ .screen-walkthrough__visual>.is-active {opacity:1;visibility:visible;}
+ .screen-walkthrough__visual .study-frame {width:100%;max-height:min(39rem,calc(100svh - var(--screen-top) - 5.5rem));border-radius:4px;box-shadow:none;}
+ .screen-walkthrough__visual img {width:100%;height:auto;max-height:min(39rem,calc(100svh - var(--screen-top) - 5.5rem));object-fit:contain;}
+ .screen-walkthrough__visual .screen-slot {max-height:min(39rem,calc(100svh - var(--screen-top) - 5.5rem));}
+}
 
 /* ---------- Outcome: what changed, capabilities, learning ---------- */
 .study-points {display:grid;grid-template-columns:repeat(var(--cols,3),minmax(0,1fr));gap:2rem var(--grid-gap);margin:0;padding:0;list-style:none;}
@@ -282,7 +350,7 @@ body.detail-page {
 .study-takeaway {
  --on-dark:#F2F2EF;--on-dark-2:#B9B9B4;
  position:relative;display:grid;gap:clamp(2.5rem,5vw,4rem);padding-block:clamp(3.5rem,7vw,6rem);
- color:var(--on-dark);background:var(--study-ink);box-shadow:0 0 0 100vmax var(--study-ink);clip-path:inset(0 -100vmax);
+ color:var(--on-dark);background:var(--c-void);box-shadow:0 0 0 100vmax var(--c-void);clip-path:inset(0 -100vmax);
 }
 .detail-page .study-takeaway__label {margin:0 0 1.25rem;font:600 .75rem/1.5 var(--f-body);letter-spacing:.04em;color:var(--on-dark-2);}
 .detail-page .study-takeaway__lead .study-takeaway__label {color:var(--study-accent-on-dark);}
@@ -297,6 +365,7 @@ body.detail-page {
 
 /* ---------- Next project and footer ---------- */
 .detail-page .study-next {padding:clamp(3.5rem,6vw,5rem) 0;}
+.study-next[data-tone="soft"] {background:var(--study-soft);}
 .study-next .study-eyebrow {margin-bottom:1.25rem;}
 .study-next__link {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,20rem) auto;gap:clamp(1.5rem,4vw,3rem);align-items:center;padding-top:1.5rem;border-top:1px solid var(--study-line-strong);color:inherit;}
 .detail-page .study-next__text h2 {margin:0 0 .5rem;font:650 clamp(1.5rem,2.4vw,2rem)/1.3 var(--f-body);letter-spacing:-.035em;color:var(--study-ink);transition:color .25s;}
@@ -319,26 +388,29 @@ body.detail-page {
 @media(max-width:64em) {
  .study-steps[data-count="4"] {--cols:2;}
  .study-steps[data-variant="sequence"][data-count="4"] .study-step:nth-child(2)::before {-webkit-mask:var(--step-line);mask:var(--step-line);}
- .study-criteria li {grid-template-columns:minmax(0,2.75rem) minmax(0,1fr);}
+ .study-criteria li,.study-issue {grid-template-columns:minmax(0,2.75rem) minmax(0,1fr);}
  .study-criteria__first {grid-column:2;}
+ .study-issue p {grid-column:2;}
  .study-lanes__head,.study-lane {grid-template-columns:minmax(0,8rem) minmax(0,1fr) minmax(0,1fr);}
 }
 @media(max-width:56em) {
  .study-hero__grid {grid-template-columns:minmax(0,1fr);}
  .study-hero__intro {max-width:40rem;}
- .study-issues[data-count="3"] {--cols:1;}
+ .study-hero__visual img {max-height:none;}
+ .study-facts {--cols:2;grid-template-columns:repeat(2,minmax(0,1fr));}
  .study-decision--media[data-shape="standard"] {grid-template-columns:minmax(0,1fr);}
  .study-decision--media[data-shape="standard"]:nth-child(even) > .study-frame {order:0;}
  .study-feature {grid-template-columns:minmax(0,1fr);gap:1.25rem;}
  .study-features[data-layout="rows"] .study-feature:nth-child(even) .study-feature__text {order:0;}
  .study-points {--cols:1;grid-template-columns:minmax(0,1fr);}
  .study-pair[data-layout="lead"] .study-pair__sides {grid-template-columns:minmax(0,1fr);}
+ .study-supporting__grid {grid-template-columns:repeat(2,minmax(0,1fr));}
  .study-next__link {grid-template-columns:minmax(0,1fr) auto;}
  .study-next__visual {grid-column:1/-1;grid-row:2;max-width:24rem;}
 }
 @media(max-width:48em) {
- .study-issues,.study-skills,.study-brief {--cols:1;grid-template-columns:minmax(0,1fr);}
- .study-brief {gap:1.25rem;}
+ .study-skills {--cols:1;grid-template-columns:minmax(0,1fr);}
+ .study-facts {--cols:1;grid-template-columns:minmax(0,1fr);gap:1.5rem;}
  .study-decision__track {grid-template-columns:minmax(0,1fr);gap:1rem;}
  .study-chain {grid-template-columns:minmax(0,1fr);gap:.25rem;}
  .study-chain + .study-chain {margin-top:.5rem;}
@@ -346,6 +418,8 @@ body.detail-page {
  .study-step {padding:0 0 0 1.25rem;}
  .study-step::before,.study-steps[data-variant="sequence"] .study-step:not(:last-child)::before,.study-steps[data-variant="sequence"][data-count="4"] .study-step:nth-child(2)::before {inset:0 auto 0 0;width:2px;height:auto;-webkit-mask:none;mask:none;}
  .study-step__index {margin-bottom:.6rem;}
+ .study-issue,.study-criteria li {grid-template-columns:minmax(0,1fr);gap:.4rem;padding-block:1.4rem;}
+ .study-criteria__first,.study-issue p {grid-column:auto;}
  .study-pair__sides {grid-template-columns:minmax(0,1fr);}
  .study-pair__side:is([data-kind="flow"],[data-kind="specimen"]) > :last-child {min-height:0;}
  /* Lanes read one stage at a time; each cell names its owner. */
@@ -356,11 +430,10 @@ body.detail-page {
  .study-lane__cell[data-empty] {display:none;}
 }
 @media(max-width:40em) {
- body.detail-page {--study-section-y:3.75rem;--study-block-gap:2.5rem;}
+ body.detail-page {--study-section-y:4rem;--study-block-gap:2.75rem;}
  .detail-page .study-hero {padding-bottom:3rem;}
- .study-features[data-layout="grid"],.study-gallery {grid-template-columns:minmax(0,1fr);}
- .study-meta {gap:1.25rem 2rem;}
- .detail-page .study-lead,.detail-page .study-heading__lead,.detail-page .study-brief dd {font-size:1rem;}
+ .study-features[data-layout="grid"],.study-supporting__grid {grid-template-columns:minmax(0,1fr);}
+ .detail-page .study-lead,.detail-page .study-heading__lead {font-size:1rem;}
  .study-specimen:not([data-count="1"]) > div {grid-template-columns:minmax(0,1fr);gap:.15rem;}
  .case-footer .container > div {margin-left:0;}
 }
@@ -368,68 +441,13 @@ body.detail-page {
  .case-nav__index {display:none;}
 }
 
-/* Print keeps the takeaway band inside its own box. */
-/* Hero introduces the project; context carries the longer record. */
-.study-hero__grid {grid-template-columns:minmax(0,4fr) minmax(0,8fr);gap:clamp(2rem,5vw,5rem);}
-.detail-page .study-hero {padding-bottom:clamp(3rem,6vw,6rem);}
-.study-hero .study-back {margin-bottom:clamp(1.5rem,3vw,3rem);}
-.study-hero .study-title__desc {margin-top:1.25rem;max-width:19em;}
-.study-hero__role {margin:1.5rem 0 0;font-size:.875rem;color:var(--study-muted);}
-.study-hero__visual {min-width:0;animation:none;}
-.study-hero__visual .study-frame {width:100%;border-radius:4px;}
-.study-hero__visual img {width:100%;max-height:58svh;object-fit:contain;}
-.study-context {padding:0 0 clamp(3rem,5vw,5rem);}
-.study-context__summary {max-width:48rem;margin:0;font-size:1rem;line-height:1.85;color:var(--study-body);word-break:keep-all;}
-.study-context .study-meta {margin-top:2rem;gap:1.5rem 3rem;}
-.study-context .study-meta dd {font-size:.875rem;font-weight:500;}
-
-/* Natural document scroll selects a screen; there is no pinned scroll track. */
-.screen-walkthrough {--screen-top:calc(var(--detail-header) + var(--detail-tabs) + 1.5rem);}
-.screen-walkthrough__stage {display:none;}
-.screen-step {scroll-margin-top:calc(var(--detail-header) + var(--detail-tabs) + 2rem);padding-bottom:3rem;}
-.screen-step__number {display:block;margin-bottom:1rem;font:500 .75rem/1.5 var(--f-display);font-variant-numeric:tabular-nums;color:var(--study-muted);}
-.detail-page .screen-step h3 {font-size:clamp(1.375rem,2vw,1.875rem);letter-spacing:-.035em;}
-.detail-page .screen-step__purpose {margin:.75rem 0 1.5rem;font-size:1rem;line-height:1.7;color:var(--study-ink);}
-.detail-page .screen-step__decision {margin:1.5rem 0 0;font-size:.9375rem;line-height:1.85;color:var(--study-body);}
-.screen-step__media .study-frame {width:100%;}
-.screen-step__media img {width:100%;}
-.screen-slot {aspect-ratio:16/9;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:.75rem;text-align:center;background:var(--study-soft);border:1px solid var(--study-line);padding:1.5rem;box-sizing:border-box;}
-.screen-slot>span {font-size:.75rem;color:var(--study-muted);}
-.screen-slot>strong {font-size:1.25rem;font-weight:500;}
-.detail-page .screen-slot p {margin:0;max-width:25em;font-size:.875rem;color:var(--study-muted);}
-.study-supporting {border-top:1px solid var(--study-line);padding-top:1.5rem;}
-.study-supporting summary {cursor:pointer;min-height:44px;font-size:.9375rem;}
-.study-supporting summary>span {margin-left:.75rem;color:var(--study-muted);font-variant-numeric:tabular-nums;}
-.study-supporting__grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.5rem;margin-top:1.5rem;align-items:start;}
-.study-supporting__grid img {max-height:22rem;object-fit:contain;}
-@media(min-width:56.0625em) and (min-height:36em) {
- .screen-walkthrough.is-enhanced {display:grid;grid-template-columns:minmax(15rem,3fr) minmax(0,8fr);gap:clamp(2rem,5vw,5rem);align-items:start;}
- .screen-walkthrough.is-enhanced .screen-step {min-height:65svh;display:flex;flex-direction:column;justify-content:center;padding-block:2rem;box-sizing:border-box;}
- .screen-walkthrough.is-enhanced .screen-step:last-child {min-height:calc(100svh - var(--screen-top));}
- .screen-walkthrough.is-enhanced .screen-step__media {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);}
- .screen-walkthrough.is-enhanced .screen-step__decision {margin-top:.5rem;}
- .screen-step.is-active .screen-step__number {color:var(--c-accent);}
- .screen-walkthrough.is-enhanced .screen-walkthrough__stage {display:block;position:sticky;top:var(--screen-top);min-width:0;}
- .screen-walkthrough__nav {display:flex;gap:.5rem;margin-bottom:1rem;}
- .screen-walkthrough__nav a {display:grid;place-items:center;min-width:44px;min-height:44px;color:var(--study-muted);border-bottom:1px solid var(--study-line);font-size:.8125rem;font-variant-numeric:tabular-nums;}
- .screen-walkthrough__nav a[aria-current] {color:var(--c-accent);border-color:currentColor;}
- .screen-walkthrough__visual {display:grid;align-items:center;height:min(39rem,calc(100svh - var(--screen-top) - 5.5rem));}
- .screen-walkthrough__visual>.screen-step__media {grid-area:1/1;opacity:0;visibility:hidden;transition:opacity .22s ease;min-width:0;}
- .screen-walkthrough__visual>.is-active {opacity:1;visibility:visible;}
- .screen-walkthrough__visual .study-frame {width:100%;max-height:min(39rem,calc(100svh - var(--screen-top) - 5.5rem));border-radius:4px;box-shadow:none;}
- .screen-walkthrough__visual img {width:100%;height:auto;max-height:min(39rem,calc(100svh - var(--screen-top) - 5.5rem));object-fit:contain;}
- .screen-walkthrough__visual .screen-slot {max-height:min(39rem,calc(100svh - var(--screen-top) - 5.5rem));}
-}
-@media(max-width:56em) {
- .study-hero__grid {grid-template-columns:minmax(0,1fr);}
- .study-hero__visual img {max-height:none;}
- .study-supporting__grid {grid-template-columns:repeat(2,minmax(0,1fr));}
-}
-@media(prefers-reduced-motion:reduce) {.screen-walkthrough__visual>.screen-step__media {transition:none;}}
+/* Print reads as one column: the takeaway band stays in its box and the
+   walkthrough returns to its in-flow list. */
 @media print {
+ .detail-page .study-takeaway {clip-path:none;box-shadow:none;}
  .screen-walkthrough.is-enhanced {display:block;}
  .screen-walkthrough.is-enhanced .screen-walkthrough__stage {display:none;}
  .screen-walkthrough.is-enhanced .screen-step {min-height:0;}
- .screen-walkthrough.is-enhanced .screen-step__media {position:static;width:auto;height:auto;clip-path:none;overflow:visible;}
+ .screen-walkthrough.is-enhanced .screen-walkthrough__steps .screen-step__media {position:static;width:auto;height:auto;clip-path:none;overflow:visible;}
 }
-@media print {.detail-page .study-takeaway {clip-path:none;box-shadow:none;}}
+@media(prefers-reduced-motion:reduce) {.screen-walkthrough__visual>.screen-step__media {transition:none;}}

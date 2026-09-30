@@ -52,7 +52,6 @@ const img=(image,{priority=false,decorative=false}={})=>{
 // A screenshot whose border is near-white is flagged edge:'light' in the JSON,
 // so only it gets the faint shadow that keeps its boundary against the page.
 const frame=(image,{cls='',...options}={})=>`<div class="study-frame${cls?' '+cls:''}"${image.edge==='light'?' data-edge="light"':''}>${img(image,options)}</div>`;
-const tokens=values=>values.map(value=>`<span class="study-token">${esc(value)}</span>`).join('');
 // Example text is a draft cell: {text, draft:true}. Plain strings are records.
 const isDraft=value=>!!(value&&typeof value==='object'&&value.draft);
 const textOf=value=>typeof value==='string'?value:value?.text;
@@ -105,6 +104,14 @@ const cell=(owner,value)=>{
 };
 
 const components={
+ // Context facts: the recorded frame of the project (platform, scope, period,
+ // axes). Values are words from the record, never dressed-up numbers. A value
+ // listing several tokens breaks between them, never before a separator.
+ facts:b=>`<dl class="study-facts" data-count="${b.items.length}">${b.items.map(f=>`<div class="study-facts__item"><dt>${esc(f.label)}</dt>${f.value.includes(' · ')?`<dd class="study-facts__tokens">${f.value.split(' · ').map(v=>`<span class="study-token">${esc(v)}</span>`).join('')}</dd>`:`<dd>${esc(f.value)}</dd>`}${f.note?`<dd class="study-facts__note">${esc(f.note)}</dd>`:''}</div>`).join('')}</dl>`,
+ // One reading of the problem, set large; the marked phrase is the pivot the
+ // rest of the study follows.
+ statement:b=>{const text=esc(b.text);const marked=b.mark?text.replace(esc(b.mark),`<mark>${esc(b.mark)}</mark>`):text;
+  return `<div class="study-statement">${b.label?`<p class="study-statement__label">${esc(b.label)}</p>`:''}<p class="study-statement__text">${marked}</p></div>`;},
  walkthrough:b=>`<div class="screen-walkthrough"><div class="screen-walkthrough__steps">${b.items.map((item,i)=>`<article class="screen-step" id="screen-${pad(i+1)}" aria-labelledby="screen-${pad(i+1)}-title"><div class="screen-step__copy"><span class="screen-step__number">${pad(i+1)} / ${pad(b.items.length)}</span><h3 id="screen-${pad(i+1)}-title">${esc(item.title)}</h3><p class="screen-step__purpose">${esc(item.purpose)}</p></div><div class="screen-step__media">${item.image?frame(item.image):`<div class="screen-slot"><span>화면 준비 중</span><strong>${esc(item.title)}</strong><p>${esc(item.placeholder)}</p></div>`}</div><p class="screen-step__decision">${esc(item.decision)}</p></article>`).join('')}</div><div class="screen-walkthrough__stage"><nav class="screen-walkthrough__nav" aria-label="주요 화면 탐색">${b.items.map((item,i)=>`<a href="#screen-${pad(i+1)}" aria-label="${pad(i+1)} ${esc(item.title)}">${pad(i+1)}</a>`).join('')}</nav><div class="screen-walkthrough__visual" aria-hidden="true"></div></div></div>`,
  supporting:b=>`<details class="study-supporting"><summary>추가 화면 살펴보기 <span>${pad(b.images.length)}</span></summary><div class="study-supporting__grid">${b.images.map(image=>frame(image)).join('')}</div></details>`,
  // Problems are statements, not cards: numbered, ruled and unresolved in tone.
@@ -133,20 +140,23 @@ function block(b){
  const head=(b.heading?`<h3 class="study-subhead">${esc(b.heading)}</h3>`:'')+(b.intro?`<p class="study-block__intro">${esc(b.intro)}</p>`:'');
  return `<div class="study-block" data-type="${b.type}">${head}${components[b.type](b)}</div>`;
 }
-const tone=i=>i%2?'soft':'paper';
-const sectionHtml=(s,i)=>`<section class="study-section" id="${esc(s.id)}" data-tone="${tone(i)}"${s.draft?' data-draft':''}${s.blocks.at(-1)?.type==='closing'?' data-ends="takeaway"':''} aria-labelledby="${esc(s.id)}-title"><div class="container"><header class="study-heading"><p class="study-eyebrow"><span>${pad(i+1)}</span>${esc(s.eyebrow)}${s.draft?DRAFT_TAG:''}</p><h2 id="${esc(s.id)}-title">${esc(s.title)}</h2>${s.lead?`<p class="study-heading__lead">${esc(s.lead)}</p>`:''}</header><div class="study-blocks">${s.blocks.map(block).join('')}</div></div></section>`;
+// One editorial grid for every chapter: the label rail keeps its column and
+// stays in view while the chapter scrolls; everything else lives in the main
+// column. Tone is the section's own (the core problem reads as a dark band);
+// rhythm comes from the content, not from alternating backgrounds.
+const tone=s=>s.tone||'paper';
+const sectionHtml=(s,i)=>`<section class="study-section" id="${esc(s.id)}" data-tone="${tone(s)}"${s.draft?' data-draft':''}${s.blocks.at(-1)?.type==='closing'?' data-ends="takeaway"':''} aria-labelledby="${esc(s.id)}-title"><div class="container study-grid"><p class="study-eyebrow study-rail"><span>${pad(i+1)}</span>${esc(s.eyebrow)}${s.draft?DRAFT_TAG:''}</p><div class="study-main"><header class="study-heading"><h2 id="${esc(s.id)}-title">${esc(s.title)}</h2>${s.lead?`<p class="study-heading__lead">${esc(s.lead)}</p>`:''}</header><div class="study-blocks">${s.blocks.map(block).join('')}</div></div></div></section>`;
 
 function render(d,index){
  const next=projects[(index+1)%projects.length];
  const sections=d.sections.filter(s=>!(publish&&s.draft));
  const live=d.liveUrl?`<a class="study-live" href="${esc(d.liveUrl)}" target="_blank" rel="noopener noreferrer">${esc(d.liveLabel||'서비스 보기')} <span aria-hidden="true">↗</span><span class="sr-only"> (새 창)</span></a>`:'';
- // Identity and role stay in the hero; detailed facts follow in context.
+ // Identity and role stay in the hero; the record's facts open the body as
+ // the CONTEXT chapter, so the hero is an introduction, not a data sheet.
  const role=d.meta.find(m=>m.label==='Role')?.values[0]||'';
- const meta=d.meta.flatMap(m=>m.label==='Role'?(m.values.length>1?[{label:'Contribution',values:m.values.slice(1)}]:[]):[m]);
- const hero=`<section class="study-hero" aria-labelledby="project-title"><div class="container"><a class="study-back" href="index.html#projects"><span aria-hidden="true">←</span>모든 프로젝트</a><div class="study-hero__grid"><div class="study-hero__intro"><p class="study-eyebrow">${esc(d.category)}</p><h1 id="project-title" class="study-title"><span class="study-title__name">${esc(d.name)}</span></h1><p class="study-title__desc">${esc(d.descriptor)}</p><p class="study-hero__role">${esc(role)}</p>${live}</div><div class="study-hero__visual">${frame(d.hero,{cls:'study-frame--hero',priority:true})}</div></div></div></section><section class="study-context" aria-labelledby="context-title"><div class="container"><h2 id="context-title" class="study-eyebrow">Project Context</h2><p class="study-context__summary">${esc(d.summary)}</p><dl class="study-meta">${meta.map(m=>`<div class="study-meta__item"><dt>${esc(m.label)}</dt><dd>${tokens(m.values)}</dd></div>`).join('')}</dl></div></section>`;
+ const hero=`<section class="study-hero" aria-labelledby="project-title"><div class="container"><a class="study-back" href="index.html#projects"><span aria-hidden="true">←</span>모든 프로젝트</a><div class="study-hero__grid"><div class="study-hero__intro"><p class="study-eyebrow">${esc(d.category)}</p><h1 id="project-title" class="study-title"><span class="study-title__name">${esc(d.name)}</span></h1><p class="study-title__desc">${esc(d.descriptor)}</p><p class="study-hero__role">${esc(role)}</p>${live}</div><div class="study-hero__visual">${frame(d.hero,{cls:'study-frame--hero',priority:true})}</div></div></div></section>`;
  const toc=`<nav class="case-index" aria-label="프로젝트 목차"><div class="container">${sections.map((s,i)=>`<a href="#${esc(s.id)}"><span>${pad(i+1)}</span>${esc(s.nav)}</a>`).join('')}</div></nav>`;
- const nextTone=tone(sections.length-1)==='soft'?'paper':'soft';
- const nextHtml=`<section class="next-projects study-next" data-tone="${nextTone}" aria-labelledby="next-title"><div class="container"><p class="study-eyebrow">Next Project</p><a class="study-next__link" href="${esc(next.file)}"><div class="study-next__text"><h2 id="next-title">${esc(next.name)}</h2><p>${esc(next.descriptor)}</p></div>${frame(next.hero,{cls:'study-next__visual',decorative:true})}<span class="study-next__arrow" aria-hidden="true">→</span></a></div></section>`;
+ const nextHtml=`<section class="next-projects study-next" data-tone="soft" aria-labelledby="next-title"><div class="container"><p class="study-eyebrow">Next Project</p><a class="study-next__link" href="${esc(next.file)}"><div class="study-next__text"><h2 id="next-title">${esc(next.name)}</h2><p>${esc(next.descriptor)}</p></div>${frame(next.hero,{cls:'study-next__visual',decorative:true})}<span class="study-next__arrow" aria-hidden="true">→</span></a></div></section>`;
  return `<main id="main-content">\n${typeset([hero,toc,...sections.map(sectionHtml),nextHtml].join('\n'))}\n</main>`;
 }
 // Line breaks follow meaning. Only text between tags changes; attributes keep
@@ -164,6 +174,7 @@ const typeset=html=>html.replace(/>([^<]+)</g,(all,text)=>'>'+text
  .replace(/(^|[\s(‘])([A-Za-z0-9]{1,3}) (?=\S)/g,'$1$2&nbsp;')
  .replace(/(^|[\s(])(두|세|네|한|각|이|그|새|첫|모든|여러|다른|같은|다음|실제|현재) (?=[가-힣A-Za-z0-9‘])/g,'$1$2&nbsp;')
  .replace(/(\S) (때|수|것|줄|뿐|듯)(?=[가-힣\s,.])/g,'$1&nbsp;$2')
+ .replace(/(다고|라고|어야|여야) (봤|했)(?=어요)/g,'$1&nbsp;$2')
  .replace(/([’”)])(?=[가-힣])/g,'$1&#8288;')+'<');
 const header=i=>`<header class="case-nav"><div class="container case-nav__inner"><a href="index.html" class="case-nav__logo" aria-label="허창무 포트폴리오 홈">heo_mu<span aria-hidden="true">.</span></a><nav class="case-nav__links" aria-label="사이트 메뉴"><a href="index.html#projects">Projects</a><a href="index.html#contact">Contact<span aria-hidden="true">↗</span></a></nav><span class="case-nav__index"><span class="sr-only">프로젝트 </span>${pad(i+1)} / ${pad(projects.length)}</span></div><div class="read-progress" id="read-progress" aria-hidden="true"></div></header>`;
 

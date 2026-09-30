@@ -1,12 +1,13 @@
 {
- "schemaVersion": 4,
+ "schemaVersion": 5,
  "policy": "사실은 기존 프로젝트 기록(개편 전 상세 페이지와 이전 콘텐츠)에서만 가져온다. 성과 수치·사용자 조사·AI 사용을 추정하지 않고, 근거가 없는 항목은 필드째 생략한다.",
  "draftPolicy": "기록이 없는 자리는 구조를 먼저 보여주기 위해 draft로 둔다. 화면에는 ‘예시’ 또는 ‘교체할 이미지’로 표시하고, 사실처럼 쓰지 않는다. --publish 빌드에서는 draft 섹션과 칸, 이미지 자리가 빠진다.",
  "structure": [
+  "context",
   "problem",
-  "criteria",
+  "direction",
   "compare",
-  "solution",
+  "decisions",
   "screens",
   "ai",
   "outcome"
@@ -61,9 +62,39 @@
    },
    "sections": [
     {
+     "id": "context",
+     "nav": "배경",
+     "eyebrow": "Context",
+     "title": "구매 전에 설치를 확인하는 3D 서비스를 만들고 있어요",
+     "lead": "냉장고처럼 큰 가전은 온라인에서 규격표만 보고 사는 경우가 많아요. 들임은 제품과 설치 공간을 구매 전에 3D로 함께 확인하게 하는 서비스이고, 지금은 흐름과 기준을 설계하며 만들어 가는 중이에요.",
+     "blocks": [
+      {
+       "type": "facts",
+       "items": [
+        {
+         "label": "서비스",
+         "value": "3D Fit Checker"
+        },
+        {
+         "label": "플랫폼",
+         "value": "Responsive Web"
+        },
+        {
+         "label": "맡은 범위",
+         "value": "UX 기획 · UI 설계 · AI 워크플로 · QA"
+        },
+        {
+         "label": "상태",
+         "value": "진행 중"
+        }
+       ]
+      }
+     ]
+    },
+    {
      "id": "problem",
-     "nav": "문제",
-     "eyebrow": "Problem",
+     "nav": "핵심 문제",
+     "eyebrow": "Core Problem",
      "title": "치수로는 설치 가능 여부를 알기 어려웠어요",
      "lead": "냉장고는 규격을 알아도 실제로 들어갈지 판단하기 어려워요. 문제가 배송 당일에 드러나면 반품과 재설치로 이어져요.",
      "blocks": [
@@ -83,15 +114,21 @@
          "body": "배송 당일에 확인하면 반품과 재설치 비용이 생겨요."
         }
        ]
+      },
+      {
+       "type": "statement",
+       "label": "그래서, 이렇게 봤어요",
+       "text": "각 수치보다 ‘이 공간에 설치할 수 있는가’라는 최종 판단이 중요하다고 봤어요.",
+       "mark": "‘이 공간에 설치할 수 있는가’"
       }
-     ]
+     ],
+     "tone": "dark"
     },
     {
-     "id": "criteria",
-     "nav": "판단 기준",
-     "eyebrow": "Criteria",
-     "title": "수치를 늘어놓기보다, 설치할 수 있는지에 먼저 답했어요",
-     "lead": "각 수치보다 ‘이 공간에 설치할 수 있는가’라는 최종 판단이 중요하다고 봤어요. 그래서 기능을 더하기 전에 판단의 순서부터 정했어요.",
+     "id": "direction",
+     "nav": "설계 방향",
+     "eyebrow": "Design Direction",
+     "title": "기능을 더하기 전에, 판단의 순서부터 정했어요",
      "blocks": [
       {
        "type": "criteria",
@@ -197,9 +234,9 @@
      ]
     },
     {
-     "id": "solution",
-     "nav": "개선",
-     "eyebrow": "Solution",
+     "id": "decisions",
+     "nav": "설계 판단",
+     "eyebrow": "Key Decisions",
      "title": "판정이 흔들리지 않도록, 원인이 되는 기준부터 정했어요",
      "lead": "화면만 임시로 고치지 않고, 데이터와 제품 기준에서 원인을 찾아 고쳤어요. 흐름은 세 단계로 나눴어요.",
      "blocks": [
@@ -256,23 +293,24 @@
          "title": "제품 선택",
          "purpose": "설치 판단에 사용할 제품과 규격을 정해요.",
          "decision": "제품을 고른 뒤에도 선택한 대상을 유지해, 공간 설정과의 연결이 끊기지 않게 했어요.",
-         "placeholder": "현재 제품 선택 화면 캡처를 준비하고 있어요."
+         "placeholder": "현재 제품 선택 화면 캡처를 준비하는 중이에요."
         },
         {
          "title": "공간 설정과 3D 조정",
          "purpose": "공간 치수를 입력하고 제품을 배치해요.",
          "decision": "제품을 가리는 모달을 없애고, 같은 맥락에서 공간과 제품을 함께 확인하게 했어요.",
-         "placeholder": "현재 공간 설정과 3D 조정 화면 캡처를 준비하고 있어요."
+         "placeholder": "현재 공간 설정과 3D 조정 화면 캡처를 준비하는 중이에요."
         },
         {
          "title": "설치 결과",
          "purpose": "설치 상태와 추가로 확인할 조건을 살펴봐요.",
          "decision": "음수 계산값 대신 설치 상태를 먼저 보여줘, 사용자가 수치를 다시 해석하지 않게 했어요.",
-         "placeholder": "현재 설치 결과 화면 캡처를 준비하고 있어요."
+         "placeholder": "현재 설치 결과 화면 캡처를 준비하는 중이에요."
         }
        ]
       }
-     ]
+     ],
+     "draft": true
     },
     {
      "id": "ai",
@@ -411,9 +449,39 @@
    },
    "sections": [
     {
+     "id": "context",
+     "nav": "배경",
+     "eyebrow": "Context",
+     "title": "에너지 데이터를 디지털 트윈 위에서 다루는 플랫폼이에요",
+     "lead": "건물·층·설비의 에너지 데이터를 디지털 트윈에 연결한 관리 플랫폼이에요. 운영자는 이 화면에서 상태를 확인하고 필요한 조치를 시작해요.",
+     "blocks": [
+      {
+       "type": "facts",
+       "items": [
+        {
+         "label": "플랫폼",
+         "value": "Digital Twin · Unreal Engine"
+        },
+        {
+         "label": "맡은 범위",
+         "value": "UX 기획 · UI 설계 · 디자인 시스템"
+        },
+        {
+         "label": "기여도",
+         "value": "100%"
+        },
+        {
+         "label": "다루는 위계",
+         "value": "건물 → 층 → 설비"
+        }
+       ]
+      }
+     ]
+    },
+    {
      "id": "problem",
-     "nav": "문제",
-     "eyebrow": "Problem",
+     "nav": "핵심 문제",
+     "eyebrow": "Core Problem",
      "title": "수치를 볼 때마다, 어느 공간의 값인지 다시 읽어야 했어요",
      "lead": "기존 시스템은 에너지 데이터를 기능 단위로 나눠 보여줬어요. 그래서 수치를 볼 때마다 그 값이 어느 건물·층·설비의 것인지 다시 해석해야 했어요.",
      "blocks": [
@@ -429,15 +497,21 @@
          "body": "상태를 확인하는 화면과 조치하는 화면이 나뉘면 확인한 맥락이 이어지지 않아요."
         }
        ]
+      },
+      {
+       "type": "statement",
+       "label": "그래서, 이렇게 봤어요",
+       "text": "기능 이름을 익히게 하기보다, 운영자가 이미 알고 있는 실제 공간을 따라 정보를 찾게 하는 것이 먼저라고 봤어요.",
+       "mark": "이미 알고 있는 실제 공간"
       }
-     ]
+     ],
+     "tone": "dark"
     },
     {
-     "id": "criteria",
-     "nav": "판단 기준",
-     "eyebrow": "Criteria",
-     "title": "기능 이름보다, 운영자가 아는 공간을 기준으로 삼았어요",
-     "lead": "기능 이름을 익히게 하기보다, 운영자가 이미 알고 있는 실제 공간을 따라 정보를 찾게 하는 것이 먼저라고 봤어요.",
+     "id": "direction",
+     "nav": "설계 방향",
+     "eyebrow": "Design Direction",
+     "title": "화면을 그리기 전에, 세 가지 기준을 먼저 정했어요",
      "blocks": [
       {
        "type": "criteria",
@@ -462,7 +536,7 @@
      "id": "compare",
      "nav": "Before · After",
      "eyebrow": "Before & After",
-     "title": "기능 대신 공간을 따라 찾고, 확인한 자리에서 조치하게 했어요",
+     "title": "공간을 따라 찾고, 확인한 자리에서 조치하게 했어요",
      "lead": "탐색 기준과 관제 흐름, 두 가지를 바꿨어요.",
      "blocks": [
       {
@@ -502,9 +576,9 @@
      ]
     },
     {
-     "id": "solution",
-     "nav": "개선",
-     "eyebrow": "Solution",
+     "id": "decisions",
+     "nav": "설계 판단",
+     "eyebrow": "Key Decisions",
      "title": "확인한 화면에서 바로 조치하고, 같은 기준으로 구현하게 했어요",
      "lead": "상태를 확인한 화면에서 바로 판단하고 실행할 수 있도록 흐름이 끊기는 지점을 줄이고, 구현 기준은 Figma 안에서 바로 확인하게 했어요.",
      "blocks": [
@@ -750,9 +824,39 @@
    },
    "sections": [
     {
+     "id": "context",
+     "nav": "배경",
+     "eyebrow": "Context",
+     "title": "흩어진 ESG 데이터를 한곳에 모으는 B2B SaaS예요",
+     "lead": "기업의 ESG 데이터를 한곳에 모으고, 목표 관리와 보고서 작성·검토라는 실제 업무로 잇는 플랫폼이에요. 관리자와 사용자가 권한에 따라 서로 다른 정보를 다뤄요.",
+     "blocks": [
+      {
+       "type": "facts",
+       "items": [
+        {
+         "label": "기간",
+         "value": "2024.12 – 2025.12"
+        },
+        {
+         "label": "화면 기준",
+         "value": "PC 1440–1920px"
+        },
+        {
+         "label": "맡은 범위",
+         "value": "UX 기획 · UI 설계 · 디자인 시스템"
+        },
+        {
+         "label": "업무 축",
+         "value": "목표 관리 · 보고서 검토"
+        }
+       ]
+      }
+     ]
+    },
+    {
      "id": "problem",
-     "nav": "문제",
-     "eyebrow": "Problem",
+     "nav": "핵심 문제",
+     "eyebrow": "Core Problem",
      "title": "ESG 데이터가 목표와 보고서로 이어져야 했어요",
      "lead": "ESG 데이터는 목표 관리와 공시, 보고서 작성으로 이어져야 해요. 관리자와 사용자는 권한에 따라 서로 다른 정보를 다뤄요.",
      "blocks": [
@@ -768,15 +872,21 @@
          "body": "보고서 작성과 항목별 검토 결과가 따로 읽히면 먼저 고칠 부분을 찾기 어려워요."
         }
        ]
+      },
+      {
+       "type": "statement",
+       "label": "그래서, 이렇게 봤어요",
+       "text": "ESG 데이터는 관리보다 실행이 중요하다고 봤어요. 지표는 실행할 수 있는 목표 단위로 다시 묶여야 했어요.",
+       "mark": "관리보다 실행"
       }
-     ]
+     ],
+     "tone": "dark"
     },
     {
-     "id": "criteria",
-     "nav": "판단 기준",
-     "eyebrow": "Criteria",
-     "title": "지표를 더 보여주기보다, 실행할 목표 단위로 묶었어요",
-     "lead": "ESG 데이터는 관리보다 실행이 중요하다고 봤어요. 그래서 지표를 목표 단위로 다시 묶고, 데이터 입력부터 공시·분석·활용까지 한 흐름으로 이었어요.",
+     "id": "direction",
+     "nav": "설계 방향",
+     "eyebrow": "Design Direction",
+     "title": "지표를 업무로 바꾸는 기준을 먼저 정했어요",
      "blocks": [
       {
        "type": "criteria",
@@ -840,9 +950,9 @@
      ]
     },
     {
-     "id": "solution",
-     "nav": "개선",
-     "eyebrow": "Solution",
+     "id": "decisions",
+     "nav": "설계 판단",
+     "eyebrow": "Key Decisions",
      "title": "두 업무의 출발점을 같은 데이터에 두었어요",
      "lead": "데이터 입력부터 공시, 분석, 활용까지 한 흐름으로 이어지도록 두 업무의 출발점을 같은 데이터에 두고, 이름과 상태의 기준은 개발까지 이어갔어요.",
      "blocks": [
@@ -1107,9 +1217,39 @@
    },
    "sections": [
     {
+     "id": "context",
+     "nav": "배경",
+     "eyebrow": "Context",
+     "title": "AI가 서류와 현장 사진을 분석하는 공공 서비스예요",
+     "lead": "사용자가 근로계약서와 현장 사진을 올리면 AI가 위험 요소를 분석해요. 분석에서 끝나지 않고, 사용자의 점검과 조치까지 이어지는 흐름을 설계했어요.",
+     "blocks": [
+      {
+       "type": "facts",
+       "items": [
+        {
+         "label": "유형",
+         "value": "공공 서비스 · 고용노동부"
+        },
+        {
+         "label": "플랫폼",
+         "value": "Responsive Web"
+        },
+        {
+         "label": "설계 기준",
+         "value": "KRDS"
+        },
+        {
+         "label": "맡은 범위",
+         "value": "UX 기획 · UI 설계 · 디자인 시스템"
+        }
+       ]
+      }
+     ]
+    },
+    {
      "id": "problem",
-     "nav": "문제",
-     "eyebrow": "Problem",
+     "nav": "핵심 문제",
+     "eyebrow": "Core Problem",
      "title": "AI가 읽은 결과를, 사용자가 확인할 방법이 필요했어요",
      "lead": "사용자는 근로계약서와 현장 사진을 올리고, AI가 분석한 위험 요소를 확인해요. 연령과 디지털 숙련도가 다른 사용자가 이 결과를 보고 점검과 조치까지 이어가야 했어요.",
      "blocks": [
@@ -1129,15 +1269,21 @@
          "body": "결과를 보여주는 데서 끝나면 무엇을 점검하고 조치할지 알기 어려워요."
         }
        ]
+      },
+      {
+       "type": "statement",
+       "label": "그래서, 이렇게 봤어요",
+       "text": "자동 분석 결과보다, 사용자가 그 결과를 직접 검증하고 다음 조치를 알 수 있는지가 더 중요하다고 봤어요.",
+       "mark": "직접 검증"
       }
-     ]
+     ],
+     "tone": "dark"
     },
     {
-     "id": "criteria",
-     "nav": "판단 기준",
-     "eyebrow": "Criteria",
-     "title": "분석 결과를 믿게 하기보다, 직접 확인하게 했어요",
-     "lead": "자동 분석 결과보다, 사용자가 그 결과를 직접 검증하고 다음 조치를 알 수 있는지가 더 중요하다고 봤어요.",
+     "id": "direction",
+     "nav": "설계 방향",
+     "eyebrow": "Design Direction",
+     "title": "직접 확인할 수 있는 구조를 방향으로 잡았어요",
      "blocks": [
       {
        "type": "criteria",
@@ -1206,9 +1352,9 @@
      ]
     },
     {
-     "id": "solution",
-     "nav": "개선",
-     "eyebrow": "Solution",
+     "id": "decisions",
+     "nav": "설계 판단",
+     "eyebrow": "Key Decisions",
      "title": "문서와 화면이 달라도, 같은 방식으로 확인하게 했어요",
      "lead": "사용자가 결과를 믿기 전에 직접 확인할 수 있도록, 익숙한 화면 구조와 파일 조건별 동작 기준을 먼저 정했어요.",
      "blocks": [
@@ -1492,9 +1638,39 @@
    },
    "sections": [
     {
+     "id": "context",
+     "nav": "배경",
+     "eyebrow": "Context",
+     "title": "인사·근태·결재·권한을 한곳에 모은 그룹웨어예요",
+     "lead": "흩어져 있던 사내 업무를 한 흐름으로 묶는 프로젝트예요. 같은 업무라도 부서·직책·역할에 따라 필요한 메뉴와 데이터가 달라서, 누가 무엇을 보는지가 설계의 출발점이었어요.",
+     "blocks": [
+      {
+       "type": "facts",
+       "items": [
+        {
+         "label": "기간",
+         "value": "2025.12 – 2026.04"
+        },
+        {
+         "label": "화면 기준",
+         "value": "PC 1440–1920px"
+        },
+        {
+         "label": "역할 축",
+         "value": "사용자 · 관리자"
+        },
+        {
+         "label": "공통 상태",
+         "value": "기안 → 승인 · 반려 → 이력"
+        }
+       ]
+      }
+     ]
+    },
+    {
      "id": "problem",
-     "nav": "문제",
-     "eyebrow": "Problem",
+     "nav": "핵심 문제",
+     "eyebrow": "Core Problem",
      "title": "역할마다 봐야 할 정보와 해야 할 일이 달랐어요",
      "lead": "인사, 근태, 전자결재, 권한 관리처럼 흩어진 사내 업무를 한 흐름으로 묶어야 했어요. 같은 업무라도 부서·직책·역할에 따라 필요한 메뉴와 데이터가 달라요.",
      "blocks": [
@@ -1510,15 +1686,21 @@
          "body": "전자결재는 작성뿐 아니라 승인·반려·이력까지 이어서 읽혀야 해요."
         }
        ]
+      },
+      {
+       "type": "statement",
+       "label": "그래서, 이렇게 봤어요",
+       "text": "메뉴를 늘리기보다 조직·권한의 관계와 결재의 처리 순서를 먼저 정리해야 한다고 봤어요.",
+       "mark": "조직·권한의 관계와 결재의 처리 순서"
       }
-     ]
+     ],
+     "tone": "dark"
     },
     {
-     "id": "criteria",
-     "nav": "판단 기준",
-     "eyebrow": "Criteria",
-     "title": "메뉴를 늘리기보다, 누가 무엇을 해야 하는지부터 정했어요",
-     "lead": "메뉴를 늘리기보다 조직·권한의 관계와 결재의 처리 순서를 먼저 정리해야 한다고 봤어요.",
+     "id": "direction",
+     "nav": "설계 방향",
+     "eyebrow": "Design Direction",
+     "title": "화면보다 접근 구조를 먼저 정했어요",
      "blocks": [
       {
        "type": "criteria",
@@ -1582,9 +1764,9 @@
      ]
     },
     {
-     "id": "solution",
-     "nav": "개선",
-     "eyebrow": "Solution",
+     "id": "decisions",
+     "nav": "설계 판단",
+     "eyebrow": "Key Decisions",
      "title": "화면을 나누기 전에, 역할과 동작의 규칙부터 정했어요",
      "lead": "누가 무엇을 볼 수 있는지와 반복되는 동작의 규칙을 먼저 정해, 디자인과 개발의 해석 차이를 줄였어요.",
      "blocks": [
