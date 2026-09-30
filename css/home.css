@@ -308,27 +308,6 @@
 @media(prefers-reduced-motion:reduce) {
  .hero__3d-stage canvas,.hero-object__fallback {transition:none;}
 }
-/* A compact invitation with two direct contact actions. */
-.home-page .contact {background:#191919;color:#F1F1EF;padding:clamp(4rem,8svh,6rem) 0;border:0;overflow:clip;}
-.home-page .contact__layout {min-height:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;}
-.home-page .contact__eyebrow {margin-bottom:2rem;letter-spacing:.12em;}
-.home-page #contact-message {max-width:22em;letter-spacing:-.045em;}
-.home-page .contact__actions {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2rem;width:min(100%,44rem);margin-top:clamp(2rem,4vw,3.5rem);}
-.home-page .contact__action {display:flex;flex-direction:column;gap:.6rem;padding:1.25rem 0;border-top:1px solid #FFFFFF40;color:inherit;transition:border-color .25s,color .25s;}
-.home-page .contact__action > span {display:flex;justify-content:space-between;gap:2rem;font:500 1.125rem/1.5 var(--f-body);letter-spacing:.04em;}
-.home-page .contact__action > span > span {transition:translate .3s var(--ease);color:var(--c-accent);}
-.home-page .contact__action small {font:400 .875rem/1.6 var(--f-body);color:#AAAAAA;overflow-wrap:anywhere;}
-.home-page .contact a:focus-visible {outline:2px solid var(--c-accent);outline-offset:6px;}
-@media(hover:hover) {.home-page .contact__action:hover {border-color:var(--c-accent);}.home-page .contact__action:hover > span > span {translate:3px -3px;}}
-@media(max-width:40em) {
- .home-page .contact {padding-block:3.5rem;}
- .home-page .contact__layout {min-height:0;}
- .home-page .contact__actions {grid-template-columns:1fr;gap:.75rem;}
- .home-page #contact-message br {display:none;}
-}
-@media(prefers-reduced-motion:reduce) {
- .home-page .contact *, .home-page .contact *::after {transition:none!important;}
-}
 
 /* Refined project preview and stable workflow copy */
 .work-preview{position:fixed;top:0;left:0;z-index:90;pointer-events:none;visibility:hidden;opacity:0;transform:translate3d(var(--preview-x,0px),var(--preview-y,0px),0);transition:opacity .22s ease,visibility 0s linear .28s}
@@ -364,7 +343,6 @@
 .hero {background:var(--c-bg);overflow:visible;isolation:auto;}
 .hero__3d-stage {z-index:1;opacity:var(--hero-scene-opacity,1);visibility:var(--hero-scene-visibility,visible);}
 .hero__container,.about__profile {position:relative;z-index:2;}
-.home-page .contact {background:var(--c-void);}
 .services__stage {top:var(--services-top,68px);height:calc(100svh - var(--services-top,68px));}
 
 /* Role-based type rules, scoped to main-page sections and independent of motion. */
@@ -373,7 +351,7 @@
  --section-secondary:#626262;
  --section-muted:#757575;
 }
-.home-page :is(.about,.contact) {
+.home-page .about {
  --section-ink:var(--c-on-void);
  --section-secondary:#B8B8B8;
  --section-muted:#A0A0A0;
@@ -443,8 +421,6 @@
 }
 .home-page .service.is-active .service__number {color:var(--c-accent);}
 .home-page .work__count {display:inline-block;vertical-align:top;margin:.3em 0 0 .75rem;}
-.home-page .contact__action>span {font:500 var(--section-label-size)/1.5 var(--f-display);letter-spacing:.1em;color:var(--section-ink);}
-.home-page .contact__action small {font:400 var(--section-description-size)/var(--section-description-leading) var(--f-body);letter-spacing:0;color:var(--section-secondary);}
 @media(max-width:60em) {
  .home-page :is(.tools,.work) .section-header {flex-wrap:wrap;gap:var(--section-copy-gap);}
  .home-page :is(.tools,.work) .section-description {flex-basis:100%;white-space:normal;max-width:var(--text-width-lg);}
@@ -470,7 +446,11 @@
 }
 .site-nav.is-about-theme .site-menu.open {background:var(--about-bg);}
 /* While a scene edge passes under the bar, only the logo and links carry the tone. */
-.home-page .site-nav.is-scene-crossing {background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;}
+.home-page .site-nav:is(.is-scene-crossing,.is-scene-handoff) {background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;}
+/* During a Tools handoff the fill is a layer clipped to the surface's width
+   (--bar-clip, main.js): none over the veil, the surface's own width while it
+   folds away. An edge crossing the bar still clears it entirely. */
+.home-page .site-nav.is-scene-handoff:not(.is-scene-crossing)::before {content:'';position:absolute;inset:0;z-index:-1;background:rgb(var(--nav-paper));clip-path:var(--bar-clip,inset(0 50%));pointer-events:none;}
 
 .home-page .tools {
  --c-ink:#F7F7F5;--c-ink-2:#B8B8B8;--c-line:#575754;--c-line-soft:#575754;
@@ -478,23 +458,29 @@
  color:var(--c-ink);
 }
 .tools .tools__stage {padding:0;}
-/* The dark scene is a sheet over the light page: its upper corners round
-   while it rises (--tools-radius) and square off before it meets the header. */
-.tools__scene {width:100%;background:var(--c-void);overflow:clip;border-radius:var(--tools-radius,0px) var(--tools-radius,0px) 0 0;}
-.tools__content {padding-block:5rem;}
-@media(max-width:40em) {.tools__content {padding-block:3rem;}}
+/* Tools is one surface, the working environment of the sequence. It is a
+   full-screen scene; its dark field is a separate layer (::before) whose clip
+   (--tools-clip, main.js) insets and rounds it while it rises over the AI
+   stage and again while it folds away from Contact. Only that solid shape
+   repaints during the handoffs; the content layer stays put. */
+.home-page .tools {position:relative;z-index:2;}
+.tools__scene {position:relative;isolation:isolate;display:flex;align-items:center;width:100%;min-height:100svh;}
+.tools__scene::before {content:'';position:absolute;inset:0;z-index:-1;background:var(--c-void);clip-path:var(--tools-clip,none);}
+.tools__content {width:100%;padding-block:calc(var(--nav-h) + clamp(2rem,6svh,4rem)) clamp(3rem,8svh,5rem);}
+@media(max-width:48em) {.tools__scene {min-height:0;}}
+@media(max-width:40em) {.tools__content {padding-block:3.5rem;}}
 /* Three workflow columns share one row system. Number, title and description
    form one track and every tool its own, so all three columns start their
-   tools on the same line however their descriptions wrap. */
-.tool-groups {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:auto repeat(3,auto);column-gap:clamp(1.25rem,2.5vw,2.5rem);row-gap:.5rem;margin-top:clamp(2.5rem,5vw,3.5rem);}
+   tools on the same line however their descriptions wrap. They use the page
+   grid's gap, so each column is exactly four of its twelve columns. */
+.tool-groups {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:auto repeat(3,auto);column-gap:var(--grid-gap);row-gap:.5rem;margin-top:clamp(2.5rem,5vw,3.5rem);}
 .tool-group {
  position:relative;display:grid;grid-row:span 4;grid-template-rows:subgrid;min-width:0;padding-top:1.5rem;
- /* Exit: columns recede one after another as Contact takes the field. */
+ /* Exit: columns recede one after another while the surface folds away. */
  translate:0 calc(var(--exit,0) * -2.5rem * (1 + var(--group,0) * .45));opacity:calc(1 - var(--exit,0) * .72);
 }
-.tool-group::before {content:'';position:absolute;inset:0 0 auto;height:1px;background:var(--c-line);transform:scaleX(var(--rule,1));transform-origin:0 50%;}
+.tool-group::before {content:'';position:absolute;inset:0 0 auto;height:1px;background:var(--c-line);}
 .tool-group__head {margin-bottom:1rem;}
-.tool-group__head > * {opacity:var(--head-in,1);translate:0 calc((1 - var(--head-in,1)) * .9rem);}
 .tool-group__index {display:block;margin-bottom:.9rem;font:600 .75rem/1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--c-accent);}
 .home-page .tool-group h3 {margin:0;font:600 var(--section-item-size)/1.4 var(--f-body);letter-spacing:-.025em;color:var(--section-ink);word-break:keep-all;}
 .home-page .tool-group__head p {max-width:24em;margin:.6rem 0 0;font:400 var(--section-body-size)/var(--section-body-leading) var(--f-body);color:var(--section-secondary);word-break:keep-all;text-wrap:pretty;}
@@ -583,11 +569,6 @@
 .career__stage > * {opacity:var(--stage-in,1);translate:calc((1 - var(--stage-in,1)) * -.75rem) 0;}
 .home-page .sr-only {position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0;}
 
-/* Contact: its two lines draw before the ways to reach out appear. */
-.contact.has-scene-transition .contact__action {position:relative;border-top-color:transparent;}
-.contact.has-scene-transition .contact__action::before {content:'';position:absolute;inset:-1px 0 auto;height:1px;background:#FFFFFF40;transform:scaleX(var(--line-in,1));transform-origin:0 50%;transition:background-color .25s;}
-.contact.has-scene-transition .contact__action > * {opacity:var(--action-in,1);translate:0 calc((1 - var(--action-in,1)) * .75rem);}
-@media(hover:hover) {.home-page .contact.has-scene-transition .contact__action:hover::before {background:var(--c-accent);}}
 /* A reel is all ten cells tall; its window (.stat-digit) shows one line. */
 .home-page .about__metrics .stat-reel {height:auto;}
 /* Windows are sized per digit in JS; figures stay proportional like the plain text. */
@@ -597,3 +578,68 @@
 .work.has-scene-transition .work-row__reveal {clip-path:inset(0 calc((1 - var(--row-img,1)) * 100%) 0 0 round var(--image-radius));}
 /* Step titles balance their lines, so no title ends on a lone word. */
 .home-page .service h3 {text-wrap:balance;}
+
+/* The AI stage holds one more screen while Tools rises over it (the section is
+   one screen taller and Tools overlaps that screen). The stage recedes in
+   depth (--ai-recede) and the whole view beneath the arriving surface dims
+   (--tools-veil). The veil lies under the surface and spans the full width,
+   so the strips beside the still-inset surface dim with the rest; main.js
+   drives both from the surface's own progress. */
+.services.is-scene {height:calc((var(--scene-screens) + 1) * 100svh);}
+.services.is-scene + .tools {margin-top:-100svh;}
+.services.is-scene .services__stage {scale:calc(1 - var(--ai-recede,0) * .06);transform-origin:50% 35%;}
+.services.is-scene + .tools::before {content:'';position:absolute;inset:-100svh 0 0;background:var(--c-void);opacity:calc(var(--tools-veil,0) * .3);pointer-events:none;}
+
+/* Split headings (Work, Tools) sit on the page grid: the title spans columns
+   1–8, the description the last third, 9–12, which is exactly the third Tools
+   column, so its first letter shares a line with that column. A desktop break
+   sets two phrase-true lines; should the longer line need more room the box
+   grows leftward, never past the grid's right edge. Both align on the last
+   baseline, so the description ends on the title's line. */
+@media(min-width:60.0625em) {
+ .home-page :is(.tools,.work) .section-header {display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--grid-gap);align-items:last baseline;}
+ .home-page :is(.tools,.work) .section-header__heading {grid-column:1/9;min-width:0;}
+ .home-page :is(.tools,.work) .section-description {grid-column:9/-1;justify-self:end;width:max-content;min-width:100%;max-width:none;margin:0;padding:0;white-space:normal;}
+}
+
+/* Contact is the final scene: light, open and quiet after the dark surface.
+   The question keeps the Hero's two tones, complexity in grey and the answer
+   in ink (this grey is a step darker, so the large type keeps 3:1 contrast).
+   The two ways to reach out form one editorial list on the right half of the
+   grid, below it. One screen, composed around a clear diagonal. */
+.home-page .contact {background:var(--c-bg);color:var(--c-ink);padding:0;border:0;overflow:clip;
+ --section-ink:var(--c-ink);--section-secondary:#626262;--section-muted:#757575;--contact-rule:rgba(27,28,25,.16);}
+.home-page .contact__layout {box-sizing:border-box;min-height:100svh;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--grid-gap);align-content:center;
+ padding-block:calc(var(--nav-h) + clamp(3rem,9svh,6.5rem)) clamp(3.5rem,10svh,7rem);}
+.home-page .contact__eyebrow {grid-column:1/-1;justify-self:start;margin:0 0 clamp(1.5rem,3.2svh,2.5rem);}
+.home-page #contact-message {grid-column:1/span 11;max-width:none;margin:0;font:500 clamp(2.5rem,5.1vw,4.875rem)/1.16 var(--f-body);letter-spacing:-.052em;color:var(--c-ink);text-wrap:initial;}
+.contact__line {display:block;overflow:clip;padding-block:.04em .1em;margin-block:-.04em -.1em;}
+.contact__line > span {display:block;}
+.contact__line:first-child {color:#8C8C8C;}
+.home-page .contact__actions {grid-column:7/-1;display:grid;margin-top:clamp(3rem,10svh,6.5rem);}
+.home-page .contact__action {position:relative;display:grid;grid-template-columns:5.5rem minmax(0,1fr) auto;align-items:center;column-gap:1.5rem;padding:1.4rem 0;color:inherit;}
+.home-page .contact__action:first-child::before,.home-page .contact__action::after {content:'';position:absolute;left:0;right:0;height:1px;background:var(--contact-rule);transform-origin:100% 50%;transform:scaleX(var(--line-in,1));pointer-events:none;}
+.home-page .contact__action:first-child::before {top:0;}
+.home-page .contact__action::after {bottom:0;background:linear-gradient(var(--c-ink),var(--c-ink)) 0 0/0 100% no-repeat,var(--contact-rule);transition:background-size .55s var(--ease);}
+.home-page .contact__action > * {opacity:var(--action-in,1);translate:0 calc((1 - var(--action-in,1)) * .6rem);}
+.contact__label {font:500 .75rem/1.5 var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--section-secondary);transition:color .3s ease;}
+.contact__value {font:500 clamp(1.25rem,1.75vw,1.625rem)/1.35 var(--f-display);letter-spacing:-.02em;color:var(--c-ink);overflow-wrap:anywhere;}
+.contact__arrow {width:1.375rem;height:1.375rem;color:var(--c-ink);transition:color .3s ease,translate .45s var(--ease);}
+.home-page .contact__action:is(:focus-visible,:active)::after {background-size:100% 100%,auto;}
+.home-page .contact__action:focus-visible .contact__label {color:var(--c-ink);}
+.home-page .contact__action:focus-visible .contact__arrow {color:var(--c-accent);translate:4px -4px;}
+@media(hover:hover) {
+ .home-page .contact__action:hover::after {background-size:100% 100%,auto;}
+ .home-page .contact__action:hover .contact__label {color:var(--c-ink);}
+ .home-page .contact__action:hover .contact__arrow {color:var(--c-accent);translate:4px -4px;}
+}
+@media(max-width:60em) {.home-page .contact__actions {grid-column:5/-1;}}
+@media(max-width:48em) {
+ .home-page .contact__layout {grid-template-columns:minmax(0,1fr);align-content:center;}
+ .home-page #contact-message,.home-page .contact__actions {grid-column:1/-1;}
+ .home-page #contact-message {font-size:clamp(2.125rem,9vw,3.25rem);}
+ .home-page .contact__actions {margin-top:clamp(2.5rem,8svh,4rem);}
+ .home-page .contact__action {grid-template-columns:4.25rem minmax(0,1fr) auto;column-gap:1rem;padding:1.15rem 0;}
+ .contact__value {font-size:1.125rem;}
+}
+@media(prefers-reduced-motion:reduce) {.contact__label,.contact__arrow,.home-page .contact__action::after {transition:none;}}

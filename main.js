@@ -61,10 +61,11 @@ let lenis = null;
     const update = () => {
       pending=false;
       nav.classList.toggle('is-scrolled',scrollY>70);
-      // Change tone as soon as a dark section reaches the header's lower edge.
-      // This keeps the full-width bar visually attached to the scene beneath it.
+      // Change tone once a dark section reaches the header's midline, the line
+      // its logo and links sit on. While an edge crosses the bar the bar is
+      // clear, so the text always takes the tone of what lies behind it.
       // A section that owns a live palette (About) sets the header tone itself.
-      const toneLine=nav.getBoundingClientRect().bottom;
+      const bar=nav.getBoundingClientRect(),toneLine=(bar.top+bar.bottom)/2;
       nav.classList.toggle('is-dark',tones.some(s=>{if(s.classList.contains('has-color-scene'))return false;const r=s.getBoundingClientRect();return s.dataset.tone==='dark'&&r.top<=toneLine&&r.bottom>toneLine;}));
       window.portfolioAboutTheme?.syncHeader();
       const active=sections.find(s=>{const r=s.getBoundingClientRect();return r.top<=innerHeight*.4&&r.bottom>innerHeight*.4;});
@@ -294,14 +295,18 @@ let lenis = null;
     const mutedDark=getComputedStyle($('.about__metrics dt',about)).color;
     const mix=gsap.utils.interpolate,state={progress:0};
     let palette={},trigger,tween,target,initialized=false,sceneHidden=null;
+    const darkScenes=$$('[data-tone="dark"]').filter(scene=>scene!==about);
     const syncHeader=()=>{
       // The header follows the scene directly beneath it, never the trigger:
       // over Hero it stays light; About's palette applies once About reaches
-      // the bar's midline. While an About edge crosses the bar, the bar is
-      // transparent so the real boundary shows instead of a separate slab.
+      // the bar's midline. While any tone edge (About's or a dark scene's)
+      // crosses the bar, the bar is transparent so the real boundary shows
+      // instead of a separate slab.
       const rect=about.getBoundingClientRect(),bar=nav.getBoundingClientRect(),middle=(bar.top+bar.bottom)/2;
       const active=rect.top<=middle&&rect.bottom>middle;
-      const crossing=(rect.top>bar.top&&rect.top<bar.bottom)||(rect.bottom>bar.top&&rect.bottom<bar.bottom);
+      const edges=[rect.top,rect.bottom];
+      for(const scene of darkScenes){const r=scene.getBoundingClientRect();edges.push(r.top,r.bottom);}
+      const crossing=edges.some(y=>y>bar.top+1&&y<bar.bottom-1);
       nav.classList.toggle('is-about-theme',active);
       nav.classList.toggle('is-scene-crossing',crossing);
       if(active)for(const [key,value] of Object.entries(palette))nav.style.setProperty(key,value);
@@ -408,7 +413,10 @@ let lenis = null;
       section.__stackEntry=value=>{if(Math.abs(value-entry)<.0005)return;entry=value;render();};
       const timeline=gsap.timeline({onUpdate:render});
       timeline.to(state,{position:0,duration:.10}).to(state,{position:panels.length-1,duration:1,ease:'none'}).to(state,{position:panels.length-1,duration:.10});
-      const trigger=ST.create({trigger:section,start:()=> 'top '+($('#nav')?.offsetHeight||68),end:'bottom bottom',animation:timeline,
+      // The section keeps one extra screen of pinned stage after the last card
+      // (CSS): the stack completes before it, and Tools rises over the stage
+      // during it. That screen is the handoff, not more reading.
+      const trigger=ST.create({trigger:section,start:()=> 'top '+($('#nav')?.offsetHeight||68),end:()=>'bottom bottom+='+innerHeight,animation:timeline,
         scrub:.20,invalidateOnRefresh:true,onRefreshInit:measure,onRefresh:render});
       const go=index=>moveTo(trigger.start+(.10+index/(panels.length-1))/1.20*(trigger.end-trigger.start));
       const clicks=buttons.map((button,i)=>{const click=()=>go(i);button.addEventListener('click',click);return click;});
@@ -522,26 +530,18 @@ let lenis = null;
         // The process column assembles before its first card takes focus.
         ai:section=>{const tl=pose(),side=$('.section-side',section);if(!side)return tl;
           wipe(tl,$('.section-eyebrow',side),0);lift(tl,[$('.services__intro',side)],.3);lift(tl,[$('.scene-controls',side)],.42,{y:12});return tl;},
-        // Each column is built in order: its rule, its heading, then its tools.
-        tools:section=>{const tl=pose();wipe(tl,$('.section-eyebrow',section),0);lift(tl,[$('.section-description',section)],.2);
-          $$('.tool-group',section).forEach((group,g)=>{
-            const at=.16+g*.1;
-            drive(tl,group,'--rule',at,.3,'power2.inOut');
-            drive(tl,group,'--head-in',at+.08,.26,'power3.out');
-            $$('.tool-row',group).forEach((row,r)=>{
-              drive(tl,row,'--row-in',at+.2+r*.08,.3,'power3.out');
-              drive(tl,row,'--logo-in',at+.24+r*.08,.32,'back.out(1.7)');
-            });
-          });
-          return tl;},
-        // The lines draw first, then the two ways to reach out.
-        contact:section=>{const tl=pose();wipe(tl,$('.contact__eyebrow',section),0);
-          $$('.contact__action',section).forEach((action,i)=>{drive(tl,action,'--line-in',.34+i*.12,.34,'power2.inOut');drive(tl,action,'--action-in',.46+i*.12,.3,'power3.out');});
+        // The surface is the arrival; inside it only the tools settle into
+        // their rows, late in the rise. No second rule or heading motion.
+        tools:section=>{const tl=pose();wipe(tl,$('.section-eyebrow',section),.2);lift(tl,[$('.section-description',section)],.34);
+          $$('.tool-group',section).forEach((group,g)=>$$('.tool-row',group).forEach((row,r)=>{
+            const at=.46+g*.07+r*.06;
+            drive(tl,row,'--row-in',at,.3,'power3.out');
+            drive(tl,row,'--logo-in',at+.04,.32,'back.out(1.7)');
+          }));
           return tl;}
       };
       const exits={
-        // Tools and Contact share one dark field, so the handoff is carried by
-        // content: the columns recede in depth, one after another.
+        // Leaving, the columns recede in depth under the folding surface.
         tools:section=>{const tl=pose(),head=$('.section-header',section);
           if(head)tl.fromTo(head,{opacity:1,y:0},{opacity:.18,y:-30*amount,duration:.66,ease:'power1.in'},.06);
           $$('.tool-group',section).forEach((group,g)=>drive(tl,group,'--exit',.12+g*.08,.76-g*.08,'power1.in'));
@@ -569,8 +569,36 @@ let lenis = null;
       const hooks={
         // About lifts off the page: its lower corners round as it leaves.
         about:section=>(enter,leave)=>section.style.setProperty('--about-radius',(44*amount*smooth(leave)).toFixed(2)+'px'),
-        // Tools rises as a dark sheet over the light page; it squares as it lands.
-        tools:section=>enter=>section.style.setProperty('--tools-radius',(44*amount*smooth(1-enter)).toFixed(2)+'px'),
+        // Tools is one surface. It rises over the pinned AI stage as an inset,
+        // rounded card and opens to full bleed as its top reaches the header;
+        // the stage beneath recedes and dims. Leaving, its lower edge draws in
+        // again and rounds, uncovering the light Contact scene.
+        tools:section=>{
+          const services=$('.services'),nav=$('#nav'),written=new Map();
+          let navH=nav?.offsetHeight||80,width=section.clientWidth||innerWidth,clear=false;
+          const measure=()=>{navH=nav?.offsetHeight||80;width=section.clientWidth||innerWidth;};ST.addEventListener('refresh',measure);
+          // Style writes only when a value changes.
+          const put=(el,name,value)=>{if(!el)return;const key=el.id+name;if(written.get(key)!==value){written.set(key,value);el.style.setProperty(name,value);}};
+          cleanups.push(()=>{ST.removeEventListener('refresh',measure);nav?.classList.remove('is-scene-handoff');nav?.style.removeProperty('--bar-clip');
+            ['--tools-clip','--tools-veil'].forEach(p=>section.style.removeProperty(p));services?.style.removeProperty('--ai-recede');});
+          // Geometry comes from the scene's own progress: no layout reads here.
+          return (enter,leave,scroll,distance,height,viewport)=>{
+            const top=viewport-distance,bottom=top+height,pinned=!!services?.classList.contains('is-scene');
+            const rising=top>0&&top<viewport,open=smooth(clamp((viewport-top)/Math.max(1,viewport-navH),0,1));
+            const fold=easeInOut(clamp((viewport-bottom)/(viewport*.85),0,1)),folding=fold>.001&&bottom>0&&bottom<viewport;
+            // Whole pixels keep the side edges crisp while they move.
+            const inset=Math.round(Math.max((1-open)*7,fold*5)*amount*width/100),topR=(1-open)*44*amount,bottomR=fold*44*amount;
+            put(section,'--tools-clip',inset<1&&topR<.05&&bottomR<.05?'none':'inset(0 '+inset+'px 0 '+inset+'px round '+topR.toFixed(2)+'px '+topR.toFixed(2)+'px '+bottomR.toFixed(2)+'px '+bottomR.toFixed(2)+'px)');
+            put(services,'--ai-recede',(rising?open:top<=0?1:0).toFixed(4));
+            put(section,'--tools-veil',(pinned&&rising?open:0).toFixed(4));
+            // During a handoff the bar never reads as a separate slab: over the
+            // veil it is clear, over the folding surface its fill takes the
+            // surface's width, so content still passes beneath an opaque bar.
+            const handoff=(pinned&&rising)||folding;
+            if(handoff!==clear){clear=handoff;nav?.classList.toggle('is-scene-handoff',handoff);}
+            put(nav,'--bar-clip',folding?'inset(0 '+inset+'px)':'inset(0 50%)');
+          };
+        },
         ai:section=>enter=>section.__stackEntry?.(smooth(enter)),
         work:workRows
       };
@@ -579,8 +607,7 @@ let lenis = null;
         {section:about,kind:'about'},
         {section:$('.work'),kind:'work',title:{mode:'converge',stagger:.16,span:.68}},
         {section:$('.services'),kind:'ai',title:{accent:'AI로',stagger:.08,span:.6}},
-        {section:$('.tools'),kind:'tools',title:{stagger:.06,span:.56}},
-        {section:$('.contact'),kind:'contact',title:{stagger:.1,span:.58}}
+        {section:$('.tools'),kind:'tools',title:{stagger:.06,span:.56}}
       ];
       for(const {section,kind,title:options} of configurations){
         if(!section)continue;
@@ -593,12 +620,11 @@ let lenis = null;
           const distance=state.progress*(trigger.end-trigger.start);
           const height=section.offsetHeight,viewport=innerHeight;
           // Arrival completes before reading or pinning; exit starts after release.
-          const entrySpan=kind==='contact'?Math.min(viewport*.68,height*.85):viewport*.68;
-          const enter=kind==='hero'?1:clamp(distance/entrySpan,0,1);
+          const enter=kind==='hero'?1:clamp(distance/(viewport*.68),0,1);
           const remaining=kind==='hero'?height-distance:height+viewport-distance;
-          const leave=kind==='contact'?0:clamp((viewport*.9-remaining)/(viewport*.9),0,1);
+          const leave=clamp((viewport*.9-remaining)/(viewport*.9),0,1);
           title?.render(enter);entry?.progress(enter);exit?.progress(leave);
-          hook?.(enter,leave,trigger.start+distance);
+          hook?.(enter,leave,trigger.start+distance,distance,height,viewport);
         };
         const score=gsap.timeline({paused:true,onUpdate:render})
           .to(state,{progress:1,duration:1,ease:'none'});
@@ -615,6 +641,22 @@ let lenis = null;
           }
         });
         render();scenes.push({section,score,trigger,title,entry,exit});
+      }
+
+      // Contact is the finale. Once its question is on screen the lines rise,
+      // then the two ways to reach out draw their rules and settle: one short
+      // composition, played rather than scrubbed, so it always completes. It
+      // resets only after the scene has left below the view.
+      const contact=$('.contact'),message=$('#contact-message');
+      if(contact&&message){
+        const tl=gsap.timeline({paused:true}),lines=$$('.contact__line > span',contact);
+        wipe(tl,$('.contact__eyebrow',contact),0);
+        lines.forEach((line,i)=>tl.fromTo(line,{yPercent:108},{yPercent:0,duration:.95,ease:'power3.out'},.1+i*.16));
+        $$('.contact__action',contact).forEach((action,i)=>{drive(tl,action,'--line-in',.55+i*.14,.8,'power2.inOut');drive(tl,action,'--action-in',.72+i*.14,.7,'power3.out');});
+        const show=new IntersectionObserver(([item])=>{if(item.isIntersecting&&!tl.isActive()&&tl.progress()<1)tl.play();},{rootMargin:'0px 0px -12% 0px'});
+        const reset=new IntersectionObserver(([item])=>{if(!item.isIntersecting&&item.boundingClientRect.top>0)tl.pause(0);});
+        show.observe(message);reset.observe(contact);
+        cleanups.push(()=>{show.disconnect();reset.disconnect();tl.progress(1).kill();gsap.set(lines,{clearProps:'transform'});});
       }
 
       // About arrives with its colour: the title rises at the flip; the career
@@ -677,7 +719,7 @@ let lenis = null;
         });
         vars.forEach(([el,name])=>el.style.removeProperty(name));
         gsap.set($$('.section-eyebrow,.section-description,.services__intro,.scene-controls,.section-header'),{clearProps:'clipPath,transform,opacity'});
-        about?.style.removeProperty('--about-radius');$('.tools')?.style.removeProperty('--tools-radius');
+        about?.style.removeProperty('--about-radius');
         queueRefresh();
       };
     });
